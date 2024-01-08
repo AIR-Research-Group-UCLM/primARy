@@ -1,0 +1,23 @@
+En este archivo se irán escribiendo las diferentes entradas de changelog y deberá vaciarse una vez que se cambie el número de versión de la aplicación
+y se trasladen las entradas al archivo definitivo changelog.txt.
+
+Está basado en Conventional Commits: https://www.conventionalcommits.org/en/v1.0.0/
+
+Cada entrada del changelog tendrá el siguiente formato: 
+<type>[scope]: <description>
+
+por ejemplo: 
+feat(vr-app) allow provided config object to extend other configs
+feat(frontend): added page to manage user settings
+feat(backend)!: created endpoint to send an email to the customer when a product is shipped <-- ESTE CAMBIO ES BREAKING
+
+
+Los tipos más habituales serán los siguientes:
+fix:, feat:, build:, chore:, ci:, docs:, style:, refactor:, perf:, test:
+
+Finalmente, hay que recordar que el changelog es posible que sea requerido en algún momento así que los mensajes deberán
+estar bien escritos y ser descriptivos.
+
+=================================================================================================================
+chore(vr-app): created empty Unity 2022.3.16f1 project
+
