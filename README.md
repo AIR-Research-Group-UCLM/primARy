@@ -4,3 +4,7 @@ This BSc final year project aims to enhance the diagnostic and support capabilit
 # Directory Structure
 - **vr-app**: contains the solution intended to be used on the Quest 3 headset.
 - **videoconference-app**: contains an Angular based frontend and a NestJS based backend.
+
+# Commits and Branching
+- [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
+- [GIT-FLOW](https://nvie.com/posts/a-successful-git-branching-model/).
