@@ -90,7 +90,9 @@ export function Navigation({ drawerWidth }: { drawerWidth: number }
 
   const [title, setTitle] = useState("");
 
-  // TODO: the correct way to set the title is by 
+  // TODO: the correct way to set the title is by looking at URL.
+  // Otherwise, there exist a situation in which the title is out of sync
+  // with the page currently being watched
   function handleLinkClick(link: Link) {
     setTitle(link.name);
   }
