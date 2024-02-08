@@ -105,33 +105,3 @@ export default function Page() {
         </div>
     );
 }
-
-// export default function Page() {
-//     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-//     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-
-//     const onConnect: OnConnect = useCallback(
-//         (connection) => setEdges(eds => {
-//             console.log({connection});
-//             return addEdge({...connection, label: "new"}, eds);
-//         }),
-//         [setEdges]
-//     );
-
-//     return (
-//         <div style={{height: "100%", border: "solid"}}>
-//             <ReactFlow
-//                 nodes={nodes}
-//                 edges={edges}
-//                 onNodesChange={onNodesChange}
-//                 onEdgesChange={onEdgesChange}
-//                 onConnect={onConnect}
-//                 panOnScroll
-//                 selectionOnDrag
-//                 fitView
-//             >
-//                 <Controls />
-//             </ReactFlow>
-//         </div>
-//     );
-// }
