@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, MouseEvent} from "react";
 
 import ReactFlow, {
     useNodesState,
@@ -25,7 +25,7 @@ import type {
     Node,
     OnConnectEnd,
     EdgeProps,
-    NodeProps
+    NodeProps,
 } from "reactflow";
 
 import 'reactflow/dist/style.css';
@@ -68,7 +68,7 @@ function FlowChartNode({ data }: NodeProps) {
             <Handle type="source" position={Position.Left} id="left" />
             <Handle type="source" position={Position.Right} id="right" />
 
-            <div style={{ padding: "10px 20px", background: "#ffffff", border: "solid" }}>
+            <div style={{ padding: "10px 20px", background: "#ffffff", border: "solid", borderRadius: 10 }}>
                 {data.label}
             </div>
         </>
@@ -124,12 +124,10 @@ function FlowChartEditor() {
         },
         [setEdges]);
 
-    const onConnectStart: OnConnectStart = useCallback((_, { nodeId, handleId, ...props }) => {
+    const onConnectStart: OnConnectStart = useCallback((_, { nodeId, handleId }) => {
         if (nodeId === null || handleId === null) {
             return;
         }
-
-        console.log(props);
         connectingNodeId.current = { nodeId, handleId: handleId as HandlePosition };
     }, []);
 
@@ -180,6 +178,10 @@ function FlowChartEditor() {
 
     }, [screenToFlowPosition])
 
+    const onEdgeDoubleClick = useCallback<(event: MouseEvent, edge: Edge) => void >((_, edge: Edge) => {
+        console.log(edge);
+    }, []);
+
     return (
         <ReactFlow
             nodes={nodes}
@@ -194,6 +196,7 @@ function FlowChartEditor() {
             nodeOrigin={[0.5, 0]}
             edgeTypes={edgeTypes}
             nodeTypes={nodeTypes}
+            onEdgeDoubleClick={onEdgeDoubleClick}
             connectionMode={ConnectionMode.Loose}
             fitView
         >
