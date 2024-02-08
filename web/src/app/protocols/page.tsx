@@ -12,7 +12,10 @@ import ReactFlow, {
     Background,
     getBezierPath,
     BaseEdge,
-    EdgeLabelRenderer
+    EdgeLabelRenderer,
+    Position,
+    Handle,
+    ConnectionMode
 } from "reactflow";
 
 import type {
@@ -21,7 +24,8 @@ import type {
     Edge,
     Node,
     OnConnectEnd,
-    EdgeProps
+    EdgeProps,
+    NodeProps
 } from "reactflow";
 
 import 'reactflow/dist/style.css';
@@ -29,13 +33,47 @@ import 'reactflow/dist/style.css';
 let id = 2;
 const getId = () => `${id++}`;
 
+interface NodeHandleId {
+    nodeId: string;
+    handleId: HandlePosition;
+}
+
+type HandlePosition = "top" | "bottom" | "left" | "right";
+
 const initialNodes = [
     {
         id: "1",
         data: { label: "Initial Node" },
-        position: { x: 250, y: 25 }
+        position: { x: 250, y: 25 },
+        type: "flowchart-node"
     }
 ];
+
+const opposite = {
+    "top": "bottom",
+    "bottom": "top",
+    "left": "right",
+    "right": "left"
+}
+
+function getOpposite(position: HandlePosition) {
+    return opposite[position];
+}
+
+function FlowChartNode({ data }: NodeProps) {
+    return (
+        <>
+            <Handle type="source" position={Position.Top} id="top" />
+            <Handle type="source" position={Position.Bottom} id="bottom" />
+            <Handle type="source" position={Position.Left} id="left" />
+            <Handle type="source" position={Position.Right} id="right" />
+
+            <div style={{ padding: "10px 20px", background: "#ffffff", border: "solid" }}>
+                {data.label}
+            </div>
+        </>
+    );
+}
 
 function FlowChartEdge({ id, data, ...props }: EdgeProps) {
     const [edgePath, labelX, labelY] = getBezierPath(props);
@@ -67,8 +105,12 @@ const edgeTypes = {
     "flowchart-edge": FlowChartEdge
 }
 
+const nodeTypes = {
+    "flowchart-node": FlowChartNode
+}
+
 function FlowChartEditor() {
-    const connectingNodeId = useRef<string | null>(null);
+    const connectingNodeId = useRef<NodeHandleId | null>(null);
 
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -82,8 +124,13 @@ function FlowChartEditor() {
         },
         [setEdges]);
 
-    const onConnectStart: OnConnectStart = useCallback((_, { nodeId }) => {
-        connectingNodeId.current = nodeId;
+    const onConnectStart: OnConnectStart = useCallback((_, { nodeId, handleId, ...props }) => {
+        if (nodeId === null || handleId === null) {
+            return;
+        }
+
+        console.log(props);
+        connectingNodeId.current = { nodeId, handleId: handleId as HandlePosition };
     }, []);
 
     const onConnectEnd: OnConnectEnd = useCallback((event) => {
@@ -101,7 +148,7 @@ function FlowChartEditor() {
         let id = getId();
 
         // TODO: find the way of correctly typeching this
-        let newNode = {
+        let newNode: Node = {
             id,
             position: screenToFlowPosition({
                 // @ts-ignore
@@ -110,16 +157,27 @@ function FlowChartEditor() {
                 y: event.clientY
             }),
             data: { label: `Node ${id}` },
-            origin: [0.5, 0]
+            type: "flowchart-node",
         };
-
-        setNodes((nds: Node[]) => nds.concat(newNode));
 
         // TODO: think on a better id for the edge
         // TODO: can we avoid the exclamation mark??? maybe using a predicate
-        setEdges((eds: Edge[]) =>
-            eds.concat({ id, source: connectingNodeId.current!, target: id, type: "flowchart-edge", data: { label: "texto" } })
-        );
+        let newEdge: Edge = {
+            id,
+            source: connectingNodeId.current!.nodeId,
+            sourceHandle: connectingNodeId.current!.handleId,
+            targetHandle: getOpposite(connectingNodeId.current!.handleId),
+            target: id,
+            type: "flowchart-edge",
+            data: {
+                label: "texto"
+            },
+        }
+
+
+        setNodes((nds: Node[]) => nds.concat(newNode));
+        setEdges((eds: Edge[]) => eds.concat(newEdge));
+
     }, [screenToFlowPosition])
 
     return (
@@ -135,6 +193,8 @@ function FlowChartEditor() {
             selectionOnDrag
             nodeOrigin={[0.5, 0]}
             edgeTypes={edgeTypes}
+            nodeTypes={nodeTypes}
+            connectionMode={ConnectionMode.Loose}
             fitView
         >
             <Controls />
