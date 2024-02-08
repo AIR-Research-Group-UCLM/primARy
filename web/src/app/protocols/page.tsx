@@ -8,10 +8,21 @@ import ReactFlow, {
     addEdge,
     ReactFlowProvider,
     Controls,
-    useReactFlow
+    useReactFlow,
+    Background,
+    getBezierPath,
+    BaseEdge,
+    EdgeLabelRenderer
 } from "reactflow";
 
-import type { OnConnect, OnConnectStart, Edge, Node, OnConnectEnd } from "reactflow";
+import type {
+    OnConnect,
+    OnConnectStart,
+    Edge,
+    Node,
+    OnConnectEnd,
+    EdgeProps
+} from "reactflow";
 
 import 'reactflow/dist/style.css';
 
@@ -26,6 +37,36 @@ const initialNodes = [
     }
 ];
 
+function FlowChartEdge({ id, data, ...props }: EdgeProps) {
+    const [edgePath, labelX, labelY] = getBezierPath(props);
+
+    return (
+        <>
+            <BaseEdge id={id} path={edgePath} />
+            <EdgeLabelRenderer>
+                <div
+                    style={{
+                        position: "absolute",
+                        transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+                        background: '#ffcc00',
+                        padding: 10,
+                        borderRadius: 5,
+                        fontSize: 12,
+                        fontWeight: 700,
+                    }}
+                    className="nodrag nopan"
+                >
+                    {data.label}
+                </div>
+            </EdgeLabelRenderer>
+        </>
+    );
+}
+
+const edgeTypes = {
+    "flowchart-edge": FlowChartEdge
+}
+
 function FlowChartEditor() {
     const connectingNodeId = useRef<string | null>(null);
 
@@ -35,7 +76,10 @@ function FlowChartEditor() {
     const { screenToFlowPosition } = useReactFlow();
 
     const onConnect: OnConnect = useCallback(
-        connection => setEdges((eds: Edge[]) => addEdge(connection, eds)),
+        connection => {
+            connectingNodeId.current = null;
+            setEdges((eds: Edge[]) => addEdge(connection, eds));
+        },
         [setEdges]);
 
     const onConnectStart: OnConnectStart = useCallback((_, { nodeId }) => {
@@ -73,7 +117,9 @@ function FlowChartEditor() {
 
         // TODO: think on a better id for the edge
         // TODO: can we avoid the exclamation mark??? maybe using a predicate
-        setEdges((eds: Edge[]) => eds.concat({ id, source: connectingNodeId.current!, target: id }));
+        setEdges((eds: Edge[]) =>
+            eds.concat({ id, source: connectingNodeId.current!, target: id, type: "flowchart-edge", data: { label: "texto" } })
+        );
     }, [screenToFlowPosition])
 
     return (
@@ -88,9 +134,11 @@ function FlowChartEditor() {
             panOnScroll
             selectionOnDrag
             nodeOrigin={[0.5, 0]}
+            edgeTypes={edgeTypes}
             fitView
         >
             <Controls />
+            <Background />
         </ReactFlow>
     );
 
