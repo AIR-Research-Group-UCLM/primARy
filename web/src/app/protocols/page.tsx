@@ -129,7 +129,14 @@ function FlowChartEditor() {
   const onConnect: OnConnect = useCallback(
     connection => {
       connectingNodeId.current = null;
-      setEdges((eds: Edge[]) => addEdge(connection, eds));
+      const newConnection = {
+        ...connection,
+        type: "flowchart-edge",
+        data: {
+          label: ""
+        }
+      }
+      setEdges((eds: Edge[]) => addEdge(newConnection, eds));
     },
     [setEdges]);
 
