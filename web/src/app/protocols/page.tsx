@@ -30,6 +30,7 @@ import type {
   OnConnectEnd,
   EdgeProps,
   NodeProps,
+  HandleProps,
 } from "reactflow";
 
 import 'reactflow/dist/style.css';
@@ -64,15 +65,38 @@ function getOpposite(position: HandlePosition) {
   return opposite[position];
 }
 
+function FlowChartHandle({ position, id }: { position: Position, id: string }) {
+  const size = position === Position.Left || position == Position.Right ? {
+    width: "2px",
+    height: "20px"
+  } : {
+    width: "25px",
+    height: "2px"
+  };
+
+  return (
+    <Handle type="source" position={position} id={id} style={{
+      ...size,
+      borderRadius: "3px",
+      background: "#000000",
+    }} />
+  )
+}
+
 function FlowChartNode({ data }: NodeProps) {
   return (
     <>
-      <Handle type="source" position={Position.Top} id="top" />
-      <Handle type="source" position={Position.Bottom} id="bottom" />
-      <Handle type="source" position={Position.Left} id="left" />
-      <Handle type="source" position={Position.Right} id="right" />
+      <FlowChartHandle position={Position.Top} id="top" />
+      <FlowChartHandle position={Position.Left} id="left" />
+      <FlowChartHandle position={Position.Bottom} id="bottom" />
+      <FlowChartHandle position={Position.Right} id="right" />
 
-      <div style={{ padding: "10px 20px", background: "#ffffff", border: "solid", borderRadius: 10 }}>
+      <div style={{
+        padding: "10px 20px",
+        background: "#ffffff",
+        border: "solid 2px",
+        borderRadius: 10,
+      }}>
         {data.label}
       </div>
     </>
@@ -84,7 +108,7 @@ function FlowChartEdge({ id, data, markerEnd, ...props }: EdgeProps) {
 
   return (
     <>
-      <BaseEdge id={id} path={edgePath} markerEnd={markerEnd}/>
+      <BaseEdge id={id} path={edgePath} markerEnd={markerEnd} />
       <EdgeLabelRenderer>
         <TextField
           inputProps={{
@@ -93,10 +117,8 @@ function FlowChartEdge({ id, data, markerEnd, ...props }: EdgeProps) {
               textAlign: "center"
             }
           }}
-          className="nodrag nopan"
           defaultValue={data.label}
           variant="outlined"
-          onChange={(e) => console.log(`${id} se está modificando a ${e.target.value}`)}
           size="small"
           sx={{
             position: "absolute",
