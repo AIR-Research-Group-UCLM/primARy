@@ -17,7 +17,9 @@ import ReactFlow, {
   EdgeLabelRenderer,
   Position,
   Handle,
-  ConnectionMode
+  ConnectionMode,
+  MarkerType,
+
 } from "reactflow";
 
 import type {
@@ -77,12 +79,12 @@ function FlowChartNode({ data }: NodeProps) {
   );
 }
 
-function FlowChartEdge({ id, data, ...props }: EdgeProps) {
+function FlowChartEdge({ id, data, markerEnd, ...props }: EdgeProps) {
   const [edgePath, labelX, labelY] = getBezierPath(props);
 
   return (
     <>
-      <BaseEdge id={id} path={edgePath} />
+      <BaseEdge id={id} path={edgePath} markerEnd={markerEnd}/>
       <EdgeLabelRenderer>
         <TextField
           inputProps={{
@@ -104,7 +106,6 @@ function FlowChartEdge({ id, data, ...props }: EdgeProps) {
             background: "#ffffff",
             width: "75px"
           }} />
-        {/* </div> */}
       </EdgeLabelRenderer>
     </>
   );
@@ -131,7 +132,6 @@ function FlowChartEditor() {
       connectingNodeId.current = null;
       const newConnection = {
         ...connection,
-        type: "flowchart-edge",
         data: {
           label: ""
         }
@@ -180,7 +180,6 @@ function FlowChartEditor() {
       sourceHandle: connectingNodeId.current!.handleId,
       targetHandle: getOpposite(connectingNodeId.current!.handleId),
       target: id,
-      type: "flowchart-edge",
       data: {
         label: ""
       },
@@ -211,6 +210,14 @@ function FlowChartEditor() {
       edgeTypes={edgeTypes}
       nodeTypes={nodeTypes}
       onEdgeDoubleClick={onEdgeDoubleClick}
+      defaultEdgeOptions={{
+        type: "flowchart-edge",
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 50,
+          height: 50
+        }
+      }}
       connectionMode={ConnectionMode.Loose}
       fitView
     >
