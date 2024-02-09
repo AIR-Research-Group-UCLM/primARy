@@ -19,7 +19,6 @@ import ReactFlow, {
   Handle,
   ConnectionMode,
   MarkerType,
-
 } from "reactflow";
 
 import type {
@@ -30,10 +29,13 @@ import type {
   OnConnectEnd,
   EdgeProps,
   NodeProps,
-  HandleProps,
 } from "reactflow";
 
 import 'reactflow/dist/style.css';
+
+import useStore from "@/app/protocols/store";
+import type { RFState } from "@/app/protocols/store";
+import {shallow} from "zustand/shallow";
 
 let id = 2;
 const getId = () => `${id++}`;
@@ -49,7 +51,7 @@ const initialNodes = [
   {
     id: "1",
     data: { label: "Initial Node" },
-    position: { x: 250, y: 25 },
+    position: { x: 0, y: 0 },
     type: "flowchart-node"
   }
 ];
@@ -66,7 +68,9 @@ function getOpposite(position: HandlePosition) {
 }
 
 function FlowChartHandle({ position, id }: { position: Position, id: string }) {
-  const size = position === Position.Left || position == Position.Right ? {
+  const isHorizontal = position === Position.Left || position === Position.Right;
+
+  const size = isHorizontal ? {
     width: "2px",
     height: "20px"
   } : {
@@ -141,11 +145,31 @@ const nodeTypes = {
   "flowchart-node": FlowChartNode
 }
 
-function FlowChartEditor() {
-  const connectingNodeId = useRef<NodeHandleId | null>(null);
+const selector = (state: RFState) => ({
+  nodes: state.nodes,
+  edges: state.edges,
+  onNodesChange: state.onNodesChange,
+  onEdgesChange: state.onEdgesChange,
+  addEdgeFromConnection: state.addEdgeFromConnection,
+  addNode: state.addNode,
+  addEdge: state.addEdge
+});
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+function FlowChartEditor() {
+  // TODO: solve this deprecation warning
+  const {
+    nodes,
+    edges,
+    onNodesChange,
+    onEdgesChange,
+    addEdgeFromConnection,
+    addNode,
+    addEdge
+  } = useStore(
+    selector,
+    shallow,
+  );
+  const connectingNodeId = useRef<NodeHandleId | null>(null);
 
   const { screenToFlowPosition } = useReactFlow();
 
@@ -158,9 +182,9 @@ function FlowChartEditor() {
           label: ""
         }
       }
-      setEdges((eds: Edge[]) => addEdge(newConnection, eds));
+      addEdgeFromConnection(newConnection);
     },
-    [setEdges]);
+    [addEdgeFromConnection]);
 
   const onConnectStart: OnConnectStart = useCallback((_, { nodeId, handleId }) => {
     if (nodeId === null || handleId === null) {
@@ -181,7 +205,7 @@ function FlowChartEditor() {
 
     let id = getId();
 
-    // TODO: find the way of correctly typeching this
+    // TODO: find the way of correctly typechecking this
     let newNode: Node = {
       id,
       position: screenToFlowPosition({
@@ -206,10 +230,8 @@ function FlowChartEditor() {
         label: ""
       },
     }
-
-
-    setNodes((nds: Node[]) => nds.concat(newNode));
-    setEdges((eds: Edge[]) => eds.concat(newEdge));
+    addNode(newNode);
+    addEdge(newEdge);
 
   }, [screenToFlowPosition])
 
