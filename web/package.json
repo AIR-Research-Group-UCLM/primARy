@@ -1,5 +1,5 @@
 {
-  "name": "muitest",
+  "name": "primary",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -17,7 +17,8 @@
     "@mui/material-nextjs": "^5.15.7",
     "next": "14.1.0",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "reactflow": "^11.10.3"
   },
   "devDependencies": {
     "@types/node": "^20",
