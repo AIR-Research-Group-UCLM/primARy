@@ -62,18 +62,20 @@ const useStore = create<RFState>((set, get) => ({
     }))
   },
   addEdge: (edge: Edge) => {
-    set(state => ({edges: [...state.edges, edge]}))
+    set(state => ({ edges: [...state.edges, edge] }))
   },
   addNode: (node: Node) => {
-    set(state => ({nodes: [...state.nodes, node]}))
+    set(state => ({ nodes: [...state.nodes, node] }))
   },
   changeEdgeLabel: (edgeId: string, label: string) => {
-    set(state => ({edges: state.edges.map((edge) => {
-      if (edge.id === edgeId) {
-        return {...edge, data: {...edge.data, label}};
-      }
-      return edge;
-    })}));
+    set(state => ({
+      edges: state.edges.map((edge) => {
+        if (edge.id === edgeId) {
+          return { ...edge, data: { ...edge.data, label } };
+        }
+        return edge;
+      })
+    }));
   }
 }));
 

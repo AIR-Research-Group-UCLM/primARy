@@ -3,7 +3,7 @@ import FlowChartHandle from "@/app/ui/protocols/flowchart/handle";
 import { Position } from "reactflow";
 
 import type {
-    NodeProps
+  NodeProps
 } from "reactflow";
 
 export type FlowChartNodeData = {

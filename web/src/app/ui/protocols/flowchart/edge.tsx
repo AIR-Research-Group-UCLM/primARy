@@ -1,9 +1,11 @@
 import TextField from "@mui/material/TextField";
 import {
-    getBezierPath,
-    BaseEdge,
-    EdgeLabelRenderer,
+  getBezierPath,
+  BaseEdge,
+  EdgeLabelRenderer,
 } from "reactflow";
+import useStore from "@/app/protocols/store";
+
 import type { EdgeProps } from "reactflow";
 
 export type FlowChartEdgeData = {
@@ -11,6 +13,7 @@ export type FlowChartEdgeData = {
 }
 
 export default function FlowChartEdge({ id, data, markerEnd, ...props }: EdgeProps<FlowChartEdgeData>) {
+  const changeEdgeLabel = useStore((state) => state.changeEdgeLabel);
   const [edgePath, labelX, labelY] = getBezierPath(props);
 
   return (
@@ -24,7 +27,8 @@ export default function FlowChartEdge({ id, data, markerEnd, ...props }: EdgePro
               textAlign: "center"
             }
           }}
-          defaultValue={data?.label}
+          value={data?.label}
+          onChange={(e) => changeEdgeLabel(id, e.target.value)}
           variant="outlined"
           size="small"
           sx={{
