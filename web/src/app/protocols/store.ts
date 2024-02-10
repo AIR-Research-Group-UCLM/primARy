@@ -5,6 +5,8 @@ import {
   addEdge
 } from "reactflow";
 
+import { create } from "zustand";
+
 import type {
   Node,
   Edge,
@@ -16,16 +18,22 @@ import type {
   Connection,
 } from "reactflow";
 
-import { create } from "zustand";
+import type { FlowChartNodeData } from "@/app/ui/protocols/flowchart/node";
+import type { FlowChartEdgeData } from "@/app/ui/protocols/flowchart/edge";
+
+type FlowChartNode = Node<FlowChartNodeData>;
+type FlowChartEdge = Edge<FlowChartEdgeData>;
 
 export type RFState = {
-  nodes: Node[];
-  edges: Edge[];
+  nodes: FlowChartNode[];
+  edges: FlowChartEdge[];
+
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   addEdgeFromConnection: OnConnect;
-  addNode: (node: Node) => void
-  addEdge: (edge: Edge) => void
+  addNode: (node: FlowChartNode) => void;
+  addEdge: (edge: FlowChartEdge) => void;
+  changeEdgeLabel: (edgeId: string, label: string) => void;
 };
 
 const useStore = create<RFState>((set, get) => ({
@@ -58,6 +66,14 @@ const useStore = create<RFState>((set, get) => ({
   },
   addNode: (node: Node) => {
     set(state => ({nodes: [...state.nodes, node]}))
+  },
+  changeEdgeLabel: (edgeId: string, label: string) => {
+    set(state => ({edges: state.edges.map((edge) => {
+      if (edge.id === edgeId) {
+        return {...edge, data: {...edge.data, label}};
+      }
+      return edge;
+    })}));
   }
 }));
 
