@@ -9,7 +9,7 @@ import ReactFlow, {
 } from "reactflow";
 
 import useStore from "@/app/protocols/store";
-import FlowChartNode from "@/app/ui/protocols/flowchart/node";
+import FlowChartNode, { FlowChartNodeData } from "@/app/ui/protocols/flowchart/node";
 import FlowChartEdge from "@/app/ui/protocols/flowchart/edge";
 import { getOpposite } from "@/app/ui/protocols/flowchart/handle";
 
@@ -121,8 +121,8 @@ export default function FlowChartEditor() {
 
     }, [screenToFlowPosition])
 
-    const onEdgeDoubleClick = useCallback<(event: MouseEvent, edge: Edge) => void>((_, edge: Edge) => {
-        console.log(edge);
+    const onNodeDoubleClick = useCallback<(event: MouseEvent, node: Node<FlowChartNodeData>) => void>((_, node) => {
+        console.log(node);
     }, []);
 
     return (
@@ -139,7 +139,7 @@ export default function FlowChartEditor() {
             nodeOrigin={[0.5, 0]}
             edgeTypes={edgeTypes}
             nodeTypes={nodeTypes}
-            onEdgeDoubleClick={onEdgeDoubleClick}
+            onNodeDoubleClick={onNodeDoubleClick}
             defaultEdgeOptions={{
                 type: "flowchart-edge",
                 markerEnd: {
@@ -147,6 +147,9 @@ export default function FlowChartEditor() {
                     width: 50,
                     height: 50
                 }
+            }}
+            proOptions={{
+                hideAttribution: true
             }}
             connectionMode={ConnectionMode.Loose}
             fitView

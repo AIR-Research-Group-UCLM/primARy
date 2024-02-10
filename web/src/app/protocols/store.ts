@@ -27,6 +27,7 @@ type FlowChartEdge = Edge<FlowChartEdgeData>;
 export type RFState = {
   nodes: FlowChartNode[];
   edges: FlowChartEdge[];
+  selectedNode: FlowChartNode | null;
 
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
@@ -46,6 +47,7 @@ const useStore = create<RFState>((set, get) => ({
     },
   ],
   edges: [],
+  selectedNode: null,
   onNodesChange: (changes: NodeChange[]) => {
     set({
       nodes: applyNodeChanges(changes, get().nodes),

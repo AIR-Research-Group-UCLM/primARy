@@ -27,7 +27,7 @@ export default function FlowChartEdge({ id, data, markerEnd, ...props }: EdgePro
               textAlign: "center"
             }
           }}
-          value={data?.label}
+          value={data?.label ?? ""}
           onChange={(e) => changeEdgeLabel(id, e.target.value)}
           variant="outlined"
           size="small"

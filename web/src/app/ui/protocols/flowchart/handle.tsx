@@ -13,7 +13,15 @@ export function getOpposite(position: HandlePosition) {
   return opposite[position];
 }
 
-export default function FlowChartHandle({ position, id }: { position: Position, id: string }) {
+type SelectionColors = {
+  selected?: string;
+  unselected?: string;
+}
+
+
+export default function FlowChartHandle({ position, id, colors, isSelected = false }: 
+  { position: Position, id: string, colors?: SelectionColors, isSelected?: boolean }
+) {
   const isHorizontal = position === Position.Left || position === Position.Right;
 
   const size = isHorizontal ? {
@@ -24,11 +32,14 @@ export default function FlowChartHandle({ position, id }: { position: Position, 
     height: "2px"
   };
 
+  const selectionColor = colors?.selected ?? "#000000";
+  const notSelectedColor = colors?.unselected ?? "#000000";
+
   return (
     <Handle type="source" position={position} id={id} style={{
       ...size,
       borderRadius: "3px",
-      background: "#000000",
+      background: isSelected ? selectionColor : notSelectedColor
     }} />
   )
 }
