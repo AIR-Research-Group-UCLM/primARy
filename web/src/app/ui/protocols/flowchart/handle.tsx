@@ -25,11 +25,11 @@ export default function FlowchartHandle({ position, id, colors, isSelected = fal
   const isHorizontal = position === Position.Left || position === Position.Right;
 
   const size = isHorizontal ? {
-    width: "2px",
+    width: "5px",
     height: "20px"
   } : {
     width: "25px",
-    height: "2px"
+    height: "5px"
   };
 
   const selectionColor = colors?.selected ?? "#000000";

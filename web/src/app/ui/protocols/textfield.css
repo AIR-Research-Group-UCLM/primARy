@@ -1,0 +1,3 @@
+.MuiFormControl-root:has(#description) {
+    height: 100%;
+}
