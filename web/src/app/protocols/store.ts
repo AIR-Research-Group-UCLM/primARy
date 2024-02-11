@@ -35,6 +35,8 @@ export type RFState = {
   addNode: (node: FlowChartNode) => void;
   addEdge: (edge: FlowChartEdge) => void;
   changeEdgeLabel: (edgeId: string, label: string) => void;
+  setSelectedNode: (selectedNode: FlowChartNode | null) => void;
+  changeNode: (node: FlowChartNode) => void;
 };
 
 const useStore = create<RFState>((set, get) => ({
@@ -49,34 +51,42 @@ const useStore = create<RFState>((set, get) => ({
   edges: [],
   selectedNode: null,
   onNodesChange: (changes: NodeChange[]) => {
-    set({
-      nodes: applyNodeChanges(changes, get().nodes),
-    });
+    set((state) => ({
+      nodes: applyNodeChanges(changes, state.nodes),
+    }));
   },
   onEdgesChange: (changes: EdgeChange[]) => {
-    set({
+    set((state) => ({
       edges: applyEdgeChanges(changes, get().edges),
-    });
+    }));
   },
   addEdgeFromConnection: (connection: Connection) => {
-    set(state => ({
+    set((state) => ({
       edges: addEdge(connection, state.edges)
     }))
   },
-  addEdge: (edge: Edge) => {
-    set(state => ({ edges: [...state.edges, edge] }))
+  addEdge: (edge) => {
+    set((state) => ({ edges: [...state.edges, edge] }))
   },
-  addNode: (node: Node) => {
-    set(state => ({ nodes: [...state.nodes, node] }))
+  addNode: (node) => {
+    set((state) => ({ nodes: [...state.nodes, node] }))
   },
-  changeEdgeLabel: (edgeId: string, label: string) => {
-    set(state => ({
+  changeEdgeLabel: (edgeId, label) => {
+    set((state) => ({
       edges: state.edges.map((edge) => {
         if (edge.id === edgeId) {
           return { ...edge, data: { ...edge.data, label } };
         }
         return edge;
       })
+    }));
+  },
+  setSelectedNode: (selectedNode) => {
+      set({selectedNode})
+  },
+  changeNode: (updatedNode) => {
+    set((state) => ({
+      nodes: state.nodes.map((node) => node.id === updatedNode.id ? updatedNode : node)
     }));
   }
 }));

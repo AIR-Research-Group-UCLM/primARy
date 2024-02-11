@@ -29,10 +29,13 @@ import "reactflow/dist/style.css";
 let id = 2;
 const getId = () => `${id++}`;
 
-type NodeHandleId = {
-    nodeId: string;
+type NodeHandle = {
+    node: Node<FlowChartNodeData>;
     handleId: HandlePosition;
 }
+
+type OnNodeDoubleClick = (event: MouseEvent, node: Node<FlowChartNodeData>) => void;
+type OnPaneClick = (event: MouseEvent) => void;
 
 const edgeTypes = {
     "flowchart-edge": FlowChartEdge
@@ -49,8 +52,14 @@ const selector = (state: RFState) => ({
     onEdgesChange: state.onEdgesChange,
     addEdgeFromConnection: state.addEdgeFromConnection,
     addNode: state.addNode,
-    addEdge: state.addEdge
+    addEdge: state.addEdge,
+    setSelectedNode: state.setSelectedNode,
+    changeNode: state.changeNode
 });
+
+function isEventTargetPane(target: Element): boolean {
+    return target.classList.contains("react-flow__pane");
+}
 
 export default function FlowChartEditor() {
     const {
@@ -60,17 +69,18 @@ export default function FlowChartEditor() {
         onEdgesChange,
         addEdgeFromConnection,
         addNode,
-        addEdge
+        addEdge,
+        setSelectedNode,
+        changeNode
     } = useStore(
         useShallow(selector)
     );
-    const connectingNodeId = useRef<NodeHandleId | null>(null);
-
+    const connectingNode = useRef<NodeHandle | null>(null);
     const { screenToFlowPosition } = useReactFlow();
 
     const onConnect: OnConnect = useCallback(
         (connection) => {
-            connectingNodeId.current = null;
+            connectingNode.current = null;
             addEdgeFromConnection(connection);
         },
         [addEdgeFromConnection]);
@@ -79,16 +89,17 @@ export default function FlowChartEditor() {
         if (nodeId === null || handleId === null) {
             return;
         }
-        connectingNodeId.current = { nodeId, handleId: handleId as HandlePosition };
-    }, []);
+        // TODO: find a way of making this faster. The most straightforward way is changing
+        // the data structure from an array to a HashMap
+        const node = nodes.find((node) => node.id === nodeId) as Node<FlowChartNodeData>;
+        connectingNode.current = {
+            node,
+            handleId: handleId as HandlePosition,
+        };
+    }, [nodes]);
 
     const onConnectEnd: OnConnectEnd = useCallback((event) => {
-        if (connectingNodeId.current == null) {
-            return;
-        }
-
-        const targetIsPane = (event.target as Element).classList.contains('react-flow__pane');
-        if (!targetIsPane) {
+        if (connectingNode.current === null || !isEventTargetPane(event.target as Element)) {
             return;
         }
 
@@ -108,22 +119,33 @@ export default function FlowChartEditor() {
         };
 
         // TODO: think on a better id for the edge
-        // TODO: can we avoid the exclamation mark??? maybe using a predicate
         let newEdge: Edge = {
             id,
-            source: connectingNodeId.current!.nodeId,
-            sourceHandle: connectingNodeId.current!.handleId,
-            targetHandle: getOpposite(connectingNodeId.current!.handleId),
+            source: connectingNode.current.node.id,
+            sourceHandle: connectingNode.current.handleId,
+            targetHandle: getOpposite(connectingNode.current.handleId),
             target: id,
         }
         addNode(newNode);
         addEdge(newEdge);
-
     }, [screenToFlowPosition])
 
-    const onNodeDoubleClick = useCallback<(event: MouseEvent, node: Node<FlowChartNodeData>) => void>((_, node) => {
-        console.log(node);
+    const onNodeDoubleClick: OnNodeDoubleClick = useCallback((_, node) => {
+        setSelectedNode(node);
     }, []);
+
+    const onPaneClick: OnPaneClick = useCallback((e) => {
+        if (!isEventTargetPane(e.target as Element)) {
+            return;
+        }
+
+        if (connectingNode.current === null) {
+            setSelectedNode(null);
+        } else {
+            connectingNode.current = null;
+        }
+
+    }, [nodes]);
 
     return (
         <ReactFlow
@@ -140,6 +162,7 @@ export default function FlowChartEditor() {
             edgeTypes={edgeTypes}
             nodeTypes={nodeTypes}
             onNodeDoubleClick={onNodeDoubleClick}
+            onPaneClick={onPaneClick}
             defaultEdgeOptions={{
                 type: "flowchart-edge",
                 markerEnd: {

@@ -3,9 +3,13 @@
 import { ReactFlowProvider } from "reactflow";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
+
+import useStore from "@/app/protocols/store";
 import FlowChartEditor from "@/app/ui/protocols/flowchart/editor";
 
 export default function Page() {
+  const selectedNode = useStore((state) => state.selectedNode);
+
   return (
     <Box sx={{
       height: "100%",
@@ -14,7 +18,7 @@ export default function Page() {
       padding: "5px"
     }}>
       <Paper elevation={5} sx={{
-        flexGrow: 2.5,
+        flexGrow: 2,
         border: "solid"
       }}>
         <ReactFlowProvider>
@@ -22,14 +26,14 @@ export default function Page() {
         </ReactFlowProvider>
       </Paper>
 
-      <Paper
+      {selectedNode && <Paper
         elevation={5}
         sx={{
           flexGrow: 1,
           border: "solid",
         }}
         >
-      </Paper>
+      </Paper>}
 
     </Box>
   )

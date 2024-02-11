@@ -23,24 +23,23 @@ const positions = [
 export default function FlowChartNode({ data, selected }: NodeProps<FlowChartNodeData>) {
   return (
     <>
-      {
-        positions.map((position) =>
-          <FlowChartHandle
-            key={position.toString()}
-            position={position}
-            id={position.toString()}
-            colors={handleColor}
-            isSelected={selected}
-          />
-        )
-      }
-
       <div style={{
         padding: "10px 20px",
         background: "#ffffff",
         border: `solid 2.5px ${selected ? nodeSelectionColor : ""}`,
         borderRadius: 10,
       }}>
+        {
+          positions.map((position) =>
+            <FlowChartHandle
+              key={position.toString()}
+              position={position}
+              id={position.toString()}
+              colors={handleColor}
+              isSelected={selected}
+            />
+          )
+        }
         {data.label}
       </div>
     </>

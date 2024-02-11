@@ -31,6 +31,7 @@ export default function FlowChartEdge({ id, data, markerEnd, ...props }: EdgePro
           onChange={(e) => changeEdgeLabel(id, e.target.value)}
           variant="outlined"
           size="small"
+          className="nopan"
           sx={{
             position: "absolute",
             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
