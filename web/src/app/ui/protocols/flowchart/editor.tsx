@@ -115,7 +115,7 @@ export default function FlowChartEditor() {
                 // @ts-ignore
                 y: event.clientY
             }),
-            data: { label: `Node ${id}` },
+            data: { name: `Node ${id}`, description: null },
             type: "flowchart-node",
         };
 

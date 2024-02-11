@@ -26,6 +26,16 @@ export default function Page() {
         sx={{
           marginBottom: "10px",
         }}
+        inputProps={{
+          style: {
+            fontSize: "20px"
+          }
+        }}
+        InputProps={{
+          style: {
+            fontSize: "15px"
+          }
+        }}
       />
       <Box sx={{
         display: "flex",

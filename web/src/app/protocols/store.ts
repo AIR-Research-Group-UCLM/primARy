@@ -39,7 +39,7 @@ const useStore = create<RFState>((set, get) => ({
     {
       id: "1",
       type: 'flowchart-node',
-      data: { label: "Initial Node" },
+      data: { name: "Initial Node", description: null },
       position: { x: 0, y: 0 },
     },
   ],
@@ -77,7 +77,7 @@ const useStore = create<RFState>((set, get) => ({
     }));
   },
   setSelectedNode: (selectedNode) => {
-      set({selectedNode})
+    set({ selectedNode })
   },
   changeNode: (updatedNode) => {
     set((state) => ({
