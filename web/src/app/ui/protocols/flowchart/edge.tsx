@@ -22,6 +22,7 @@ export default function RFFlowChartEdge({ id, data, markerEnd, ...props }: EdgeP
   return (
     <>
       <BaseEdge id={id} path={edgePath} markerEnd={markerEnd} />
+      {/* For some reason, rendering the TextField makes the eiditor laggy*/}
       <EdgeLabelRenderer>
         <TextField
           inputProps={{
