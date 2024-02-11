@@ -18,7 +18,7 @@ export default function Page() {
       padding: "5px"
     }}>
       <Paper elevation={5} sx={{
-        flexGrow: 2,
+        flex: "2 0 66%",
         border: "solid"
       }}>
         <ReactFlowProvider>
@@ -29,10 +29,15 @@ export default function Page() {
       {selectedNode && <Paper
         elevation={5}
         sx={{
-          flexGrow: 1,
+          flex: "1 0 33%",
           border: "solid",
         }}
         >
+          <div style={{
+            border: "solid",
+          }}>
+            {selectedNode.data.label}
+          </div>
       </Paper>}
 
     </Box>

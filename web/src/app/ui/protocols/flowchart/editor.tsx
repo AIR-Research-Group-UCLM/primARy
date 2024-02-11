@@ -34,7 +34,7 @@ type NodeHandle = {
     handleId: HandlePosition;
 }
 
-type OnNodeDoubleClick = (event: MouseEvent, node: Node<FlowChartNodeData>) => void;
+type OnNodeClick = (event: MouseEvent, node: Node<FlowChartNodeData>) => void;
 type OnPaneClick = (event: MouseEvent) => void;
 
 const edgeTypes = {
@@ -53,6 +53,7 @@ const selector = (state: RFState) => ({
     addEdgeFromConnection: state.addEdgeFromConnection,
     addNode: state.addNode,
     addEdge: state.addEdge,
+    selectedNode: state.selectedNode,
     setSelectedNode: state.setSelectedNode,
     changeNode: state.changeNode
 });
@@ -71,7 +72,7 @@ export default function FlowChartEditor() {
         addNode,
         addEdge,
         setSelectedNode,
-        changeNode
+        selectedNode
     } = useStore(
         useShallow(selector)
     );
@@ -130,7 +131,13 @@ export default function FlowChartEditor() {
         addEdge(newEdge);
     }, [screenToFlowPosition])
 
-    const onNodeDoubleClick: OnNodeDoubleClick = useCallback((_, node) => {
+    const onNodeClick: OnNodeClick = useCallback((_, node) => {
+        if (selectedNode !== null) {
+            setSelectedNode(node);
+        }
+    }, [selectedNode]);
+
+    const onNodeDoubleClick: OnNodeClick = useCallback((_, node) => {
         setSelectedNode(node);
     }, []);
 
@@ -162,6 +169,7 @@ export default function FlowChartEditor() {
             edgeTypes={edgeTypes}
             nodeTypes={nodeTypes}
             onNodeDoubleClick={onNodeDoubleClick}
+            onNodeClick={onNodeClick}
             onPaneClick={onPaneClick}
             defaultEdgeOptions={{
                 type: "flowchart-edge",
