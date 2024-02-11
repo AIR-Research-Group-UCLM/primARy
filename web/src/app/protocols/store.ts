@@ -8,8 +8,6 @@ import {
 import { create } from "zustand";
 
 import type {
-  Node,
-  Edge,
   OnNodesChange,
   OnEdgesChange,
   NodeChange,
@@ -18,25 +16,22 @@ import type {
   Connection,
 } from "reactflow";
 
-import type { FlowChartNodeData } from "@/app/ui/protocols/flowchart/node";
-import type { FlowChartEdgeData } from "@/app/ui/protocols/flowchart/edge";
-
-type FlowChartNode = Node<FlowChartNodeData>;
-type FlowChartEdge = Edge<FlowChartEdgeData>;
+import type { FlowchartNode } from "@/app/ui/protocols/flowchart/node";
+import type { FlowchartEdge } from "@/app/ui/protocols/flowchart/edge";
 
 export type RFState = {
-  nodes: FlowChartNode[];
-  edges: FlowChartEdge[];
-  selectedNode: FlowChartNode | null;
+  nodes: FlowchartNode[];
+  edges: FlowchartEdge[];
+  selectedNode: FlowchartNode | null;
 
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   addEdgeFromConnection: OnConnect;
-  addNode: (node: FlowChartNode) => void;
-  addEdge: (edge: FlowChartEdge) => void;
+  addNode: (node: FlowchartNode) => void;
+  addEdge: (edge: FlowchartEdge) => void;
   changeEdgeLabel: (edgeId: string, label: string) => void;
-  setSelectedNode: (selectedNode: FlowChartNode | null) => void;
-  changeNode: (node: FlowChartNode) => void;
+  setSelectedNode: (selectedNode: FlowchartNode | null) => void;
+  changeNode: (node: FlowchartNode) => void;
 };
 
 const useStore = create<RFState>((set, get) => ({

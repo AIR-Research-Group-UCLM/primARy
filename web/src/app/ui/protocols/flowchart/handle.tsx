@@ -19,7 +19,7 @@ type SelectionColors = {
 }
 
 
-export default function FlowChartHandle({ position, id, colors, isSelected = false }: 
+export default function FlowchartHandle({ position, id, colors, isSelected = false }: 
   { position: Position, id: string, colors?: SelectionColors, isSelected?: boolean }
 ) {
   const isHorizontal = position === Position.Left || position === Position.Right;

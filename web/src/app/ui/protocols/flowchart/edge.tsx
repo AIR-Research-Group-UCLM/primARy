@@ -3,16 +3,19 @@ import {
   getBezierPath,
   BaseEdge,
   EdgeLabelRenderer,
+  Edge
 } from "reactflow";
 import useStore from "@/app/protocols/store";
 
 import type { EdgeProps } from "reactflow";
 
-export type FlowChartEdgeData = {
+export type FlowchartEdgeData = {
   label?: string;
 }
 
-export default function FlowChartEdge({ id, data, markerEnd, ...props }: EdgeProps<FlowChartEdgeData>) {
+export type FlowchartEdge = Edge<FlowchartEdgeData>;
+
+export default function RFFlowChartEdge({ id, data, markerEnd, ...props }: EdgeProps<FlowchartEdgeData>) {
   const changeEdgeLabel = useStore((state) => state.changeEdgeLabel);
   const [edgePath, labelX, labelY] = getBezierPath(props);
 

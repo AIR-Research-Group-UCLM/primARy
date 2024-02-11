@@ -1,12 +1,13 @@
-import FlowChartHandle from "@/app/ui/protocols/flowchart/handle";
+import FlowchartHandle from "@/app/ui/protocols/flowchart/handle";
 
 import { Position } from "reactflow";
 
 import type {
+  Node,
   NodeProps
 } from "reactflow";
 
-export type FlowChartNodeData = {
+export type FlowchartNodeData = {
   label: string;
 }
 
@@ -19,8 +20,10 @@ const positions = [
   Position.Top, Position.Bottom, Position.Left, Position.Right
 ];
 
+export type FlowchartNode = Node<FlowchartNodeData>;
 
-export default function FlowChartNode({ data, selected }: NodeProps<FlowChartNodeData>) {
+
+export default function RFFlowchartNode({ data, selected }: NodeProps<FlowchartNodeData>) {
   return (
     <>
       <div style={{
@@ -31,7 +34,7 @@ export default function FlowChartNode({ data, selected }: NodeProps<FlowChartNod
       }}>
         {
           positions.map((position) =>
-            <FlowChartHandle
+            <FlowchartHandle
               key={position.toString()}
               position={position}
               id={position.toString()}

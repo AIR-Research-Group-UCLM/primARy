@@ -9,19 +9,19 @@ import ReactFlow, {
 } from "reactflow";
 
 import useStore from "@/app/protocols/store";
-import FlowChartNode, { FlowChartNodeData } from "@/app/ui/protocols/flowchart/node";
-import FlowChartEdge from "@/app/ui/protocols/flowchart/edge";
+import RFFlowchartNode, { FlowchartNodeData } from "@/app/ui/protocols/flowchart/node";
+import RFFlowChartEdge from "@/app/ui/protocols/flowchart/edge";
 import { getOpposite } from "@/app/ui/protocols/flowchart/handle";
 
 import type {
     OnConnect,
     OnConnectStart,
-    Edge,
-    Node,
     OnConnectEnd,
 } from "reactflow";
 import type { RFState } from "@/app/protocols/store";
 import type { HandlePosition } from "@/app/ui/protocols/flowchart/handle";
+import type { FlowchartNode } from "@/app/ui/protocols/flowchart/node";
+import type { FlowchartEdge } from "@/app/ui/protocols/flowchart/edge";
 
 import "reactflow/dist/style.css";
 
@@ -30,19 +30,19 @@ let id = 2;
 const getId = () => `${id++}`;
 
 type NodeHandle = {
-    node: Node<FlowChartNodeData>;
+    node: FlowchartNode;
     handleId: HandlePosition;
 }
 
-type OnNodeClick = (event: MouseEvent, node: Node<FlowChartNodeData>) => void;
+type OnNodeClick = (event: MouseEvent, node: FlowchartNode) => void;
 type OnPaneClick = (event: MouseEvent) => void;
 
 const edgeTypes = {
-    "flowchart-edge": FlowChartEdge
+    "flowchart-edge": RFFlowChartEdge
 }
 
 const nodeTypes = {
-    "flowchart-node": FlowChartNode
+    "flowchart-node": RFFlowchartNode
 }
 
 const selector = (state: RFState) => ({
@@ -92,7 +92,7 @@ export default function FlowChartEditor() {
         }
         // TODO: find a way of making this faster. The most straightforward way is changing
         // the data structure from an array to a HashMap
-        const node = nodes.find((node) => node.id === nodeId) as Node<FlowChartNodeData>;
+        const node = nodes.find((node) => node.id === nodeId) as FlowchartNode;
         connectingNode.current = {
             node,
             handleId: handleId as HandlePosition,
@@ -107,7 +107,7 @@ export default function FlowChartEditor() {
         let id = getId();
 
         // TODO: find the way of correctly typechecking this
-        let newNode: Node = {
+        let newNode: FlowchartNode = {
             id,
             position: screenToFlowPosition({
                 // @ts-ignore
@@ -120,7 +120,7 @@ export default function FlowChartEditor() {
         };
 
         // TODO: think on a better id for the edge
-        let newEdge: Edge = {
+        let newEdge: FlowchartEdge = {
             id,
             source: connectingNode.current.node.id,
             sourceHandle: connectingNode.current.handleId,
