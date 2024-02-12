@@ -1,3 +1,5 @@
+import "@/app/ui/global.css";
+
 import type { Metadata } from "next";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v14-appRouter"
 import { ThemeProvider } from "@mui/material";
@@ -30,7 +32,7 @@ export default function RootLayout({
               <Navigation drawerWidth={200} />
               <Box
                 component="main"
-                sx={{ height: "85vh", flexGrow: 1, bgcolor: 'background.default'}}
+                sx={{ height: "87vh", flexGrow: 1, bgcolor: 'background.default'}}
               >
                 <Toolbar />
                 {children}
