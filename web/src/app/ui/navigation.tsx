@@ -7,15 +7,11 @@ import Drawer from "@mui/material/Drawer";
 import Divider from "@mui/material/Divider";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
-import Button from "@mui/material/Button";
-import MuiLink from "@mui/material/Link";
 import ListItemButton from "@mui/material/ListItemButton";
-import ListItemText from "@mui/material/ListItemText";
 
 import { usePathname } from "next/navigation";
 import Link from 'next/link';
 
-import { useState } from "react";
 
 interface Link {
   name: string;
@@ -24,7 +20,7 @@ interface Link {
 
 const links = [
   { name: "Protocols", href: "/protocols" },
-  { name: "Model training" , href: "/training"},
+  { name: "Model training", href: "/training" },
   { name: 'Settings', href: '/settings' },
 ];
 
@@ -47,7 +43,7 @@ function UpperBar({ drawerWidth }: { drawerWidth: number }) {
   )
 }
 
-function SideBar({ drawerWidth}: { drawerWidth: number }) {
+function SideBar({ drawerWidth }: { drawerWidth: number }) {
   const pathname = usePathname();
 
   return (
