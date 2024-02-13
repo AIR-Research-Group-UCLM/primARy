@@ -7,10 +7,13 @@ import Drawer from "@mui/material/Drawer";
 import Divider from "@mui/material/Divider";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
+import Button from "@mui/material/Button";
+import MuiLink from "@mui/material/Link";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 
-import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import Link from 'next/link';
 
 import { useState } from "react";
 
@@ -25,7 +28,11 @@ const links = [
   { name: 'Settings', href: '/settings' },
 ];
 
-function UpperBar({ drawerWidth, title }: { drawerWidth: number, title: string }) {
+function UpperBar({ drawerWidth }: { drawerWidth: number }) {
+  const pathname = usePathname();
+
+  const title = links.find((link) => link.href === pathname)?.name ?? "";
+
   return (
     <AppBar
       position="fixed"
@@ -40,8 +47,8 @@ function UpperBar({ drawerWidth, title }: { drawerWidth: number, title: string }
   )
 }
 
-function SideBar({ drawerWidth, onLinkClick }: { drawerWidth: number, onLinkClick?: (link: Link) => void }) {
-  const router = useRouter();
+function SideBar({ drawerWidth}: { drawerWidth: number }) {
+  const pathname = usePathname();
 
   return (
     <Drawer
@@ -68,17 +75,25 @@ function SideBar({ drawerWidth, onLinkClick }: { drawerWidth: number, onLinkClic
       </Toolbar>
       <Divider />
       <List>
-        {links.map(link => (
-          <ListItem key={link.name} disablePadding>
-            <ListItemButton sx={{ pl: 3 }} onClick={() => {
-              router.push(link.href)
-              onLinkClick?.(link)
-            }
-            }>
-              <ListItemText primary={link.name} />
-            </ListItemButton>
-          </ListItem>
-        ))}
+        {
+          links.map((link) =>
+            <ListItem key={link.name} sx={{
+              padding: 0
+            }}>
+              <ListItemButton disableGutters component={Link} href={link.href} sx={{
+                width: "100%",
+                margin: "5px",
+                border: `solid ${pathname == link.href ? "#4295f5" : "#c5c8c9"}`,
+                borderRadius: 3,
+                padding: "10px"
+              }}>
+                <Typography component="div">
+                  {link.name}
+                </Typography>
+              </ListItemButton>
+            </ListItem>
+          )
+        }
       </List>
     </Drawer>
   )
@@ -87,19 +102,10 @@ function SideBar({ drawerWidth, onLinkClick }: { drawerWidth: number, onLinkClic
 export function Navigation({ drawerWidth }: { drawerWidth: number }
 ) {
 
-  const [title, setTitle] = useState("");
-
-  // TODO: the correct way to set the title is by looking at URL.
-  // Otherwise, there exist a situation in which the title is out of sync
-  // with the page currently being watched
-  function handleLinkClick(link: Link) {
-    setTitle(link.name);
-  }
-
   return (
     <>
-      <UpperBar drawerWidth={drawerWidth} title={title} />
-      <SideBar drawerWidth={drawerWidth} onLinkClick={handleLinkClick} />
+      <UpperBar drawerWidth={drawerWidth} />
+      <SideBar drawerWidth={drawerWidth} />
     </>
   )
 }
