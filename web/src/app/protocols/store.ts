@@ -74,7 +74,8 @@ const useStore = create<RFState>((set, get) => ({
     set((state) => ({
       edges: state.edges.map((edge) => {
         if (edge.id === edgeId) {
-          return { ...edge, data: { ...edge.data, label } };
+          // Do I really have to write doubleClickSelected here???
+          return { ...edge, data: { doubleClickSelected: false, ...edge.data, label } };
         }
         return edge;
       })
