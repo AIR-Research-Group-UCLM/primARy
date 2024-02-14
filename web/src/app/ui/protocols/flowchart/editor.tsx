@@ -55,7 +55,7 @@ const selector = (state: RFState) => ({
     addEdge: state.addEdge,
     selectedNode: state.selectedNode,
     setSelectedNode: state.setSelectedNode,
-    changeNode: state.changeNode
+    changeNodeData: state.changeNodeData
 });
 
 function isEventTargetPane(target: Element): boolean {
@@ -66,13 +66,14 @@ export default function FlowChartEditor() {
     const {
         nodes,
         edges,
+        selectedNode,
         onNodesChange,
         onEdgesChange,
         addEdgeFromConnection,
         addNode,
         addEdge,
         setSelectedNode,
-        selectedNode
+        changeNodeData
     } = useStore(
         useShallow(selector)
     );
@@ -115,7 +116,7 @@ export default function FlowChartEditor() {
                 // @ts-ignore
                 y: event.clientY
             }),
-            data: { name: `Node ${id}`, description: null },
+            data: { name: `Node ${id}`, description: null, isSelectedModification: false },
             type: "flowchart-node",
         };
 
@@ -133,12 +134,22 @@ export default function FlowChartEditor() {
 
     const onNodeClick: OnNodeClick = useCallback((_, node) => {
         if (selectedNode !== null) {
+            changeNodeData(selectedNode.id, { isSelectedModification: false })
+            changeNodeData(node.id, { isSelectedModification: true })
             setSelectedNode(node);
         }
     }, [selectedNode]);
 
     const onNodeDoubleClick: OnNodeClick = useCallback((_, node) => {
-        setSelectedNode(node);
+        const newNode = {
+            ...node,
+            data: {
+                ...node.data,
+                isSelectedModification: true
+            }
+        }
+        changeNodeData(node.id, { isSelectedModification: true });
+        setSelectedNode(newNode);
     }, []);
 
     const onPaneClick: OnPaneClick = useCallback((e) => {
@@ -147,6 +158,9 @@ export default function FlowChartEditor() {
         }
 
         if (connectingNode.current === null) {
+            if (selectedNode !== null) {
+                changeNodeData(selectedNode.id, { isSelectedModification: false })
+            }
             setSelectedNode(null);
         } else {
             connectingNode.current = null;

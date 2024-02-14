@@ -9,9 +9,8 @@ type Props = {
   selectedNode: FlowchartNode
 }
 
-
 export default function NodeInfoEditor({ selectedNode }: Props) {
-  const changeNode = useStore((state) => state.changeNode);
+  const changeNodeData = useStore((state) => state.changeNodeData);
   const setSelectedNode = useStore((state) => state.setSelectedNode);
 
   function onNameChange(name: string) {
@@ -23,7 +22,7 @@ export default function NodeInfoEditor({ selectedNode }: Props) {
       }
     }
 
-    changeNode(newNode);
+    changeNodeData(selectedNode.id, { name });
     setSelectedNode(newNode);
   }
 
@@ -36,7 +35,7 @@ export default function NodeInfoEditor({ selectedNode }: Props) {
       }
     }
 
-    changeNode(newNode);
+    changeNodeData(selectedNode.id, { description });
     setSelectedNode(newNode);
   }
 
