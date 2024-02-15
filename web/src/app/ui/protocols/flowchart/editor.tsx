@@ -1,11 +1,11 @@
 import { useRef, useCallback, MouseEvent } from "react";
 import { useShallow } from "zustand/react/shallow";
 import ReactFlow, {
-    Controls,
-    useReactFlow,
-    Background,
-    ConnectionMode,
-    MarkerType,
+  Controls,
+  useReactFlow,
+  Background,
+  ConnectionMode,
+  MarkerType,
 } from "reactflow";
 
 import useStore from "@/app/protocols/store";
@@ -14,9 +14,9 @@ import RFFlowChartEdge from "@/app/ui/protocols/flowchart/edge";
 import { getOpposite } from "@/app/ui/protocols/flowchart/handle";
 
 import type {
-    OnConnect,
-    OnConnectStart,
-    OnConnectEnd,
+  OnConnect,
+  OnConnectStart,
+  OnConnectEnd,
 } from "reactflow";
 import type { RFState } from "@/app/protocols/store";
 import type { HandlePosition } from "@/app/ui/protocols/flowchart/handle";
@@ -29,8 +29,8 @@ let id = 2;
 const getId = () => `${id++}`;
 
 type NodeHandle = {
-    node: FlowchartNode;
-    handleId: HandlePosition;
+  node: FlowchartNode;
+  handleId: HandlePosition;
 }
 
 type OnNodeClick = (event: MouseEvent, node: FlowchartNode) => void;
@@ -38,187 +38,187 @@ type OnPaneClick = (event: MouseEvent) => void;
 type OnEdgeClick = (event: MouseEvent, edge: FlowchartEdge) => void;
 
 const edgeTypes = {
-    "flowchart-edge": RFFlowChartEdge
+  "flowchart-edge": RFFlowChartEdge
 }
 
 const nodeTypes = {
-    "flowchart-node": RFFlowchartNode
+  "flowchart-node": RFFlowchartNode
 }
 
 const selector = (state: RFState) => ({
-    nodes: state.nodes,
-    edges: state.edges,
-    onNodesChange: state.onNodesChange,
-    onEdgesChange: state.onEdgesChange,
-    addEdgeFromConnection: state.addEdgeFromConnection,
-    addNode: state.addNode,
-    addEdge: state.addEdge,
-    selectedNode: state.selectedNode,
-    setSelectedNode: state.setSelectedNode,
-    changeNodeData: state.changeNodeData,
-    changeEdgeData: state.changeEdgeData
+  nodes: state.nodes,
+  edges: state.edges,
+  onNodesChange: state.onNodesChange,
+  onEdgesChange: state.onEdgesChange,
+  addEdgeFromConnection: state.addEdgeFromConnection,
+  addNode: state.addNode,
+  addEdge: state.addEdge,
+  selectedNode: state.selectedNode,
+  setSelectedNode: state.setSelectedNode,
+  changeNodeData: state.changeNodeData,
+  changeEdgeData: state.changeEdgeData
 });
 
 function isEventTargetPane(target: Element): boolean {
-    return target.classList.contains("react-flow__pane");
+  return target.classList.contains("react-flow__pane");
 }
 
 export default function FlowChartEditor() {
-    const {
-        nodes,
-        edges,
-        selectedNode,
-        onNodesChange,
-        onEdgesChange,
-        addEdgeFromConnection,
-        addNode,
-        addEdge,
-        setSelectedNode,
-        changeNodeData,
-        changeEdgeData
-    } = useStore(
-        useShallow(selector)
-    );
-    const connectingNode = useRef<NodeHandle | null>(null);
-    const selectedEdgeId = useRef<string | null>(null);
-    const { screenToFlowPosition } = useReactFlow();
+  const {
+    nodes,
+    edges,
+    selectedNode,
+    onNodesChange,
+    onEdgesChange,
+    addEdgeFromConnection,
+    addNode,
+    addEdge,
+    setSelectedNode,
+    changeNodeData,
+    changeEdgeData
+  } = useStore(
+    useShallow(selector)
+  );
+  const connectingNode = useRef<NodeHandle | null>(null);
+  const selectedEdgeId = useRef<string | null>(null);
+  const { screenToFlowPosition } = useReactFlow();
 
-    const onConnect: OnConnect = useCallback(
-        (connection) => {
-            connectingNode.current = null;
-            addEdgeFromConnection(connection);
-        },
-        [addEdgeFromConnection]);
+  const onConnect: OnConnect = useCallback(
+    (connection) => {
+      connectingNode.current = null;
+      addEdgeFromConnection(connection);
+    },
+    [addEdgeFromConnection]);
 
-    const onConnectStart: OnConnectStart = useCallback((_, { nodeId, handleId }) => {
-        if (nodeId === null || handleId === null) {
-            return;
+  const onConnectStart: OnConnectStart = useCallback((_, { nodeId, handleId }) => {
+    if (nodeId === null || handleId === null) {
+      return;
+    }
+    // TODO: find a way of making this faster. The most straightforward way is changing
+    // the data structure from an array to a HashMap
+    const node = nodes.find((node) => node.id === nodeId) as FlowchartNode;
+    connectingNode.current = {
+      node,
+      handleId: handleId as HandlePosition,
+    };
+  }, [nodes]);
+
+  const onConnectEnd: OnConnectEnd = useCallback((event) => {
+    if (connectingNode.current === null || !isEventTargetPane(event.target as Element)) {
+      return;
+    }
+
+    let id = getId();
+
+    // TODO: find the way of correctly typechecking this
+    let newNode: FlowchartNode = {
+      id,
+      position: screenToFlowPosition({
+        // @ts-ignore
+        x: event.clientX,
+        // @ts-ignore
+        y: event.clientY
+      }),
+      data: { name: `Node ${id}`, description: null, isSelectedModification: false },
+      type: "flowchart-node",
+    };
+
+    // TODO: think on a better id for the edge
+    let newEdge: FlowchartEdge = {
+      id,
+      source: connectingNode.current.node.id,
+      sourceHandle: connectingNode.current.handleId,
+      targetHandle: getOpposite(connectingNode.current.handleId),
+      target: id,
+    }
+    addNode(newNode);
+    addEdge(newEdge);
+  }, [screenToFlowPosition])
+
+  const onNodeClick: OnNodeClick = useCallback((_, node) => {
+    if (selectedNode !== null) {
+      changeNodeData(selectedNode.id, { isSelectedModification: false })
+      changeNodeData(node.id, { isSelectedModification: true })
+      setSelectedNode(node);
+    }
+  }, [selectedNode]);
+
+  const onNodeDoubleClick: OnNodeClick = useCallback((_, node) => {
+    const newNode = {
+      ...node,
+      data: {
+        ...node.data,
+        isSelectedModification: true
+      }
+    }
+    changeNodeData(node.id, { isSelectedModification: true });
+    setSelectedNode(newNode);
+  }, []);
+
+  const onEdgeDoubleClick: OnEdgeClick = useCallback((_, edge) => {
+    if (selectedEdgeId.current !== null) {
+      changeEdgeData(selectedEdgeId.current, { doubleClickSelected: false });
+    }
+    selectedEdgeId.current = edge.id;
+    changeEdgeData(edge.id, { doubleClickSelected: true });
+  }, []);
+
+  const onPaneClick: OnPaneClick = useCallback((e) => {
+    if (!isEventTargetPane(e.target as Element)) {
+      return;
+    }
+
+    if (selectedEdgeId.current !== null) {
+      changeEdgeData(selectedEdgeId.current, { doubleClickSelected: false })
+      selectedEdgeId.current = null;
+    }
+
+    if (connectingNode.current === null) {
+      if (selectedNode !== null) {
+        changeNodeData(selectedNode.id, { isSelectedModification: false })
+      }
+      setSelectedNode(null);
+    } else {
+      connectingNode.current = null;
+    }
+
+  }, [nodes]);
+
+  return (
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onConnect={onConnect}
+      onConnectStart={onConnectStart}
+      onConnectEnd={onConnectEnd}
+      panOnScroll
+      selectionOnDrag
+      nodeOrigin={[0.5, 0]}
+      edgeTypes={edgeTypes}
+      nodeTypes={nodeTypes}
+      onNodeDoubleClick={onNodeDoubleClick}
+      onNodeClick={onNodeClick}
+      onPaneClick={onPaneClick}
+      onEdgeDoubleClick={onEdgeDoubleClick}
+      defaultEdgeOptions={{
+        type: "flowchart-edge",
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 15,
+          height: 15,
+          color: "black"
         }
-        // TODO: find a way of making this faster. The most straightforward way is changing
-        // the data structure from an array to a HashMap
-        const node = nodes.find((node) => node.id === nodeId) as FlowchartNode;
-        connectingNode.current = {
-            node,
-            handleId: handleId as HandlePosition,
-        };
-    }, [nodes]);
-
-    const onConnectEnd: OnConnectEnd = useCallback((event) => {
-        if (connectingNode.current === null || !isEventTargetPane(event.target as Element)) {
-            return;
-        }
-
-        let id = getId();
-
-        // TODO: find the way of correctly typechecking this
-        let newNode: FlowchartNode = {
-            id,
-            position: screenToFlowPosition({
-                // @ts-ignore
-                x: event.clientX,
-                // @ts-ignore
-                y: event.clientY
-            }),
-            data: { name: `Node ${id}`, description: null, isSelectedModification: false },
-            type: "flowchart-node",
-        };
-
-        // TODO: think on a better id for the edge
-        let newEdge: FlowchartEdge = {
-            id,
-            source: connectingNode.current.node.id,
-            sourceHandle: connectingNode.current.handleId,
-            targetHandle: getOpposite(connectingNode.current.handleId),
-            target: id,
-        }
-        addNode(newNode);
-        addEdge(newEdge);
-    }, [screenToFlowPosition])
-
-    const onNodeClick: OnNodeClick = useCallback((_, node) => {
-        if (selectedNode !== null) {
-            changeNodeData(selectedNode.id, { isSelectedModification: false })
-            changeNodeData(node.id, { isSelectedModification: true })
-            setSelectedNode(node);
-        }
-    }, [selectedNode]);
-
-    const onNodeDoubleClick: OnNodeClick = useCallback((_, node) => {
-        const newNode = {
-            ...node,
-            data: {
-                ...node.data,
-                isSelectedModification: true
-            }
-        }
-        changeNodeData(node.id, { isSelectedModification: true });
-        setSelectedNode(newNode);
-    }, []);
-
-    const onEdgeDoubleClick: OnEdgeClick = useCallback((_, edge) => {
-        if (selectedEdgeId.current !== null) {
-            changeEdgeData(selectedEdgeId.current, { doubleClickSelected: false });
-        }
-        selectedEdgeId.current = edge.id;
-        changeEdgeData(edge.id, { doubleClickSelected: true });
-    }, []);
-
-    const onPaneClick: OnPaneClick = useCallback((e) => {
-        if (!isEventTargetPane(e.target as Element)) {
-            return;
-        }
-
-        if (selectedEdgeId.current !== null) {
-            changeEdgeData(selectedEdgeId.current, { doubleClickSelected: false })
-            selectedEdgeId.current = null;
-        }
-
-        if (connectingNode.current === null) {
-            if (selectedNode !== null) {
-                changeNodeData(selectedNode.id, { isSelectedModification: false })
-            }
-            setSelectedNode(null);
-        } else {
-            connectingNode.current = null;
-        }
-
-    }, [nodes]);
-
-    return (
-        <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onConnectStart={onConnectStart}
-            onConnectEnd={onConnectEnd}
-            panOnScroll
-            selectionOnDrag
-            nodeOrigin={[0.5, 0]}
-            edgeTypes={edgeTypes}
-            nodeTypes={nodeTypes}
-            onNodeDoubleClick={onNodeDoubleClick}
-            onNodeClick={onNodeClick}
-            onPaneClick={onPaneClick}
-            onEdgeDoubleClick={onEdgeDoubleClick}
-            defaultEdgeOptions={{
-                type: "flowchart-edge",
-                markerEnd: {
-                    type: MarkerType.ArrowClosed,
-                    width: 15,
-                    height: 15,
-                    color: "black"
-                }
-            }}
-            proOptions={{
-                hideAttribution: true
-            }}
-            connectionMode={ConnectionMode.Loose}
-            fitView
-        >
-            <Controls />
-            <Background />
-        </ReactFlow>
-    );
+      }}
+      proOptions={{
+        hideAttribution: true
+      }}
+      connectionMode={ConnectionMode.Loose}
+      fitView
+    >
+      <Controls />
+      <Background />
+    </ReactFlow>
+  );
 }
