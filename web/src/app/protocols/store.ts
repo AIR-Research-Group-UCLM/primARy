@@ -16,8 +16,10 @@ import type {
   Connection,
 } from "reactflow";
 
+import { defaultEdgeData } from "@/app/ui/protocols/flowchart/edge";
+
 import type { FlowchartNode, FlowchartNodeData } from "@/app/ui/protocols/flowchart/node";
-import type { FlowchartEdge } from "@/app/ui/protocols/flowchart/edge";
+import type { FlowchartEdge, FlowchartEdgeData } from "@/app/ui/protocols/flowchart/edge";
 
 export type RFState = {
   nodes: FlowchartNode[];
@@ -32,9 +34,9 @@ export type RFState = {
   addEdgeFromConnection: OnConnect;
   addNode: (node: FlowchartNode) => void;
   addEdge: (edge: FlowchartEdge) => void;
-  changeEdgeLabel: (edgeId: string, label: string) => void;
-
   setSelectedNode: (selectedNode: FlowchartNode | null) => void;
+
+  changeEdgeData: (edgeId: string, edgeData: Partial<FlowchartEdgeData>) => void;
   changeNodeData: (nodeId: string, nodeData: Partial<FlowchartNodeData>) => void;
 };
 
@@ -70,14 +72,20 @@ const useStore = create<RFState>((set, get) => ({
   addNode: (node) => {
     set((state) => ({ nodes: [...state.nodes, node] }))
   },
-  changeEdgeLabel: (edgeId, label) => {
+  changeEdgeData: (edgeId, edgeData) => {
     set((state) => ({
       edges: state.edges.map((edge) => {
-        if (edge.id === edgeId) {
-          // Do I really have to write doubleClickSelected here???
-          return { ...edge, data: { doubleClickSelected: false, ...edge.data, label } };
+        if (edge.id !== edgeId) {
+          return edge;
         }
-        return edge;
+        return {
+          ...edge,
+          data: {
+            ...defaultEdgeData,
+            ...edge.data,
+            ...edgeData
+          }
+        };
       })
     }));
   },

@@ -25,7 +25,6 @@ import type { FlowchartEdge } from "@/app/ui/protocols/flowchart/edge";
 
 import "reactflow/dist/style.css";
 
-
 let id = 2;
 const getId = () => `${id++}`;
 
@@ -36,6 +35,7 @@ type NodeHandle = {
 
 type OnNodeClick = (event: MouseEvent, node: FlowchartNode) => void;
 type OnPaneClick = (event: MouseEvent) => void;
+type OnEdgeClick = (event: MouseEvent, edge: FlowchartEdge) => void;
 
 const edgeTypes = {
     "flowchart-edge": RFFlowChartEdge
@@ -55,7 +55,8 @@ const selector = (state: RFState) => ({
     addEdge: state.addEdge,
     selectedNode: state.selectedNode,
     setSelectedNode: state.setSelectedNode,
-    changeNodeData: state.changeNodeData
+    changeNodeData: state.changeNodeData,
+    changeEdgeData: state.changeEdgeData
 });
 
 function isEventTargetPane(target: Element): boolean {
@@ -73,11 +74,13 @@ export default function FlowChartEditor() {
         addNode,
         addEdge,
         setSelectedNode,
-        changeNodeData
+        changeNodeData,
+        changeEdgeData
     } = useStore(
         useShallow(selector)
     );
     const connectingNode = useRef<NodeHandle | null>(null);
+    const selectedEdgeId = useRef<string | null>(null);
     const { screenToFlowPosition } = useReactFlow();
 
     const onConnect: OnConnect = useCallback(
@@ -152,9 +155,22 @@ export default function FlowChartEditor() {
         setSelectedNode(newNode);
     }, []);
 
+    const onEdgeDoubleClick: OnEdgeClick = useCallback((_, edge) => {
+        if (selectedEdgeId.current !== null) {
+            changeEdgeData(selectedEdgeId.current, { doubleClickSelected: false });
+        }
+        selectedEdgeId.current = edge.id;
+        changeEdgeData(edge.id, { doubleClickSelected: true });
+    }, []);
+
     const onPaneClick: OnPaneClick = useCallback((e) => {
         if (!isEventTargetPane(e.target as Element)) {
             return;
+        }
+
+        if (selectedEdgeId.current !== null) {
+            changeEdgeData(selectedEdgeId.current, { doubleClickSelected: false })
+            selectedEdgeId.current = null;
         }
 
         if (connectingNode.current === null) {
@@ -185,12 +201,14 @@ export default function FlowChartEditor() {
             onNodeDoubleClick={onNodeDoubleClick}
             onNodeClick={onNodeClick}
             onPaneClick={onPaneClick}
+            onEdgeDoubleClick={onEdgeDoubleClick}
             defaultEdgeOptions={{
                 type: "flowchart-edge",
                 markerEnd: {
                     type: MarkerType.ArrowClosed,
-                    width: 50,
-                    height: 50
+                    width: 15,
+                    height: 15,
+                    color: "black"
                 }
             }}
             proOptions={{
