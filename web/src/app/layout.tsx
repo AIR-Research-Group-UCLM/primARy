@@ -32,7 +32,7 @@ export default function RootLayout({
               <Navigation drawerWidth={200} />
               <Box
                 component="main"
-                sx={{ height: "87vh", flexGrow: 1, bgcolor: 'background.default'}}
+                sx={{ height: "87vh", width: "100%", flexGrow: 1, bgcolor: 'background.default'}}
               >
                 <Toolbar />
                 {children}

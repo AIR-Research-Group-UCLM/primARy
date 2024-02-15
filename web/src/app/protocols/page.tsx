@@ -42,9 +42,9 @@ export default function Page() {
         gap: "10px",
         height: "100%"
       }}>
-        <Paper elevation={5} sx={{
-          flex: "1 0 66%",
-          border: "solid"
+        <Paper elevation={10} sx={{
+          flex: "2 0",
+          border: "solid 2px"
         }}>
           <ReactFlowProvider>
             <FlowChartEditor />
@@ -52,9 +52,10 @@ export default function Page() {
         </Paper>
 
         {<Paper
+          elevation={5}
           sx={{
-            flex: "1 0 34%",
-            border: "solid",
+            flex: "1 0",
+            border: "solid 2px",
             padding: "15px",
             display: selectedNode === null ? "none" : "flex",
             flexDirection: "column"
