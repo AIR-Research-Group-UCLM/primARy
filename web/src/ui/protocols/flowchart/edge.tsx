@@ -5,7 +5,7 @@ import {
   EdgeLabelRenderer,
   Edge
 } from "reactflow";
-import useStore from "@/app/protocols/store";
+import useStore from "@/hooks/store";
 
 import type { EdgeProps } from "reactflow";
 import { useState } from "react";

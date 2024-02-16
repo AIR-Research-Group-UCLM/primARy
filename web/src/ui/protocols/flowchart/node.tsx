@@ -7,8 +7,8 @@ import type {
   NodeProps
 } from "reactflow";
 
-import FlowchartHandle from "@/app/ui/protocols/flowchart/handle";
-import useStore from "@/app/protocols/store";
+import FlowchartHandle from "@/ui/protocols/flowchart/handle";
+import useStore from "@/hooks/store";
 
 // TODO: research whether there exists a convention where these types are located
 export type RFNodeData = {

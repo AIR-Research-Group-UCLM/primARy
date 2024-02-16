@@ -8,20 +8,20 @@ import ReactFlow, {
   MarkerType,
 } from "reactflow";
 
-import useStore from "@/app/protocols/store";
-import RFFlowchartNode from "@/app/ui/protocols/flowchart/node";
-import RFFlowChartEdge from "@/app/ui/protocols/flowchart/edge";
-import { getOpposite } from "@/app/ui/protocols/flowchart/handle";
+import useStore from "@/hooks/store";
+import RFFlowchartNode from "@/ui/protocols/flowchart/node";
+import RFFlowChartEdge from "@/ui/protocols/flowchart/edge";
+import { getOpposite } from "@/ui/protocols/flowchart/handle";
 
 import type {
   OnConnect,
   OnConnectStart,
   OnConnectEnd,
 } from "reactflow";
-import type { RFState } from "@/app/protocols/store";
-import type { HandlePosition } from "@/app/ui/protocols/flowchart/handle";
-import type { FlowchartNode } from "@/app/ui/protocols/flowchart/node";
-import type { FlowchartEdge } from "@/app/ui/protocols/flowchart/edge";
+import type { RFState } from "@/hooks/store";
+import type { HandlePosition } from "@/ui/protocols/flowchart/handle";
+import type { FlowchartNode } from "@/ui/protocols/flowchart/node";
+import type { FlowchartEdge } from "@/ui/protocols/flowchart/edge";
 
 import "reactflow/dist/style.css";
 

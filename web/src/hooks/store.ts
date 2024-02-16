@@ -16,10 +16,10 @@ import type {
   Connection,
 } from "reactflow";
 
-import { defaultEdgeData } from "@/app/ui/protocols/flowchart/edge";
+import { defaultEdgeData } from "@/ui/protocols/flowchart/edge";
 
-import type { FlowchartNode, FlowchartNodeData } from "@/app/ui/protocols/flowchart/node";
-import type { FlowchartEdge, FlowchartEdgeData } from "@/app/ui/protocols/flowchart/edge";
+import type { FlowchartNode, FlowchartNodeData } from "@/ui/protocols/flowchart/node";
+import type { FlowchartEdge, FlowchartEdgeData } from "@/ui/protocols/flowchart/edge";
 
 export type RFState = {
   nodes: FlowchartNode[];

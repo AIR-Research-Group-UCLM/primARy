@@ -1,7 +1,7 @@
 import TextField from "@mui/material/TextField";
-import useStore, { RFState } from "@/app/protocols/store";
+import useStore from "@/hooks/store";
 
-import "@/app/ui/protocols/textfield.css";
+import "@/ui/protocols/textfield.css";
 
 type Props = {
   selectedNodeId: string

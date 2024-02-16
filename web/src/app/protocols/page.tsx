@@ -8,9 +8,9 @@ import Button from "@mui/material/Button";
 import SaveAltIcon from '@mui/icons-material/SaveAlt';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-import useStore from "@/app/protocols/store";
-import FlowChartEditor from "@/app/ui/protocols/flowchart/editor";
-import NodeInfoEditor from "@/app/ui/protocols/node-info-editor";
+import useStore from "@/hooks/store";
+import FlowChartEditor from "@/ui/protocols/flowchart/editor";
+import NodeInfoEditor from "@/ui/protocols/node-info-editor";
 
 export default function Page() {
   const selectedNodeId = useStore((state) => state.selectedNodeId);
