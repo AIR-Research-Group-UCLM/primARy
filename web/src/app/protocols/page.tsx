@@ -13,7 +13,7 @@ import FlowChartEditor from "@/app/ui/protocols/flowchart/editor";
 import NodeInfoEditor from "@/app/ui/protocols/node-info-editor";
 
 export default function Page() {
-  const selectedNode = useStore((state) => state.selectedNode);
+  const selectedNodeId = useStore((state) => state.selectedNodeId);
 
   return (
     <Box sx={{
@@ -65,11 +65,11 @@ export default function Page() {
             flex: "1 0",
             border: "solid 0px",
             padding: "15px",
-            display: selectedNode === null ? "none" : "flex",
+            display: selectedNodeId === null ? "none" : "flex",
             flexDirection: "column"
           }}
         >
-          {selectedNode && <NodeInfoEditor selectedNode={selectedNode} />}
+          {selectedNodeId && <NodeInfoEditor selectedNodeId={selectedNodeId} />}
         </Paper>}
       </Box>
       <Paper
