@@ -3,7 +3,8 @@ This BSc final year project aims to enhance the diagnostic and support capabilit
 
 # Directory Structure
 - **ar**: contains the solution intended to be used on the Quest 3 headset.
-- **web**: contains a NextJS based frontend and a NestJS based backend.
+- **web**: contains a NextJS frontend
+- **api**: contains REST API implemented in Python using FastAPI
 
 # Commits and Branching
 - [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
