@@ -4,6 +4,9 @@ import { ReactFlowProvider } from "reactflow";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import SaveAltIcon from '@mui/icons-material/SaveAlt';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import useStore from "@/app/protocols/store";
 import FlowChartEditor from "@/app/ui/protocols/flowchart/editor";
@@ -19,32 +22,37 @@ export default function Page() {
       padding: "5px",
       height: "100%"
     }}>
-      <TextField
-        fullWidth
-        label="Protocol Name"
-        variant="outlined"
-        sx={{
-          marginBottom: "10px",
-        }}
-        inputProps={{
-          style: {
-            fontSize: "20px"
-          }
-        }}
-        InputProps={{
-          style: {
-            fontSize: "15px"
-          }
-        }}
-      />
+      <Box sx={{
+        display: "flex"
+      }}>
+        <TextField
+          fullWidth
+          label="Protocol Name"
+          variant="outlined"
+          sx={{
+            marginBottom: "10px",
+            flexGrow: 1
+          }}
+          inputProps={{
+            style: {
+              fontSize: "20px"
+            }
+          }}
+          InputProps={{
+            style: {
+              fontSize: "15px"
+            }
+          }}
+        />
+      </Box>
       <Box sx={{
         display: "flex",
         gap: "10px",
         height: "100%"
       }}>
         <Paper elevation={5} sx={{
-          flex: "1 0 66%",
-          border: "solid"
+          flex: "2 0",
+          border: "solid 0px"
         }}>
           <ReactFlowProvider>
             <FlowChartEditor />
@@ -52,9 +60,10 @@ export default function Page() {
         </Paper>
 
         {<Paper
+          elevation={5}
           sx={{
-            flex: "1 0 34%",
-            border: "solid",
+            flex: "1 0",
+            border: "solid 0px",
             padding: "15px",
             display: selectedNode === null ? "none" : "flex",
             flexDirection: "column"
@@ -63,6 +72,38 @@ export default function Page() {
           {selectedNode && <NodeInfoEditor selectedNode={selectedNode} />}
         </Paper>}
       </Box>
+      <Paper
+        elevation={5}
+        sx={{
+          display: "flex",
+          border: "solid 0px",
+          alignContent: "center",
+          justifyContent: "center",
+          padding: "10px",
+          marginTop: "20px"
+        }}
+      >
+        <Box sx={{
+          display: "flex",
+          flex: "1 0",
+          justifyContent: "center",
+        }} >
+          <Button variant="contained" size="large" startIcon={<ArrowBackIcon />}>
+            Exit and save
+          </Button>
+        </Box>
+
+        <Box sx={{
+          display: "flex",
+          flex: "1 0",
+          justifyContent: "center",
+        }} >
+
+          <Button variant="contained" size="large" startIcon={<SaveAltIcon />}>
+            Save
+          </Button>
+        </Box>
+      </Paper>
     </Box>
   )
 }

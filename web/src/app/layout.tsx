@@ -7,6 +7,8 @@ import { ThemeProvider } from "@mui/material";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 
+import CircularProgress from "@mui/material/CircularProgress";
+
 import { Navigation } from "./ui/navigation";
 import theme from '@/theme';
 
@@ -32,7 +34,7 @@ export default function RootLayout({
               <Navigation drawerWidth={200} />
               <Box
                 component="main"
-                sx={{ height: "87vh", flexGrow: 1, bgcolor: 'background.default'}}
+                sx={{ height: "87vh", width: "100%", flexGrow: 1, bgcolor: "background.default" }}
               >
                 <Toolbar />
                 {children}

@@ -16,12 +16,17 @@ import type {
   Connection,
 } from "reactflow";
 
-import type { FlowchartNode } from "@/app/ui/protocols/flowchart/node";
-import type { FlowchartEdge } from "@/app/ui/protocols/flowchart/edge";
+import { defaultEdgeData } from "@/app/ui/protocols/flowchart/edge";
+
+import type { FlowchartNode, FlowchartNodeData } from "@/app/ui/protocols/flowchart/node";
+import type { FlowchartEdge, FlowchartEdgeData } from "@/app/ui/protocols/flowchart/edge";
 
 export type RFState = {
   nodes: FlowchartNode[];
   edges: FlowchartEdge[];
+
+  // TODO: we are only interested in its id and data so to avoid confusions
+  // we should create a new type which has those properties
   selectedNode: FlowchartNode | null;
 
   onNodesChange: OnNodesChange;
@@ -29,9 +34,10 @@ export type RFState = {
   addEdgeFromConnection: OnConnect;
   addNode: (node: FlowchartNode) => void;
   addEdge: (edge: FlowchartEdge) => void;
-  changeEdgeLabel: (edgeId: string, label: string) => void;
   setSelectedNode: (selectedNode: FlowchartNode | null) => void;
-  changeNode: (node: FlowchartNode) => void;
+
+  changeEdgeData: (edgeId: string, edgeData: Partial<FlowchartEdgeData>) => void;
+  changeNodeData: (nodeId: string, nodeData: Partial<FlowchartNodeData>) => void;
 };
 
 const useStore = create<RFState>((set, get) => ({
@@ -39,7 +45,7 @@ const useStore = create<RFState>((set, get) => ({
     {
       id: "1",
       type: 'flowchart-node',
-      data: { name: "Initial Node", description: null },
+      data: { name: "Initial Node", description: null, isSelectedModification: false },
       position: { x: 0, y: 0 },
     },
   ],
@@ -66,22 +72,40 @@ const useStore = create<RFState>((set, get) => ({
   addNode: (node) => {
     set((state) => ({ nodes: [...state.nodes, node] }))
   },
-  changeEdgeLabel: (edgeId, label) => {
+  changeEdgeData: (edgeId, edgeData) => {
     set((state) => ({
       edges: state.edges.map((edge) => {
-        if (edge.id === edgeId) {
-          return { ...edge, data: { ...edge.data, label } };
+        if (edge.id !== edgeId) {
+          return edge;
         }
-        return edge;
+        return {
+          ...edge,
+          data: {
+            ...defaultEdgeData,
+            ...edge.data,
+            ...edgeData
+          }
+        };
       })
     }));
   },
   setSelectedNode: (selectedNode) => {
     set({ selectedNode })
   },
-  changeNode: (updatedNode) => {
+  changeNodeData: (nodeId, nodeData) => {
     set((state) => ({
-      nodes: state.nodes.map((node) => node.id === updatedNode.id ? updatedNode : node)
+      nodes: state.nodes.map((node) => {
+        if (node.id !== nodeId) {
+          return node;
+        }
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            ...nodeData
+          }
+        }
+      })
     }));
   }
 }));

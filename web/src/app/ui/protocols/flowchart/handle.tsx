@@ -9,19 +9,44 @@ const opposite = {
   "right": "left"
 }
 
+const defaultColor = "black";
+
 export function getOpposite(position: HandlePosition) {
   return opposite[position];
 }
 
 type SelectionColors = {
   selected?: string;
+  selectedModification?: string;
   unselected?: string;
 }
 
+type Props = {
+  position: Position;
+  id: string;
+  colors?: SelectionColors;
+  isSelected: boolean;
+  isSelectedModification: boolean;
+}
 
-export default function FlowchartHandle({ position, id, colors, isSelected = false }: 
-  { position: Position, id: string, colors?: SelectionColors, isSelected?: boolean }
-) {
+function selectColor(selected: boolean, selectedModification: boolean, colors?: SelectionColors) {
+  const selectionColor = colors?.selected ?? defaultColor;
+  const selectedModificationColor = colors?.selectedModification ?? defaultColor;
+  const notSelectedColor = colors?.unselected ?? defaultColor;
+
+  if (selectedModification) {
+    return selectedModificationColor;
+  }
+
+  if (selected) {
+    return selectionColor;
+  }
+
+  return notSelectedColor;
+}
+
+
+export default function FlowchartHandle({ position, id, colors, isSelected = false, isSelectedModification = false }: Props) {
   const isHorizontal = position === Position.Left || position === Position.Right;
 
   const size = isHorizontal ? {
@@ -32,14 +57,11 @@ export default function FlowchartHandle({ position, id, colors, isSelected = fal
     height: "5px"
   };
 
-  const selectionColor = colors?.selected ?? "#000000";
-  const notSelectedColor = colors?.unselected ?? "#000000";
-
   return (
     <Handle type="source" position={position} id={id} style={{
       ...size,
       borderRadius: "3px",
-      background: isSelected ? selectionColor : notSelectedColor
+      background: `${selectColor(isSelected, isSelectedModification, colors)}`
     }} />
   )
 }

@@ -1,7 +1,7 @@
 import FlowchartHandle from "@/app/ui/protocols/flowchart/handle";
 import { Typography } from "@mui/material";
 
-import { Position, NodeResizer } from "reactflow";
+import { Position } from "reactflow";
 
 import type {
   Node,
@@ -11,11 +11,14 @@ import type {
 export type FlowchartNodeData = {
   name: string;
   description: string | null;
+  isSelectedModification: boolean;
 }
 
 const nodeSelectionColor = "#037bfc";
+const selectedModificationColor = "#451fc2";
 const handleColor = {
-  selected: "#043f80"
+  selected: "#043f80",
+  selectedModification: "#3d05f7"
 }
 
 const positions = [
@@ -23,6 +26,18 @@ const positions = [
 ];
 
 export type FlowchartNode = Node<FlowchartNodeData>;
+
+function selectColor(selected: boolean, selectedModification: boolean) {
+  if (selectedModification) {
+    return selectedModificationColor;
+  }
+
+  if (selected) {
+    return nodeSelectionColor;
+  }
+
+  return "black";
+}
 
 
 export default function RFFlowchartNode({ data, selected }: NodeProps<FlowchartNodeData>) {
@@ -36,13 +51,14 @@ export default function RFFlowchartNode({ data, selected }: NodeProps<FlowchartN
             id={position.toString()}
             colors={handleColor}
             isSelected={selected}
+            isSelectedModification={data.isSelectedModification}
           />
         )
       }
       <div style={{
         padding: "10px 20px",
         background: "#ffffff",
-        border: `solid 2.5px ${selected ? nodeSelectionColor : ""}`,
+        border: `solid 2.5px ${selectColor(selected, data.isSelectedModification)}`,
         borderRadius: 10,
         display: "flex"
       }}>
