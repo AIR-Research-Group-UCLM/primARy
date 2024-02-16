@@ -9,7 +9,7 @@ import ReactFlow, {
 } from "reactflow";
 
 import useStore from "@/app/protocols/store";
-import RFFlowchartNode, { FlowchartNodeData } from "@/app/ui/protocols/flowchart/node";
+import RFFlowchartNode from "@/app/ui/protocols/flowchart/node";
 import RFFlowChartEdge from "@/app/ui/protocols/flowchart/edge";
 import { getOpposite } from "@/app/ui/protocols/flowchart/handle";
 
@@ -48,15 +48,16 @@ const nodeTypes = {
 const selector = (state: RFState) => ({
   nodes: state.nodes,
   edges: state.edges,
+  selectedNodeId: state.selectedNodeId,
   onNodesChange: state.onNodesChange,
   onEdgesChange: state.onEdgesChange,
   addEdgeFromConnection: state.addEdgeFromConnection,
   addNode: state.addNode,
   addEdge: state.addEdge,
-  selectedNode: state.selectedNode,
-  setSelectedNode: state.setSelectedNode,
+  setSelectedNodeId: state.setSelectedNodeId,
   changeNodeData: state.changeNodeData,
-  changeEdgeData: state.changeEdgeData
+  changeEdgeData: state.changeEdgeData,
+  changeNode: state.changeNode
 });
 
 function isEventTargetPane(target: Element): boolean {
@@ -67,15 +68,15 @@ export default function FlowChartEditor() {
   const {
     nodes,
     edges,
-    selectedNode,
+    selectedNodeId,
     onNodesChange,
     onEdgesChange,
     addEdgeFromConnection,
     addNode,
     addEdge,
-    setSelectedNode,
-    changeNodeData,
-    changeEdgeData
+    setSelectedNodeId,
+    changeEdgeData,
+    changeNode
   } = useStore(
     useShallow(selector)
   );
@@ -83,12 +84,10 @@ export default function FlowChartEditor() {
   const selectedEdgeId = useRef<string | null>(null);
   const { screenToFlowPosition } = useReactFlow();
 
-  const onConnect: OnConnect = useCallback(
-    (connection) => {
-      connectingNode.current = null;
-      addEdgeFromConnection(connection);
-    },
-    [addEdgeFromConnection]);
+  const onConnect: OnConnect = useCallback((connection) => {
+    connectingNode.current = null;
+    addEdgeFromConnection(connection);
+  }, [addEdgeFromConnection]);
 
   const onConnectStart: OnConnectStart = useCallback((_, { nodeId, handleId }) => {
     if (nodeId === null || handleId === null) {
@@ -119,7 +118,7 @@ export default function FlowChartEditor() {
         // @ts-ignore
         y: event.clientY
       }),
-      data: { name: `Node ${id}`, description: null, isSelectedModification: false },
+      data: { isSelectedModification: false },
       type: "flowchart-node",
     };
 
@@ -131,28 +130,24 @@ export default function FlowChartEditor() {
       targetHandle: getOpposite(connectingNode.current.handleId),
       target: id,
     }
-    addNode(newNode);
+    addNode(newNode, {
+      name: `Node ${id}`,
+      description: null
+    });
     addEdge(newEdge);
-  }, [screenToFlowPosition])
+  }, [screenToFlowPosition]);
 
   const onNodeClick: OnNodeClick = useCallback((_, node) => {
-    if (selectedNode !== null) {
-      changeNodeData(selectedNode.id, { isSelectedModification: false })
-      changeNodeData(node.id, { isSelectedModification: true })
-      setSelectedNode(node);
+    if (selectedNodeId !== null) {
+      changeNode(selectedNodeId, { data: { isSelectedModification: false } });
+      changeNode(node.id, { data: { isSelectedModification: true } });
+      setSelectedNodeId(node.id);
     }
-  }, [selectedNode]);
+  }, [selectedNodeId]);
 
   const onNodeDoubleClick: OnNodeClick = useCallback((_, node) => {
-    const newNode = {
-      ...node,
-      data: {
-        ...node.data,
-        isSelectedModification: true
-      }
-    }
-    changeNodeData(node.id, { isSelectedModification: true });
-    setSelectedNode(newNode);
+    changeNode(node.id, { data: { isSelectedModification: true } });
+    setSelectedNodeId(node.id);
   }, []);
 
   const onEdgeDoubleClick: OnEdgeClick = useCallback((_, edge) => {
@@ -174,10 +169,10 @@ export default function FlowChartEditor() {
     }
 
     if (connectingNode.current === null) {
-      if (selectedNode !== null) {
-        changeNodeData(selectedNode.id, { isSelectedModification: false })
+      if (selectedNodeId !== null) {
+        changeNode(selectedNodeId, { data: { isSelectedModification: false } })
       }
-      setSelectedNode(null);
+      setSelectedNodeId(null);
     } else {
       connectingNode.current = null;
     }

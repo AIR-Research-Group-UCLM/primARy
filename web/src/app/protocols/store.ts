@@ -24,20 +24,20 @@ import type { FlowchartEdge, FlowchartEdgeData } from "@/app/ui/protocols/flowch
 export type RFState = {
   nodes: FlowchartNode[];
   edges: FlowchartEdge[];
+  nodesData: Map<string, FlowchartNodeData>;
 
-  // TODO: we are only interested in its id and data so to avoid confusions
-  // we should create a new type which has those properties
-  selectedNode: FlowchartNode | null;
+  selectedNodeId: string | null;
 
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   addEdgeFromConnection: OnConnect;
-  addNode: (node: FlowchartNode) => void;
+  addNode: (node: FlowchartNode, nodeData: FlowchartNodeData) => void;
   addEdge: (edge: FlowchartEdge) => void;
-  setSelectedNode: (selectedNode: FlowchartNode | null) => void;
+  setSelectedNodeId: (selectedNodeId: string | null) => void;
 
-  changeEdgeData: (edgeId: string, edgeData: Partial<FlowchartEdgeData>) => void;
+  changeNode: (nodeId: string, nodeData: Partial<FlowchartNode>) => void;
   changeNodeData: (nodeId: string, nodeData: Partial<FlowchartNodeData>) => void;
+  changeEdgeData: (edgeId: string, edgeData: Partial<FlowchartEdgeData>) => void;
 };
 
 const useStore = create<RFState>((set, get) => ({
@@ -50,7 +50,9 @@ const useStore = create<RFState>((set, get) => ({
     },
   ],
   edges: [],
-  selectedNode: null,
+  nodesData: new Map([["1", { name: "Initial Node", description: null }]]),
+  selectedNodeId: null,
+
   onNodesChange: (changes: NodeChange[]) => {
     set((state) => ({
       nodes: applyNodeChanges(changes, state.nodes),
@@ -64,13 +66,19 @@ const useStore = create<RFState>((set, get) => ({
   addEdgeFromConnection: (connection: Connection) => {
     set((state) => ({
       edges: addEdge(connection, state.edges)
-    }))
+    }));
   },
   addEdge: (edge) => {
-    set((state) => ({ edges: [...state.edges, edge] }))
+    set((state) => ({ edges: [...state.edges, edge] }));
   },
-  addNode: (node) => {
-    set((state) => ({ nodes: [...state.nodes, node] }))
+  addNode: (node, nodeData) => {
+    const nodesData = new Map(get().nodesData);
+    nodesData.set(node.id, nodeData);
+
+    set((state) => ({
+      nodes: [...state.nodes, node],
+      nodesData
+    }));
   },
   changeEdgeData: (edgeId, edgeData) => {
     set((state) => ({
@@ -89,24 +97,32 @@ const useStore = create<RFState>((set, get) => ({
       })
     }));
   },
-  setSelectedNode: (selectedNode) => {
-    set({ selectedNode })
+  setSelectedNodeId: (selectedNodeId) => {
+    set({ selectedNodeId })
   },
-  changeNodeData: (nodeId, nodeData) => {
+  changeNode(nodeId, nodeData) {
     set((state) => ({
       nodes: state.nodes.map((node) => {
-        if (node.id !== nodeId) {
+        if (nodeId !== node.id) {
           return node;
         }
         return {
           ...node,
-          data: {
-            ...node.data,
-            ...nodeData
-          }
-        }
+          ...nodeData
+        };
       })
     }));
+  },
+  changeNodeData: (nodeId, nodeData) => {
+    const nodesData = new Map(get().nodesData);
+    const previousData = nodesData.get(nodeId);
+    if (previousData == null) {
+      throw new Error(`Node ID ${nodeId} does not exist`);
+    }
+
+    nodesData.set(nodeId, { ...previousData, ...nodeData });
+
+    set({ nodesData });
   }
 }));
 

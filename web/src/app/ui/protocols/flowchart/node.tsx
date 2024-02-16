@@ -1,4 +1,3 @@
-import FlowchartHandle from "@/app/ui/protocols/flowchart/handle";
 import { Typography } from "@mui/material";
 
 import { Position } from "reactflow";
@@ -8,10 +7,17 @@ import type {
   NodeProps
 } from "reactflow";
 
+import FlowchartHandle from "@/app/ui/protocols/flowchart/handle";
+import useStore from "@/app/protocols/store";
+
+// TODO: research whether there exists a convention where these types are located
+export type RFNodeData = {
+  isSelectedModification: boolean;
+}
+
 export type FlowchartNodeData = {
   name: string;
   description: string | null;
-  isSelectedModification: boolean;
 }
 
 const nodeSelectionColor = "#037bfc";
@@ -25,7 +31,7 @@ const positions = [
   Position.Top, Position.Bottom, Position.Left, Position.Right
 ];
 
-export type FlowchartNode = Node<FlowchartNodeData>;
+export type FlowchartNode = Node<RFNodeData>;
 
 function selectColor(selected: boolean, selectedModification: boolean) {
   if (selectedModification) {
@@ -40,7 +46,9 @@ function selectColor(selected: boolean, selectedModification: boolean) {
 }
 
 
-export default function RFFlowchartNode({ data, selected }: NodeProps<FlowchartNodeData>) {
+export default function RFFlowchartNode({ id, data, selected }: NodeProps<RFNodeData>) {
+  const name = useStore((state) => state.nodesData.get(id)!.name);
+
   return (
     <>
       {
@@ -62,7 +70,7 @@ export default function RFFlowchartNode({ data, selected }: NodeProps<FlowchartN
         borderRadius: 10,
         display: "flex"
       }}>
-        <Typography variant="h6" component="div">{data.name}</Typography>
+        <Typography variant="h6" component="div">{name}</Typography>
       </div>
     </>
   );

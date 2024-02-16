@@ -1,42 +1,22 @@
 import TextField from "@mui/material/TextField";
-import useStore from "@/app/protocols/store";
-
-import type { FlowchartNode } from "@/app/ui/protocols/flowchart/node";
+import useStore, { RFState } from "@/app/protocols/store";
 
 import "@/app/ui/protocols/textfield.css";
 
 type Props = {
-  selectedNode: FlowchartNode
+  selectedNodeId: string
 }
 
-export default function NodeInfoEditor({ selectedNode }: Props) {
+export default function NodeInfoEditor({ selectedNodeId }: Props) {
   const changeNodeData = useStore((state) => state.changeNodeData);
-  const setSelectedNode = useStore((state) => state.setSelectedNode);
+  const data = useStore((state) => state.nodesData.get(selectedNodeId)!);
 
   function onNameChange(name: string) {
-    const newNode = {
-      ...selectedNode,
-      data: {
-        ...selectedNode.data,
-        name
-      }
-    }
-
-    changeNodeData(selectedNode.id, { name });
-    setSelectedNode(newNode);
+    changeNodeData(selectedNodeId, { name });
   }
 
   function onDescriptionChange(description: string) {
-    const newNode = {
-      ...selectedNode,
-      data: {
-        ...selectedNode.data,
-        description
-      }
-    }
-
-    changeNodeData(selectedNode.id, { description });
-    setSelectedNode(newNode);
+    changeNodeData(selectedNodeId, { description });
   }
 
   return (
@@ -44,7 +24,7 @@ export default function NodeInfoEditor({ selectedNode }: Props) {
       <TextField
         fullWidth
         label="Name"
-        value={selectedNode.data.name}
+        value={data.name}
         onChange={(e) => onNameChange(e.target.value)}
         variant="outlined"
         sx={{
@@ -55,7 +35,7 @@ export default function NodeInfoEditor({ selectedNode }: Props) {
         fullWidth
         multiline
         onChange={(e) => onDescriptionChange(e.target.value)}
-        value={selectedNode.data.description ?? ""}
+        value={data.description ?? ""}
         id="description"
         label="Description"
         variant="outlined"
