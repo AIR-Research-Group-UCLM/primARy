@@ -1,5 +1,4 @@
 import { useRef, useCallback, MouseEvent } from "react";
-import { useShallow } from "zustand/react/shallow";
 import ReactFlow, {
   Controls,
   useReactFlow,
@@ -18,7 +17,7 @@ import type {
   OnConnectStart,
   OnConnectEnd,
 } from "reactflow";
-import type { RFState } from "@/hooks/store";
+
 import type { HandlePosition } from "@/ui/protocols/flowchart/handle";
 import type { FlowchartNode } from "@/ui/protocols/flowchart/node";
 import type { FlowchartEdge } from "@/ui/protocols/flowchart/edge";
@@ -45,41 +44,24 @@ const nodeTypes = {
   "flowchart-node": RFFlowchartNode
 }
 
-const selector = (state: RFState) => ({
-  nodes: state.nodes,
-  edges: state.edges,
-  selectedNodeId: state.selectedNodeId,
-  onNodesChange: state.onNodesChange,
-  onEdgesChange: state.onEdgesChange,
-  addEdgeFromConnection: state.addEdgeFromConnection,
-  addNode: state.addNode,
-  addEdge: state.addEdge,
-  setSelectedNodeId: state.setSelectedNodeId,
-  changeNodeData: state.changeNodeData,
-  changeEdgeData: state.changeEdgeData,
-  changeNode: state.changeNode
-});
-
 function isEventTargetPane(target: Element): boolean {
   return target.classList.contains("react-flow__pane");
 }
 
 export default function FlowChartEditor() {
-  const {
-    nodes,
-    edges,
-    selectedNodeId,
-    onNodesChange,
-    onEdgesChange,
-    addEdgeFromConnection,
-    addNode,
-    addEdge,
-    setSelectedNodeId,
-    changeEdgeData,
-    changeNode
-  } = useStore(
-    useShallow(selector)
-  );
+  const nodes = useStore((state) => state.nodes);
+  const edges = useStore((state) => state.edges);
+  const selectedNodeId = useStore((state) => state.selectedNodeId);
+
+  const onNodesChange = useStore((state) => state.onNodesChange);
+  const onEdgesChange = useStore((state) => state.onEdgesChange);
+  const addEdgeFromConnection = useStore((state) => state.addEdgeFromConnection);
+  const addNode = useStore((state) => state.addNode);
+  const addEdge = useStore((state) => state.addEdge);
+  const setSelectedNodeId = useStore((state) => state.setSelectedNodeId);
+  const changeEdgeData = useStore((state) => state.changeEdgeData);
+  const changeNode = useStore((state) => state.changeNode);
+
   const connectingNode = useRef<NodeHandle | null>(null);
   const selectedEdgeId = useRef<string | null>(null);
   const { screenToFlowPosition } = useReactFlow();
