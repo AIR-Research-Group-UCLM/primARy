@@ -23,6 +23,7 @@ import type { FlowchartNode } from "@/ui/protocols/flowchart/node";
 import type { FlowchartEdge } from "@/ui/protocols/flowchart/edge";
 
 import "reactflow/dist/style.css";
+import { nanoid } from "nanoid";
 
 let id = 10;
 const getId = () => `${id++}`;
@@ -87,9 +88,9 @@ export default function FlowChartEditor() {
       return;
     }
 
-    let id = getId();
 
-    // TODO: find the way of correctly typechecking this
+    let id = nanoid();
+
     let newNode: FlowchartNode = {
       id,
       position: screenToFlowPosition({
@@ -102,16 +103,15 @@ export default function FlowChartEditor() {
       type: "flowchart-node",
     };
 
-    // TODO: think on a better id for the edge
     let newEdge: FlowchartEdge = {
-      id,
+      id: nanoid(),
       source: connectingNode.current.nodeId,
       sourceHandle: connectingNode.current.handleId,
       targetHandle: getOpposite(connectingNode.current.handleId),
       target: id,
     }
     addNode(newNode, {
-      name: `Node ${id}`,
+      name: "",
       description: ""
     });
     addEdge(newEdge);
