@@ -1,15 +1,15 @@
 import TextField from "@mui/material/TextField";
-import useStore, { RFState } from "@/app/protocols/store";
+import useProtocolStore from "@/hooks/store";
 
-import "@/app/ui/protocols/textfield.css";
+import "@/ui/protocols/textfield.css";
 
 type Props = {
   selectedNodeId: string
 }
 
 export default function NodeInfoEditor({ selectedNodeId }: Props) {
-  const changeNodeData = useStore((state) => state.changeNodeData);
-  const data = useStore((state) => state.nodesData.get(selectedNodeId)!);
+  const changeNodeData = useProtocolStore((state) => state.changeNodeData);
+  const data = useProtocolStore((state) => state.nodesData.get(selectedNodeId)!);
 
   function onNameChange(name: string) {
     changeNodeData(selectedNodeId, { name });

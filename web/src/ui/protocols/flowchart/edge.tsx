@@ -5,7 +5,7 @@ import {
   EdgeLabelRenderer,
   Edge
 } from "reactflow";
-import useStore from "@/app/protocols/store";
+import useProtocolStore from "@/hooks/store";
 
 import type { EdgeProps } from "reactflow";
 import { useState } from "react";
@@ -15,10 +15,6 @@ export type FlowchartEdgeData = {
   doubleClickSelected: boolean;
 }
 
-export const defaultEdgeData = {
-  label: "",
-  doubleClickSelected: false
-}
 
 export type FlowchartEdge = Edge<FlowchartEdgeData>;
 
@@ -47,7 +43,7 @@ type EdgeTextFieldProps = {
 }
 
 function EdgeTextField({ edgeId, label, labelX, labelY, isError, onFocusChange }: EdgeTextFieldProps) {
-  const changeEdgeData = useStore((state) => state.changeEdgeData);
+  const changeEdgeData = useProtocolStore((state) => state.changeEdgeData);
 
   return (
     <TextField
@@ -79,7 +75,7 @@ function EdgeTextField({ edgeId, label, labelX, labelY, isError, onFocusChange }
 
 export default function RFFlowChartEdge({ id, data, markerEnd, source, selected, ...props }: EdgeProps<FlowchartEdgeData>) {
   // TODO: If visual logic were not coupled to domain logic, we could save some rerenders
-  const edges = useStore((state) => state.edges);
+  const edges = useProtocolStore((state) => state.edges);
   const [focused, setFocused] = useState(false);
 
   const [edgePath, labelX, labelY] = getBezierPath(props);

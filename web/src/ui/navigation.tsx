@@ -24,10 +24,16 @@ const links = [
   { name: 'Settings', href: '/settings' },
 ];
 
+function getRootPath(pathname: string) {
+  const [_, rootPath] = pathname.split("/");
+  return `/${rootPath}`;
+}
+
 function UpperBar({ drawerWidth }: { drawerWidth: number }) {
   const pathname = usePathname();
+  const rootPath = getRootPath(pathname);
 
-  const title = links.find((link) => link.href === pathname)?.name ?? "";
+  const title = links.find((link) => link.href === rootPath)?.name ?? "";
 
   return (
     <AppBar
@@ -45,6 +51,7 @@ function UpperBar({ drawerWidth }: { drawerWidth: number }) {
 
 function SideBar({ drawerWidth }: { drawerWidth: number }) {
   const pathname = usePathname();
+  const rootPath = getRootPath(pathname);
 
   return (
     <Drawer
@@ -79,7 +86,7 @@ function SideBar({ drawerWidth }: { drawerWidth: number }) {
               <ListItemButton disableGutters component={Link} href={link.href} sx={{
                 width: "100%",
                 margin: "5px",
-                border: `solid ${pathname == link.href ? "#4295f5" : "#c5c8c9"}`,
+                border: `solid ${rootPath == link.href ? "#4295f5" : "#c5c8c9"}`,
                 borderRadius: 3,
                 padding: "10px"
               }}>

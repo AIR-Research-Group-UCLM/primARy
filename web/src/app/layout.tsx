@@ -1,4 +1,4 @@
-import "@/app/ui/global.css";
+import "@/ui/global.css";
 
 import type { Metadata } from "next";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v14-appRouter"
@@ -7,8 +7,8 @@ import { ThemeProvider } from "@mui/material";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 
-import { Navigation } from "./ui/navigation";
-import theme from '@/theme';
+import { Navigation } from "../ui/navigation";
+import theme from '@/ui/theme';
 
 export const metadata: Metadata = {
   title: "PrimARy",

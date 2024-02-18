@@ -7,17 +7,11 @@ import type {
   NodeProps
 } from "reactflow";
 
-import FlowchartHandle from "@/app/ui/protocols/flowchart/handle";
-import useStore from "@/app/protocols/store";
+import FlowchartHandle from "@/ui/protocols/flowchart/handle";
+import useProtocolStore from "@/hooks/store";
 
-// TODO: research whether there exists a convention where these types are located
 export type RFNodeData = {
   isSelectedModification: boolean;
-}
-
-export type FlowchartNodeData = {
-  name: string;
-  description: string | null;
 }
 
 const nodeSelectionColor = "#037bfc";
@@ -47,7 +41,7 @@ function selectColor(selected: boolean, selectedModification: boolean) {
 
 
 export default function RFFlowchartNode({ id, data, selected }: NodeProps<RFNodeData>) {
-  const name = useStore((state) => state.nodesData.get(id)!.name);
+  const name = useProtocolStore((state) => state.nodesData.get(id)!.name);
 
   return (
     <>
