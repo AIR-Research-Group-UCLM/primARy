@@ -8,31 +8,34 @@ class Position(BaseModel):
     x: float
     y: float
 
-class Node(BaseModel):
-    id: int = Field(ge=0)
-    position: Position
-    title: str = Field(min_length=1)
+class NodeData(BaseModel):
+    name: str = Field(min_length=1)
     description: str = Field(min_length=1)
 
+class Node(BaseModel):
+    id: str = Field(min_length=1)
+    position: Position
+    data: NodeData
+
 class Edge(BaseModel):
-    id: int = Field(ge=0)
-    source: int = Field(ge=0)
-    target: int = Field(ge=0)
+    id: str = Field(min_length=1)
+    source: str = Field(min_length=1)
+    target: str = Field(min_length=1)
     label: str | None
     source_handle: str
     target_handle: str
 
 class ProtocolCreate(BaseModel):
-    title: str = Field(min_length=1)
+    name: str = Field(min_length=1)
     nodes: list[Node] = []
     edges: list[Node] = []
 
 class ProtocolSummary(BaseModel):
-    id: int = Field(ge=0)
-    title: str = Field(min_length=1)
+    id: str = Field(min_length=1)
+    name: str = Field(min_length=1)
 
 class Protocol(BaseModel):
-    id: int = Field(ge=0)
-    title: str = Field(min_length=1)
+    id: str = Field(min_length=1)
+    name: str = Field(min_length=1)
     nodes: list[Node]
     edges: list[Edge]

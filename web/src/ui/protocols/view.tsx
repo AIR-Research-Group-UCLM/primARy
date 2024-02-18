@@ -8,12 +8,14 @@ import Button from "@mui/material/Button";
 import SaveAltIcon from '@mui/icons-material/SaveAlt';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-import useStore from "@/hooks/store";
+import useProtocolStore from "@/hooks/store";
 import FlowChartEditor from "@/ui/protocols/flowchart/editor";
-import NodeInfoEditor from "@/ui/protocols/node-info-editor";
+import NodeEditor from "@/ui/protocols/node-editor";
 
-export default function ProtocolEditor() {
-  const selectedNodeId = useStore((state) => state.selectedNodeId);
+export default function ProtocolView() {
+  const selectedNodeId = useProtocolStore((state) => state.selectedNodeId);
+  const name = useProtocolStore((state) => state.name);
+  const changeName = useProtocolStore((state) => state.changeName);
 
   return (
     <Box sx={{
@@ -28,6 +30,8 @@ export default function ProtocolEditor() {
         <TextField
           fullWidth
           label="Protocol Name"
+          value={name}
+          onChange={(e) => changeName(e.target.value)}
           variant="outlined"
           sx={{
             marginBottom: "10px",
@@ -69,7 +73,7 @@ export default function ProtocolEditor() {
             flexDirection: "column"
           }}
         >
-          {selectedNodeId && <NodeInfoEditor selectedNodeId={selectedNodeId} />}
+          {selectedNodeId && <NodeEditor selectedNodeId={selectedNodeId} />}
         </Paper>}
       </Box>
       <Paper

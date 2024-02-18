@@ -7,7 +7,7 @@ import ReactFlow, {
   MarkerType,
 } from "reactflow";
 
-import useStore from "@/hooks/store";
+import useProtocolStore from "@/hooks/store";
 import RFFlowchartNode from "@/ui/protocols/flowchart/node";
 import RFFlowChartEdge from "@/ui/protocols/flowchart/edge";
 import { getOpposite } from "@/ui/protocols/flowchart/handle";
@@ -24,11 +24,11 @@ import type { FlowchartEdge } from "@/ui/protocols/flowchart/edge";
 
 import "reactflow/dist/style.css";
 
-let id = 2;
+let id = 10;
 const getId = () => `${id++}`;
 
 type NodeHandle = {
-  node: FlowchartNode;
+  nodeId: string;
   handleId: HandlePosition;
 }
 
@@ -49,18 +49,18 @@ function isEventTargetPane(target: Element): boolean {
 }
 
 export default function FlowChartEditor() {
-  const nodes = useStore((state) => state.nodes);
-  const edges = useStore((state) => state.edges);
-  const selectedNodeId = useStore((state) => state.selectedNodeId);
+  const nodes = useProtocolStore((state) => state.nodes);
+  const edges = useProtocolStore((state) => state.edges);
+  const selectedNodeId = useProtocolStore((state) => state.selectedNodeId);
 
-  const onNodesChange = useStore((state) => state.onNodesChange);
-  const onEdgesChange = useStore((state) => state.onEdgesChange);
-  const addEdgeFromConnection = useStore((state) => state.addEdgeFromConnection);
-  const addNode = useStore((state) => state.addNode);
-  const addEdge = useStore((state) => state.addEdge);
-  const setSelectedNodeId = useStore((state) => state.setSelectedNodeId);
-  const changeEdgeData = useStore((state) => state.changeEdgeData);
-  const changeNode = useStore((state) => state.changeNode);
+  const onNodesChange = useProtocolStore((state) => state.onNodesChange);
+  const onEdgesChange = useProtocolStore((state) => state.onEdgesChange);
+  const addEdgeFromConnection = useProtocolStore((state) => state.addEdgeFromConnection);
+  const addNode = useProtocolStore((state) => state.addNode);
+  const addEdge = useProtocolStore((state) => state.addEdge);
+  const setSelectedNodeId = useProtocolStore((state) => state.setSelectedNodeId);
+  const changeEdgeData = useProtocolStore((state) => state.changeEdgeData);
+  const changeNode = useProtocolStore((state) => state.changeNode);
 
   const connectingNode = useRef<NodeHandle | null>(null);
   const selectedEdgeId = useRef<string | null>(null);
@@ -75,11 +75,9 @@ export default function FlowChartEditor() {
     if (nodeId === null || handleId === null) {
       return;
     }
-    // TODO: find a way of making this faster. The most straightforward way is changing
-    // the data structure from an array to a HashMap
-    const node = nodes.find((node) => node.id === nodeId) as FlowchartNode;
+
     connectingNode.current = {
-      node,
+      nodeId,
       handleId: handleId as HandlePosition,
     };
   }, [nodes]);
@@ -107,14 +105,14 @@ export default function FlowChartEditor() {
     // TODO: think on a better id for the edge
     let newEdge: FlowchartEdge = {
       id,
-      source: connectingNode.current.node.id,
+      source: connectingNode.current.nodeId,
       sourceHandle: connectingNode.current.handleId,
       targetHandle: getOpposite(connectingNode.current.handleId),
       target: id,
     }
     addNode(newNode, {
       name: `Node ${id}`,
-      description: null
+      description: ""
     });
     addEdge(newEdge);
   }, [screenToFlowPosition]);
