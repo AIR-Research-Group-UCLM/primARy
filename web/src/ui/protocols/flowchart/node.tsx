@@ -64,7 +64,15 @@ export default function RFFlowchartNode({ id, data, selected }: NodeProps<RFNode
         borderRadius: 10,
         display: "flex"
       }}>
-        <Typography variant="h6" component="div">{name || "Unnamed Node"}</Typography>
+        <Typography
+          variant="h6"
+          component="div"
+          sx={{
+            color: name ? "black" : "#e31227"
+          }}
+        >
+          {name || "Unnamed Node"}
+        </Typography>
       </div>
     </>
   );
