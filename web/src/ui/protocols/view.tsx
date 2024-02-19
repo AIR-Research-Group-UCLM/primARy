@@ -25,7 +25,8 @@ export default function ProtocolView() {
       height: "100%"
     }}>
       <Box sx={{
-        display: "flex"
+        display: "flex",
+        background: "white",
       }}>
         <TextField
           fullWidth

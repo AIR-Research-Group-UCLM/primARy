@@ -1,3 +1,5 @@
+import Box from "@mui/material/Box";
+
 import { ProtocolData } from "@/hooks/store";
 import ProtocolStoreProvider from "@/ui/protocols/store-provider";
 import ProtocolView from "@/ui/protocols/view";
@@ -34,8 +36,13 @@ export default async function Page({ params }: { params: { id: string } }) {
   };
 
   return (
-    <ProtocolStoreProvider protocol={protocol}>
-      <ProtocolView />
-    </ProtocolStoreProvider>
+    <Box sx={{
+      height: "90%"
+    }}>
+      <ProtocolStoreProvider protocol={protocol}>
+        <ProtocolView />
+      </ProtocolStoreProvider>
+    </Box>
+
   );
 }
