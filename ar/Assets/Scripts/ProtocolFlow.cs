@@ -27,14 +27,14 @@ public class ProtocolFlow
             _edges.TryAdd(node.id, empty);
         }
 
-        InitialStep = _ConvertNodeToStep(initialNodeId);
+        InitialStep = ConvertNodeToStep(initialNodeId);
         _currentNodeId = initialNodeId;
     }
 
     // Return the next step for the protocol when the given answer has been 'option'.
     public ProtocolStep GetNextStep(string optionLabel = "")
     {
-        var currentEdges = GetEdges(_currentNodeId);
+        var currentEdges = _edges[_currentNodeId];
         var chosenEdge = currentEdges.Find((edge) => edge.label == optionLabel);
 
         if (chosenEdge == null)
@@ -46,15 +46,10 @@ public class ProtocolFlow
 
         _currentNodeId = chosenEdge.target;
         UnityEngine.Debug.Log($"Se ha elegido: {_currentNodeId}");
-        return _ConvertNodeToStep(chosenEdge.target);
+        return ConvertNodeToStep(chosenEdge.target);
     }
 
-    private List<Edge> GetEdges(string nodeId)
-    {
-        return _edges.GetValueOrDefault(nodeId, new List<Edge>());
-    }
-
-    private ProtocolStep _ConvertNodeToStep(string nodeId)
+    private ProtocolStep ConvertNodeToStep(string nodeId)
     {
         var nodeData = _nodes[nodeId].data;
         var options = _edges[nodeId].Select((edge) => edge.label).ToList();
