@@ -1,15 +1,27 @@
-from fastapi import FastAPI
+from typing import Annotated, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from sqlalchemy.orm import Session
+
+from fastapi import FastAPI, Depends
 
 from .models import Protocol, ProtocolCreate, ProtocolSummary, Node, Edge, Position, NodeData
+from .db import SessionLocal
+
+from . import crud
 
 app = FastAPI(
     title="primARy",
     description="Services to assist healthcare professionals"
 )
 
+def get_session():
+    with SessionLocal().begin() as session:
+        return session
+
 @app.get("/protocols", response_model=list[ProtocolSummary])
-async def get_protocols():
-    pass
+def get_protocols(session: Annotated[Session, Depends(get_session)]):
+    return crud.get_protocols(session)
 
 @app.get("/protocols/{protocol_id}", response_model=Protocol)
 async def get_protocol(protocol_id: int):
@@ -21,9 +33,9 @@ async def get_protocol(protocol_id: int):
     ]
 
     edges = [
-        Edge(id="1", source="0", source_handle="bottom", target="1", target_handle="top", label=None),
-        Edge(id="2", source="1", source_handle="bottom", target="2", target_handle="top", label="Yes"),
-        Edge(id="3", source="1", source_handle="right", target="3", target_handle="left", label="No"),
+        Edge(source="0", source_handle="bottom", target="1", target_handle="top", label=None),
+        Edge(source="1", source_handle="bottom", target="2", target_handle="top", label="Yes"),
+        Edge(source="1", source_handle="right", target="3", target_handle="left", label="No"),
     ]
 
     return {

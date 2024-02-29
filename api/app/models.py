@@ -2,7 +2,11 @@ from pydantic import BaseModel as PydanticBaseModel, Field, ConfigDict
 from pydantic import alias_generators
 
 class BaseModel(PydanticBaseModel):
-    model_config = ConfigDict(alias_generator=alias_generators.to_camel, populate_by_name=True)
+    model_config = ConfigDict(
+        alias_generator=alias_generators.to_camel,
+        populate_by_name=True,
+        from_attributes=True
+    )
 
 class Position(BaseModel):
     x: float
@@ -18,7 +22,6 @@ class Node(BaseModel):
     data: NodeData
 
 class Edge(BaseModel):
-    id: str = Field(min_length=1)
     source: str = Field(min_length=1)
     target: str = Field(min_length=1)
     label: str | None
