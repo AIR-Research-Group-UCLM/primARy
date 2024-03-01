@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pydantic import BaseModel as PydanticBaseModel, Field, ConfigDict
 from pydantic import alias_generators
 
@@ -31,14 +33,14 @@ class Edge(BaseModel):
 class ProtocolCreate(BaseModel):
     name: str = Field(min_length=1)
     nodes: list[Node] = []
-    edges: list[Node] = []
+    edges: list[Edge] = []
 
 class ProtocolSummary(BaseModel):
-    id: str = Field(min_length=1)
+    id: int
     name: str = Field(min_length=1)
 
 class Protocol(BaseModel):
-    id: str = Field(min_length=1)
+    id: int
     name: str = Field(min_length=1)
     nodes: list[Node]
     edges: list[Edge]
