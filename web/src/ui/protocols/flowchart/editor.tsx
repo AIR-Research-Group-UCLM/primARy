@@ -81,7 +81,7 @@ export default function FlowChartEditor() {
       nodeId,
       handleId: handleId as HandlePosition,
     };
-  }, [nodes]);
+  }, []);
 
   const onConnectEnd: OnConnectEnd = useCallback((event) => {
     if (connectingNode.current === null || !isEventTargetPane(event.target as Element)) {
@@ -157,7 +157,7 @@ export default function FlowChartEditor() {
       connectingNode.current = null;
     }
 
-  }, [nodes]);
+  }, []);
 
   return (
     <ReactFlow

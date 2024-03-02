@@ -36,7 +36,7 @@ export default function RootLayout({
                 sx={{
                   height: "100vh",
                   width: "100%",
-                  flexGrow: 1,
+                  flex: "1",
                   bgcolor: "#f5f5f5",
                   padding: "10px"
                 }}

@@ -7,11 +7,10 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import { useRouter } from "next/navigation";
+
+import Link from "next/link";
 
 function ProtocolCard() {
-  const router = useRouter();
-
   return (
     <Paper
       sx={{
@@ -62,10 +61,11 @@ function ProtocolCard() {
           Delete
         </Button>
         <Button
+          href="/protocols/1"
+          component={Link}
           size="small"
           variant="contained"
           startIcon={<EditIcon />}
-          onClick={() => router.push("protocols/2")}
         >
           Edit
         </Button>
