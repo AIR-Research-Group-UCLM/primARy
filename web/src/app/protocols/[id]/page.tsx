@@ -22,7 +22,7 @@ export default async function Page({ params }: { params: { id: string } }) {
       type: "flowchart-node"
     })),
     edges: data.edges.map((edge) => ({
-      id: edge.id,
+      id: `${data.id}${edge.source}${edge.target}`,
       source: edge.source,
       target: edge.target,
       sourceHandle: edge.sourceHandle,
