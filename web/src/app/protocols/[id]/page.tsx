@@ -37,7 +37,7 @@ export default async function Page({ params }: { params: { id: string } }) {
 
   return (
     <Box sx={{
-      height: "90%"
+      height: "91%"
     }}>
       <ProtocolStoreProvider protocol={protocol}>
         <ProtocolView />

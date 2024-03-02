@@ -7,6 +7,7 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
 
 import Link from "next/link";
 
@@ -14,12 +15,9 @@ function ProtocolCard() {
   return (
     <Paper
       sx={{
-        // width: "250px",
-        minWidth: "170px",
-        width: "20%",
         border: "solid 1px",
-        height: "200px",
         display: "flex",
+        flex: "1",
         flexDirection: "column",
         padding: "5px",
         borderRadius: "30px",
@@ -51,7 +49,7 @@ function ProtocolCard() {
         justifyContent: "space-around",
         padding: "10px 5px",
         gap: "10px",
-        flex: "1 0"
+        flex: "1"
       }}>
         <Button
           size="small"
@@ -61,7 +59,7 @@ function ProtocolCard() {
           Delete
         </Button>
         <Button
-          href="/protocols/1"
+          href="/protocols/9"
           component={Link}
           size="small"
           variant="contained"
@@ -78,20 +76,63 @@ export default function Page() {
   return (
     <Box sx={{
       display: "flex",
-      flexWrap: "wrap",
-      gap: "30px 20px",
-      backgroundColor: "inherit"
+      flexDirection: "column",
+      backgroundColor: "inherit",
+      height: "91%",
+      gap: "10px"
     }}>
-      <ProtocolCard />
-      <ProtocolCard />
-      <ProtocolCard />
-      <ProtocolCard />
-      <ProtocolCard />
-      <ProtocolCard />
-      <ProtocolCard />
-      <ProtocolCard />
-      <ProtocolCard />
-      <ProtocolCard />
+      <Paper elevation={5} sx={{
+        border: "solid 1px",
+        borderRadius: "10px",
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+        gridAutoRows: "200px",
+        gridGap: "30px 20px",
+        backgroundColor: "inherit",
+        flex: "12",
+        padding: "10px",
+        overflow: "scroll"
+      }}>
+        <ProtocolCard />
+        <ProtocolCard />
+        <ProtocolCard />
+        <ProtocolCard />
+        <ProtocolCard />
+        <ProtocolCard />
+        <ProtocolCard />
+        <ProtocolCard />
+        <ProtocolCard />
+        <ProtocolCard />
+        {/* <ProtocolCard /> */}
+        {/* <ProtocolCard /> */}
+        {/* <ProtocolCard /> */}
+      </Paper>
+      <Box sx={{
+        display: "flex",
+        justifyContent: "center",
+        flex: "1",
+        paddingBottom: "10px"
+      }}>
+        <Button
+          variant="contained"
+          size="medium"
+          sx={{
+            borderRadius: "30px"
+          }}
+          startIcon={<AddIcon />}
+        >
+          Create Protocol
+        </Button>
+      </Box>
     </Box>
   );
 }
+{/* <Button
+  variant="contained"
+  size="medium"
+  sx={{
+    borderRadius: "100px"
+  }}
+>
+  <AddIcon />
+</Button> */}

@@ -57,7 +57,7 @@ export default function ProtocolView() {
       }}>
         <Paper elevation={5} sx={{
           flex: "2 0",
-          border: "solid 0px"
+          border: "solid 1px"
         }}>
           <ReactFlowProvider>
             <FlowChartEditor />
@@ -68,7 +68,7 @@ export default function ProtocolView() {
           elevation={5}
           sx={{
             flex: "1 0",
-            border: "solid 0px",
+            border: "solid 1px",
             padding: "15px",
             display: selectedNodeId === null ? "none" : "flex",
             flexDirection: "column"
@@ -81,7 +81,7 @@ export default function ProtocolView() {
         elevation={5}
         sx={{
           display: "flex",
-          border: "solid 0px",
+          border: "solid 1px",
           alignContent: "center",
           justifyContent: "center",
           padding: "10px",
