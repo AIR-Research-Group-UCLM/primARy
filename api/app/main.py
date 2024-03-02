@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Annotated
 from sqlalchemy.orm import Session
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 
 from .models import Protocol, ProtocolCreate, ProtocolSummary, Node, Edge, Position, NodeData
 from .db import SessionLocal
@@ -41,6 +41,7 @@ new_protocol = ProtocolCreate(
     edges=edges
 )
 
+
 def get_session() -> Session:
     with SessionLocal() as session:
         return session
@@ -54,7 +55,10 @@ def get_protocols(session: Annotated[Session, Depends(get_session)]):
 @app.get("/protocols/{protocol_id}", response_model=Protocol)
 def get_protocol(session: Annotated[Session, Depends(get_session)], protocol_id: int):
     protocol = crud.get_protocol(session, protocol_id)
-    print(protocol.nodes)
+    if protocol is None:
+        raise HTTPException(status_code=404, detail="Protocol not found")
+    return protocol
+
 
 @app.put("/protocols/{protocol_id}")
 def update_protocol(
@@ -62,7 +66,9 @@ def update_protocol(
     protocol_id: int,
     protocol: ProtocolCreate
 ):
-    pass
+    success = crud.update_protocol(session, protocol_id, protocol)
+    if not success:
+        raise HTTPException(status_code=404, detail="Protocol not found")
 
 
 @app.post("/protocols", response_model=ProtocolSummary)
@@ -71,5 +77,7 @@ def create_protocol(session: Annotated[Session, Depends(get_session)], protocol:
 
 
 @app.delete("/protocols/{protocol_id}")
-def delete_protocol(protocol_id: int):
-    pass
+def delete_protocol(session: Annotated[Session, Depends(get_session)], protocol_id: int):
+    success = crud.delete_protocol(session, protocol_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Protocol not found")
