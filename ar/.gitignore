@@ -12,6 +12,10 @@
 /[Aa]pp/
 /[Ww]in64/
 
+/[Aa]ssets/MRTemplateAssets
+/Assets/Scenes/TutorialScene.unity
+/Assets/Scenes/TutorialScene.unity.meta
+
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
 /[Mm]emoryCaptures/
