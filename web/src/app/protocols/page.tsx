@@ -9,12 +9,13 @@ import ProtocolCard from "@/ui/protocols/protocol-card";
 import CreateProtocolDialog from "@/ui/dialogs/create-protocol";
 
 import useSWR from "swr";
-import { defaultFetcher } from "@/utils";
 import { ProtocolSummary } from "@/types";
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import ConfirmDialog from "@/ui/dialogs/confirm";
+import LoadingSpinner from "@/ui/loading-spinner";
+import useProtocols from "@/hooks/useProtocols";
 
 async function createProtocol(name: string): Promise<ProtocolSummary> {
   const res = await fetch(`${process.env.API_BASE}/protocols`, {
@@ -38,12 +39,8 @@ export default function Page() {
   const [protocolForDelete, setProtocolForDelete] = useState<ProtocolSummary | null>(null);
   const router = useRouter();
 
-  const { data: protocols, mutate, error, isLoading } = useSWR<ProtocolSummary[]>(
-    `${process.env.API_BASE}/protocols`, defaultFetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false
-  }
-  );
+  const {protocols, isLoading, mutate} = useProtocols();
+  
 
   async function onCreateClick(name: string) {
     const protocol = await createProtocol(name);
@@ -59,9 +56,8 @@ export default function Page() {
     setProtocolForDelete(null);
   }
 
-  // TODO: use the spinner
   if (isLoading) {
-    return <h1>Loading...</h1>
+    return <LoadingSpinner />
   }
 
 
