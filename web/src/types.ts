@@ -30,4 +30,9 @@ export type Protocol = {
     edges: Edge[];
 }
 
+export type ProtocolSummary = {
+    id: number;
+    name: string;
+}
+
 

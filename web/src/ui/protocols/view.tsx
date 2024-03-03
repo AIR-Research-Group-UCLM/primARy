@@ -93,18 +93,30 @@ export default function ProtocolView() {
           flex: "1 0",
           justifyContent: "center",
         }} >
-          <Button variant="contained" size="large" startIcon={<ArrowBackIcon />}>
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<ArrowBackIcon />}
+            sx={{
+              borderRadius: "30px"
+            }}
+          >
             Exit and save
           </Button>
         </Box>
-
         <Box sx={{
           display: "flex",
           flex: "1 0",
           justifyContent: "center",
         }} >
-
-          <Button variant="contained" size="large" startIcon={<SaveAltIcon />}>
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<SaveAltIcon />}
+            sx={{
+              borderRadius: "30px"
+            }}
+          >
             Save
           </Button>
         </Box>
