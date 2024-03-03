@@ -88,7 +88,6 @@ export default function FlowChartEditor() {
       return;
     }
 
-
     let id = nanoid();
 
     let newNode: FlowchartNode = {
@@ -157,7 +156,7 @@ export default function FlowChartEditor() {
       connectingNode.current = null;
     }
 
-  }, []);
+  }, [selectedNodeId]);
 
   return (
     <ReactFlow
