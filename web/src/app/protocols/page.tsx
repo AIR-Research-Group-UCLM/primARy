@@ -8,7 +8,6 @@ import AddIcon from '@mui/icons-material/Add';
 import ProtocolCard from "@/ui/protocols/protocol-card";
 import CreateProtocolDialog from "@/ui/dialogs/create-protocol";
 
-import useSWR from "swr";
 import { ProtocolSummary } from "@/types";
 
 import { useRouter } from "next/navigation";
