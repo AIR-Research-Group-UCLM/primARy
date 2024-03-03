@@ -83,7 +83,7 @@ def update_protocol(
 
 @app.post("/protocols", response_model=ProtocolSummary)
 def create_protocol(session: Annotated[Session, Depends(get_session)], protocol: ProtocolCreate):
-    return crud.create_protocol(session, new_protocol)
+    return crud.create_protocol(session, protocol)
 
 
 @app.delete("/protocols/{protocol_id}")
