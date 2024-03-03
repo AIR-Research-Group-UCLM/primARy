@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 
 from fastapi import FastAPI, Depends, HTTPException
 
+from fastapi.middleware.cors import CORSMiddleware
+
 from .models import Protocol, ProtocolCreate, ProtocolSummary, Node, Edge, Position, NodeData
 from .db import SessionLocal
 
@@ -13,6 +15,14 @@ from . import crud
 app = FastAPI(
     title="primARy",
     description="Services to assist healthcare professionals"
+)
+
+# This is a temporal solution
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 nodes = [
