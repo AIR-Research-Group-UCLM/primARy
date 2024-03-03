@@ -14,6 +14,7 @@ import { ProtocolSummary } from "@/types";
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import ConfirmDialog from "@/ui/dialogs/confirm";
 
 async function createProtocol(name: string): Promise<ProtocolSummary> {
   const res = await fetch(`${process.env.API_BASE}/protocols`, {
@@ -22,12 +23,19 @@ async function createProtocol(name: string): Promise<ProtocolSummary> {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({ name })
-  })
+  });
   return res.json();
+}
+
+async function deleteProtocol(protocolId: number) {
+  const rest = await fetch(`${process.env.API_BASE}/protocols/${protocolId}`, {
+    method: "DELETE"
+  });
 }
 
 export default function Page() {
   const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
+  const [protocolForDelete, setProtocolForDelete] = useState<ProtocolSummary | null>(null);
   const router = useRouter();
 
   const { data: protocols, mutate, error, isLoading } = useSWR<ProtocolSummary[]>(
@@ -39,10 +47,19 @@ export default function Page() {
 
   async function onCreateClick(name: string) {
     const protocol = await createProtocol(name);
-    // TODO: check for any possible errors
     router.push(`/protocols/${protocol.id}`);
   }
 
+  async function onDeleteProtocol(protocolId: number) {
+    await deleteProtocol(protocolId);
+    const remainingProtocols = protocols!.filter((protocol) => protocol.id !== protocolId);
+    mutate(remainingProtocols, {
+      revalidate: false
+    });
+    setProtocolForDelete(null);
+  }
+
+  // TODO: use the spinner
   if (isLoading) {
     return <h1>Loading...</h1>
   }
@@ -71,7 +88,11 @@ export default function Page() {
           overflow: "scroll"
         }}>
           {protocols?.map((protocol) =>
-            <ProtocolCard key={protocol.id} protocol={protocol} />
+            <ProtocolCard
+              key={protocol.id}
+              protocol={protocol}
+              onDeleteClick={(protocol) => setProtocolForDelete(protocol)}
+            />
           )}
         </Paper>
         <Box sx={{
@@ -93,11 +114,23 @@ export default function Page() {
           </Button>
         </Box>
       </Box>
-      <CreateProtocolDialog
+
+      {isDialogOpen && <CreateProtocolDialog
         isOpen={isDialogOpen}
         handleClose={() => setDialogOpen(false)}
         onCreateClick={(name) => onCreateClick(name)}
+      />}
+      {protocolForDelete !== null && <ConfirmDialog
+        isOpen={deleteProtocol !== null}
+        title="Confirm delete"
+        contentText={
+          `Are you sure you want to delete the protocol ${protocolForDelete.name}? This action cannot be undone`
+        }
+        action="Delete"
+        onCancelClick={() => setProtocolForDelete(null)}
+        onActionClick={() => onDeleteProtocol(protocolForDelete.id)}
       />
+      }
     </>
   );
 }

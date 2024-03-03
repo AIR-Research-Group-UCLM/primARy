@@ -8,15 +8,15 @@ import EditIcon from '@mui/icons-material/Edit';
 
 import Link from "next/link";
 
-import type {ProtocolSummary} from "@/types";
+import type { ProtocolSummary } from "@/types";
 
 type Props = {
   protocol: ProtocolSummary;
-  onDeleteClick?: (protocolId: number) => void;
+  onDeleteClick?: (protocol: ProtocolSummary) => void;
 }
 
 
-export default function ProtocolCard({protocol, onDeleteClick}: Props) {
+export default function ProtocolCard({ protocol, onDeleteClick }: Props) {
   return (
     <Paper
       sx={{
@@ -58,7 +58,7 @@ export default function ProtocolCard({protocol, onDeleteClick}: Props) {
         flex: "1"
       }}>
         <Button
-          onClick={() => onDeleteClick?.(protocol.id)}
+          onClick={() => onDeleteClick?.(protocol)}
           size="small"
           variant="outlined"
           startIcon={<DeleteIcon />}

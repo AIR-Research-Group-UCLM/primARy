@@ -16,20 +16,12 @@ type Props = {
 
 export default function CreateProtocolDialog({ isOpen, handleClose, onCreateClick }: Props) {
   const [text, setText] = useState<string>("");
-
-  function onCloseDialog() {
-    if (handleClose != null) {
-      handleClose();
-      setText("");
-    }
-  }
-
   return (
     <Dialog
       open={isOpen}
       fullWidth
       maxWidth="md"
-      onClose={onCloseDialog}
+      onClose={handleClose}
     >
       <DialogTitle>
         Create Protocol
@@ -49,7 +41,7 @@ export default function CreateProtocolDialog({ isOpen, handleClose, onCreateClic
       </DialogContent>
       <DialogActions>
         <Button
-          onClick={onCloseDialog}
+          onClick={handleClose}
           variant="outlined"
           size="medium"
           sx={{
