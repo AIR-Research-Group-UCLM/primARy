@@ -28,7 +28,7 @@ export default function CreateProtocolDialog({ isOpen, handleClose, onCreateClic
       </DialogTitle>
       <DialogContent>
         <DialogContentText>
-          Type the new protocol's name
+          {"Type the new protocol's name"}
         </DialogContentText>
         <TextField
           value={text}
