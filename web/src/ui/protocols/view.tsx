@@ -12,7 +12,11 @@ import useProtocolStore from "@/hooks/store";
 import FlowChartEditor from "@/ui/protocols/flowchart/editor";
 import NodeEditor from "@/ui/protocols/node-editor";
 
-export default function ProtocolView() {
+type Props = {
+  protocolId: number;
+}
+
+export default function ProtocolView({ protocolId }: Props) {
   const selectedNodeId = useProtocolStore((state) => state.selectedNodeId);
   const name = useProtocolStore((state) => state.name);
   const changeName = useProtocolStore((state) => state.changeName);

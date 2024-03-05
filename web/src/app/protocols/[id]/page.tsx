@@ -1,3 +1,5 @@
+"use client";
+
 export const dynamic = "force-dynamic";
 
 import Box from "@mui/material/Box";
@@ -5,46 +7,36 @@ import Box from "@mui/material/Box";
 import { ProtocolData } from "@/hooks/store";
 import ProtocolStoreProvider from "@/ui/protocols/store-provider";
 import ProtocolView from "@/ui/protocols/view";
-import { defaultEdgeData } from "@/ui/protocols/defaults";
+
+import LoadingSpinner from "@/ui/loading-spinner";
 
 import type { Protocol } from "@/types";
+import useSWR from "swr";
+import { defaultFetcher } from "@/utils";
 
-export default async function Page({ params }: { params: { id: string } }) {
-  // TODO: add error handling
-  const request = await fetch(`${process.env.API_BASE}/protocols/${params.id}`, { cache: "no-store" });
-  const data: Protocol = await request.json();
+import { protocolToProtocolData } from "@/type-conversions";
 
-  const protocol: ProtocolData = {
-    id: data.id,
-    name: data.name,
-    nodes: data.nodes.map((node) => ({
-      id: node.id,
-      data: { isSelectedModification: false },
-      position: node.position,
-      type: "flowchart-node"
-    })),
-    edges: data.edges.map((edge) => ({
-      id: `${data.id}${edge.source}${edge.target}`,
-      source: edge.source,
-      target: edge.target,
-      sourceHandle: edge.sourceHandle,
-      targetHandle: edge.targetHandle,
-      data: {
-        ...defaultEdgeData,
-        label: edge.label,
-      }
-    })),
-    nodesData: new Map(data.nodes.map((node) => [node.id, node.data]))
-  };
+export default function Page({ params }: { params: { id: string } }) {
+  const { data, isLoading } = useSWR<Protocol>(
+    `${process.env.API_BASE}/protocols/${params.id}`, defaultFetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false
+  }
+  );
+
+  if (!data || isLoading) {
+    return <LoadingSpinner />
+  }
+
+  const protocol = protocolToProtocolData(data)
 
   return (
     <Box sx={{
       height: "91%"
     }}>
       <ProtocolStoreProvider protocol={protocol}>
-        <ProtocolView />
+        <ProtocolView protocolId={data.id}/>
       </ProtocolStoreProvider>
     </Box>
-
   );
 }

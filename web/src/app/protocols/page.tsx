@@ -16,22 +16,7 @@ import ConfirmDialog from "@/ui/dialogs/confirm";
 import LoadingSpinner from "@/ui/loading-spinner";
 import useProtocols from "@/hooks/useProtocols";
 
-async function createProtocol(name: string): Promise<ProtocolSummary> {
-  const res = await fetch(`${process.env.API_BASE}/protocols`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ name })
-  });
-  return res.json();
-}
-
-async function deleteProtocol(protocolId: number) {
-  const rest = await fetch(`${process.env.API_BASE}/protocols/${protocolId}`, {
-    method: "DELETE"
-  });
-}
+import { createProtocol, deleteProtocol } from "@/mutation";
 
 export default function Page() {
   const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
@@ -55,10 +40,9 @@ export default function Page() {
     setProtocolForDelete(null);
   }
 
-  if (isLoading) {
+  if (!protocols || isLoading) {
     return <LoadingSpinner />
   }
-
 
   return (
     <>
@@ -82,7 +66,7 @@ export default function Page() {
           padding: "10px",
           overflow: "scroll"
         }}>
-          {protocols?.map((protocol) =>
+          {protocols.map((protocol) =>
             <ProtocolCard
               key={protocol.id}
               protocol={protocol}

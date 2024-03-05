@@ -11,7 +11,7 @@ import type { EdgeProps } from "reactflow";
 import { useState } from "react";
 
 export type FlowchartEdgeData = {
-  label: string;
+  label?: string;
   doubleClickSelected: boolean;
 }
 
@@ -74,7 +74,6 @@ function EdgeTextField({ edgeId, label, labelX, labelY, isError, onFocusChange }
 }
 
 export default function RFFlowChartEdge({ id, data, markerEnd, source, selected, ...props }: EdgeProps<FlowchartEdgeData>) {
-  // TODO: If visual logic were not coupled to domain logic, we could save some rerenders
   const edges = useProtocolStore((state) => state.edges);
   const [focused, setFocused] = useState(false);
 
