@@ -38,7 +38,7 @@ export function protocolDataToProtocol(protocolId: number, protocolData: Protoco
     edges: protocolData.edges.map((edge) => ({
       source: edge.source,
       target: edge.target,
-      label: edge.data?.label,
+      label: edge.data?.label ?? "",
       sourceHandle: edge.sourceHandle!,
       targetHandle: edge.targetHandle!,
     }))

@@ -12,6 +12,10 @@ import useProtocolStore from "@/hooks/store";
 import FlowChartEditor from "@/ui/protocols/flowchart/editor";
 import NodeEditor from "@/ui/protocols/node-editor";
 
+import { updateProtocol } from "@/mutation";
+
+import {useRouter} from "next/navigation";
+
 type Props = {
   protocolId: number;
 }
@@ -20,6 +24,7 @@ export default function ProtocolView({ protocolId }: Props) {
   const selectedNodeId = useProtocolStore((state) => state.selectedNodeId);
   const name = useProtocolStore((state) => state.name);
   const changeName = useProtocolStore((state) => state.changeName);
+  const router = useRouter();
 
   return (
     <Box sx={{
@@ -98,6 +103,10 @@ export default function ProtocolView({ protocolId }: Props) {
           justifyContent: "center",
         }} >
           <Button
+            onClick={async () => {
+              await updateProtocol(protocolId, useProtocolStore.getState());
+              router.push("/protocols/");
+            }}
             variant="contained"
             size="large"
             startIcon={<ArrowBackIcon />}
@@ -114,6 +123,7 @@ export default function ProtocolView({ protocolId }: Props) {
           justifyContent: "center",
         }} >
           <Button
+            onClick={() => updateProtocol(protocolId, useProtocolStore.getState())}
             variant="contained"
             size="large"
             startIcon={<SaveAltIcon />}

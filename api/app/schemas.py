@@ -20,7 +20,7 @@ class Edge(Base):
     source: Mapped[str] = mapped_column(sa.ForeignKey("nodes.id", ondelete="CASCADE"), primary_key=True)
     target: Mapped[str] = mapped_column(sa.ForeignKey("nodes.id", ondelete="CASCADE"), primary_key=True)
 
-    label: Mapped[str | None] = mapped_column(sa.String(255))
+    label: Mapped[str] = mapped_column(sa.String(255))
     source_handle: Mapped[str] = mapped_column(sa.String(255))
     target_handle: Mapped[str] = mapped_column(sa.String(255))
 

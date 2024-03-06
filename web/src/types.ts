@@ -17,7 +17,7 @@ export type Node = {
 export type Edge = {
     source: string;
     target: string;
-    label?: string;
+    label: string;
     sourceHandle: string;
     targetHandle: string;
 }

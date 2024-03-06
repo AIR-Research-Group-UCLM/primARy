@@ -11,7 +11,7 @@ import type { EdgeProps } from "reactflow";
 import { useState } from "react";
 
 export type FlowchartEdgeData = {
-  label?: string;
+  label: string;
   doubleClickSelected: boolean;
 }
 

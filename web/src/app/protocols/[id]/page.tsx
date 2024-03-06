@@ -4,7 +4,6 @@ export const dynamic = "force-dynamic";
 
 import Box from "@mui/material/Box";
 
-import { ProtocolData } from "@/hooks/store";
 import ProtocolStoreProvider from "@/ui/protocols/store-provider";
 import ProtocolView from "@/ui/protocols/view";
 

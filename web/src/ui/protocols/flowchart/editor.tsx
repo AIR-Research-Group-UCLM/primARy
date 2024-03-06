@@ -108,6 +108,10 @@ export default function FlowChartEditor() {
       sourceHandle: connectingNode.current.handleId,
       targetHandle: getOpposite(connectingNode.current.handleId),
       target: id,
+      data: {
+        label: "",
+        doubleClickSelected: false
+      }
     }
     addNode(newNode, {
       name: "",

@@ -87,6 +87,7 @@ const useProtocolStore = create<ProtocolState>((set, get) => ({
           ...edge,
           data: {
             doubleClickSelected: false,
+            label: "",
             ...edge.data,
             ...edgeData
           }
