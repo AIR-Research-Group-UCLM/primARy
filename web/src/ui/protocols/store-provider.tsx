@@ -6,14 +6,13 @@
 
 import { type ReactNode } from "react";
 import useProtocolStore, { ProtocolData } from "@/hooks/store";
-import { useEffect } from "react";
 
 type Props = {
     children: ReactNode;
     protocol: ProtocolData
 }
 
-export default function ProtocolStoreProvider({children, protocol} : Props) {
-    useEffect(() => useProtocolStore.setState(protocol), [protocol]);
+export default function ProtocolStoreProvider({ children, protocol }: Props) {
+    useProtocolStore.setState({ ...protocol, selectedNodeId: null });
     return children;
 }

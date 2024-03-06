@@ -11,8 +11,11 @@ from . import utils
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
-# TODO: Add a sort of pagination
-
+initial_node = utils.node_to_schema(md.Node(
+    id="0",
+    position=md.Position(x=0, y=0),
+    data=md.NodeData(name="Initial Node", description="Intial Node description")
+))
 
 def get_protocols(session: Session):
     query = sa.select(sc.Protocol.id, sc.Protocol.name)
@@ -66,7 +69,14 @@ def create_protocol(session: Session, protocol: md.ProtocolCreate) -> md.Protoco
     ).returning(sc.Protocol.id)
 
     protocol_id = session.execute(insert_protocol).one()[0]
-    _insert_nodes_edges(session, protocol_id, protocol.nodes, protocol.edges)
+
+    if len(protocol.nodes) == 0:
+        session.execute(sa.insert(sc.Node).values(
+            protocol_id=protocol_id, **initial_node
+        ))
+    else:
+        _insert_nodes_edges(session, protocol_id, protocol.nodes, protocol.edges)
+
     session.commit()
     return md.ProtocolSummary(
         id=protocol_id,

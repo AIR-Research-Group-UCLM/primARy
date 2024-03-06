@@ -15,7 +15,6 @@ export type Node = {
 }
 
 export type Edge = {
-    id: string;
     source: string;
     target: string;
     label: string;
@@ -28,6 +27,11 @@ export type Protocol = {
     name: string;
     nodes: Node[];
     edges: Edge[];
+}
+
+export type ProtocolSummary = {
+    id: number;
+    name: string;
 }
 
 

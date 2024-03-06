@@ -16,15 +16,12 @@ import type {
   Connection,
 } from "reactflow";
 
-import { defaultEdgeData } from "@/ui/protocols/defaults";
-
 import type { NodeData } from "@/types";
 
 import type { FlowchartNode } from "@/ui/protocols/flowchart/node";
 import type { FlowchartEdge, FlowchartEdgeData } from "@/ui/protocols/flowchart/edge";
 
 export type ProtocolData = {
-  id: number;
   name: string;
   nodes: FlowchartNode[];
   edges: FlowchartEdge[];
@@ -50,7 +47,6 @@ export type ProtocolState = ProtocolData & ProtocolActions & {
 }
 
 const useProtocolStore = create<ProtocolState>((set, get) => ({
-  id: 0,
   name: "",
   nodes: [],
   edges: [],
@@ -90,7 +86,8 @@ const useProtocolStore = create<ProtocolState>((set, get) => ({
         return {
           ...edge,
           data: {
-            ...defaultEdgeData,
+            doubleClickSelected: false,
+            label: "",
             ...edge.data,
             ...edgeData
           }

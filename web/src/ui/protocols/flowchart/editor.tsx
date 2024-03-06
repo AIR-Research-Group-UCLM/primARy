@@ -81,13 +81,12 @@ export default function FlowChartEditor() {
       nodeId,
       handleId: handleId as HandlePosition,
     };
-  }, [nodes]);
+  }, []);
 
   const onConnectEnd: OnConnectEnd = useCallback((event) => {
     if (connectingNode.current === null || !isEventTargetPane(event.target as Element)) {
       return;
     }
-
 
     let id = nanoid();
 
@@ -109,6 +108,10 @@ export default function FlowChartEditor() {
       sourceHandle: connectingNode.current.handleId,
       targetHandle: getOpposite(connectingNode.current.handleId),
       target: id,
+      data: {
+        label: "",
+        doubleClickSelected: false
+      }
     }
     addNode(newNode, {
       name: "",
@@ -157,7 +160,7 @@ export default function FlowChartEditor() {
       connectingNode.current = null;
     }
 
-  }, [nodes]);
+  }, [selectedNodeId]);
 
   return (
     <ReactFlow
