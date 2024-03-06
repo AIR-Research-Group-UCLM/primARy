@@ -4,17 +4,17 @@ import useSWR from "swr";
 import type { ProtocolSummary } from "@/types";
 
 export default function useProtocols() {
-    const { data: protocols, mutate, error, isLoading, isValidating} = useSWR<ProtocolSummary[]>(
-        `${process.env.API_BASE}/protocols`, defaultFetcher, {
-        revalidateOnFocus: false,
-        revalidateOnReconnect: false
-    });
+  const { data: protocols, mutate, error, isLoading, isValidating } = useSWR<ProtocolSummary[]>(
+    `${process.env.API_BASE}/protocols`, defaultFetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false
+  });
 
-    return {
-        protocols,
-        isLoading,
-        mutate,
-        error,
-        isValidating
-    }
+  return {
+    protocols: protocols ?? [],
+    isLoading,
+    mutate,
+    error,
+    isValidating
+  }
 }
