@@ -3,21 +3,20 @@ import type { ProtocolData } from "@/hooks/store";
 
 import { protocolDataToProtocol } from "@/type-conversions";
 import useMutate from "./hooks/useMutate";
-
+import { JSONfetcher } from "@/utils";
 
 async function createProtocol({ name }: { name: string }): Promise<ProtocolSummary> {
-  const res = await fetch(`${process.env.API_BASE}/protocols`, {
+  return JSONfetcher(`${process.env.API_BASE}/protocols`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({ name })
   });
-  return res.json();
 }
 
 async function deleteProtocol({ protocolId }: { protocolId: number }) {
-  return fetch(`${process.env.API_BASE}/protocols/${protocolId}`, {
+  return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}`, {
     method: "DELETE"
   });
 }
@@ -25,7 +24,7 @@ async function deleteProtocol({ protocolId }: { protocolId: number }) {
 async function updateProtocol(
   { protocolId, protocolData }: { protocolId: number, protocolData: ProtocolData }
 ) {
-  return fetch(`${process.env.API_BASE}/protocols/${protocolId}`, {
+  return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json"

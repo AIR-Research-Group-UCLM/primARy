@@ -16,6 +16,8 @@ import useToastMessage from "@/hooks/useToastMessage";
 import FlowChartEditor from "@/ui/protocols/flowchart/editor";
 import NodeEditor from "@/ui/protocols/node-editor";
 
+import { UnsuccessfulResponse } from "@/utils";
+
 import { useUpdateProtocol } from "@/mutation";
 
 import { useRouter } from "next/navigation";
@@ -29,17 +31,43 @@ export default function ProtocolView({ protocolId }: Props) {
   const name = useProtocolStore((state) => state.name);
   const changeName = useProtocolStore((state) => state.changeName);
   const router = useRouter();
-  const {isOpen, toastMessage, messageType, setToastMessage} = useToastMessage();
+  const { isOpen, toastMessage, messageType, setToastMessage } = useToastMessage();
 
   const { triggerUpdateProtocol, isUpdatingProtocol } = useUpdateProtocol();
 
-  const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+  function handleClose(event?: React.SyntheticEvent | Event, reason?: string) {
     if (reason === "clickaway") {
       return;
     }
 
     setToastMessage(null);
-  };
+  }
+
+  async function updateProtocol() {
+    try {
+      await triggerUpdateProtocol({ protocolId, protocolData: useProtocolStore.getState() });
+      setToastMessage({
+        type: "success",
+        message: "Protocol updated sucessfully"
+      })
+      return true;
+    }
+    catch (error) {
+      const errorMsg = error instanceof UnsuccessfulResponse ?
+        (
+          `Error ${error.status}: ${error.message}`
+        ) :
+        (
+          String(error)
+        );
+
+      setToastMessage({
+        type: "error",
+        message: errorMsg
+      })
+      return false;
+    }
+  }
 
   return (
     <>
@@ -121,12 +149,10 @@ export default function ProtocolView({ protocolId }: Props) {
           }} >
             <Button
               onClick={async () => {
-                await triggerUpdateProtocol({ protocolId, protocolData: useProtocolStore.getState() });
-                setToastMessage({
-                  type: "success",
-                  message: "Protocol updated sucessfully"
-                })
-                router.push("/protocols");
+                const wasSuccessful = await updateProtocol();
+                if (wasSuccessful) {
+                  router.push("/protocols");
+                }
               }}
               variant="contained"
               size="large"
@@ -144,14 +170,7 @@ export default function ProtocolView({ protocolId }: Props) {
             justifyContent: "center",
           }} >
             <Button
-              onClick={async () => {
-                await triggerUpdateProtocol({ protocolId, protocolData: useProtocolStore.getState() })
-                setToastMessage({
-                  type: "success",
-                  message: "Protocol updated sucessfully"
-                });
-              }
-              }
+              onClick={updateProtocol}
               variant="contained"
               size="large"
               startIcon={<SaveAltIcon />}
@@ -164,7 +183,11 @@ export default function ProtocolView({ protocolId }: Props) {
           </Box>
         </Paper>
       </Box>
-      <Snackbar open={isOpen} autoHideDuration={3000} onClose={handleClose}>
+      <Snackbar
+        open={isOpen}
+        autoHideDuration={messageType == "success" ? 1500 : 3000}
+        onClose={handleClose}
+      >
         <Alert
           onClose={handleClose}
           severity={messageType}
