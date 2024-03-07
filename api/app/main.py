@@ -3,12 +3,14 @@ from __future__ import annotations
 from typing import Annotated
 from sqlalchemy.orm import Session
 
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi.responses import JSONResponse
 
 from fastapi.middleware.cors import CORSMiddleware
 
 from .models import Protocol, ProtocolCreate, ProtocolSummary
 from .db import SessionLocal
+from .exceptions import InvalidProtocolException
 
 from . import crud
 
@@ -28,6 +30,13 @@ app.add_middleware(
 def get_session() -> Session:
     with SessionLocal() as session:
         return session
+
+@app.exception_handler(InvalidProtocolException)
+async def invalid_protocol_exception_handler(request: Request, exc: InvalidProtocolException):
+    return JSONResponse(
+        status_code=409,
+        content={"detail": str(exc)}
+    )
 
 
 @app.get("/protocols", response_model=list[ProtocolSummary])
