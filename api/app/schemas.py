@@ -14,11 +14,12 @@ class Base(DeclarativeBase):
 class Edge(Base):
     __tablename__ = "edges"
 
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     protocol_id: Mapped[int] = mapped_column(
-        sa.ForeignKey("protocols.id", ondelete="CASCADE"), primary_key=True
+        sa.ForeignKey("protocols.id", ondelete="CASCADE"),
     )
-    source: Mapped[str] = mapped_column(sa.ForeignKey("nodes.id", ondelete="CASCADE"), primary_key=True)
-    target: Mapped[str] = mapped_column(sa.ForeignKey("nodes.id", ondelete="CASCADE"), primary_key=True)
+    source: Mapped[str] = mapped_column(sa.ForeignKey("nodes.id", ondelete="CASCADE"))
+    target: Mapped[str] = mapped_column(sa.ForeignKey("nodes.id", ondelete="CASCADE"))
 
     label: Mapped[str] = mapped_column(sa.String(255))
     source_handle: Mapped[str] = mapped_column(sa.String(255))
