@@ -5,16 +5,20 @@ import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
+import Snackbar from "@mui/material/Snackbar";
+import LinearProgress from "@mui/material/LinearProgress";
+import Alert from "@mui/material/Alert";
 import SaveAltIcon from '@mui/icons-material/SaveAlt';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import useProtocolStore from "@/hooks/store";
+import useToastMessage from "@/hooks/useToastMessage";
 import FlowChartEditor from "@/ui/protocols/flowchart/editor";
 import NodeEditor from "@/ui/protocols/node-editor";
 
-import { updateProtocol } from "@/mutation";
+import { useUpdateProtocol } from "@/mutation";
 
-import {useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 
 type Props = {
   protocolId: number;
@@ -25,116 +29,150 @@ export default function ProtocolView({ protocolId }: Props) {
   const name = useProtocolStore((state) => state.name);
   const changeName = useProtocolStore((state) => state.changeName);
   const router = useRouter();
+  const {isOpen, toastMessage, messageType, setToastMessage} = useToastMessage();
+
+  const { triggerUpdateProtocol, isUpdatingProtocol } = useUpdateProtocol();
+
+  const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setToastMessage(null);
+  };
 
   return (
-    <Box sx={{
-      display: "flex",
-      flexDirection: "column",
-      padding: "5px",
-      height: "100%"
-    }}>
+    <>
       <Box sx={{
         display: "flex",
-        background: "white",
-      }}>
-        <TextField
-          fullWidth
-          label="Protocol Name"
-          value={name}
-          onChange={(e) => changeName(e.target.value)}
-          variant="outlined"
-          sx={{
-            marginBottom: "10px",
-            flexGrow: 1
-          }}
-          inputProps={{
-            style: {
-              fontSize: "20px"
-            }
-          }}
-          InputProps={{
-            style: {
-              fontSize: "15px"
-            }
-          }}
-        />
-      </Box>
-      <Box sx={{
-        display: "flex",
-        gap: "10px",
+        flexDirection: "column",
+        padding: "5px",
         height: "100%"
       }}>
-        <Paper elevation={5} sx={{
-          flex: "2 0",
-          border: "solid 1px"
+        <Box sx={{
+          display: "flex",
+          background: "white",
         }}>
-          <ReactFlowProvider>
-            <FlowChartEditor />
-          </ReactFlowProvider>
-        </Paper>
+          <TextField
+            fullWidth
+            label="Protocol Name"
+            value={name}
+            onChange={(e) => changeName(e.target.value)}
+            variant="outlined"
+            sx={{
+              marginBottom: "10px",
+              flexGrow: 1
+            }}
+            inputProps={{
+              style: {
+                fontSize: "20px"
+              }
+            }}
+            InputProps={{
+              style: {
+                fontSize: "15px"
+              }
+            }}
+          />
+        </Box>
+        <Box sx={{
+          display: "flex",
+          gap: "10px",
+          height: "100%"
+        }}>
+          <Paper elevation={5} sx={{
+            flex: "2 0",
+            border: "solid 1px"
+          }}>
+            <ReactFlowProvider>
+              <FlowChartEditor />
+            </ReactFlowProvider>
+          </Paper>
 
-        {<Paper
+          {<Paper
+            elevation={5}
+            sx={{
+              flex: "1 0",
+              border: "solid 1px",
+              padding: "15px",
+              display: selectedNodeId === null ? "none" : "flex",
+              flexDirection: "column"
+            }}
+          >
+            {selectedNodeId && <NodeEditor selectedNodeId={selectedNodeId} />}
+          </Paper>}
+        </Box>
+        <Paper
           elevation={5}
           sx={{
-            flex: "1 0",
+            display: "flex",
             border: "solid 1px",
-            padding: "15px",
-            display: selectedNodeId === null ? "none" : "flex",
-            flexDirection: "column"
+            alignContent: "center",
+            justifyContent: "center",
+            padding: "10px",
+            marginTop: "20px"
           }}
         >
-          {selectedNodeId && <NodeEditor selectedNodeId={selectedNodeId} />}
-        </Paper>}
+          {isUpdatingProtocol && <LinearProgress />}
+          <Box sx={{
+            display: "flex",
+            flex: "1",
+            justifyContent: "center",
+          }} >
+            <Button
+              onClick={async () => {
+                await triggerUpdateProtocol({ protocolId, protocolData: useProtocolStore.getState() });
+                setToastMessage({
+                  type: "success",
+                  message: "Protocol updated sucessfully"
+                })
+                router.push("/protocols");
+              }}
+              variant="contained"
+              size="large"
+              startIcon={<ArrowBackIcon />}
+              sx={{
+                borderRadius: "30px"
+              }}
+            >
+              Exit and save
+            </Button>
+          </Box>
+          <Box sx={{
+            display: "flex",
+            flex: "1",
+            justifyContent: "center",
+          }} >
+            <Button
+              onClick={async () => {
+                await triggerUpdateProtocol({ protocolId, protocolData: useProtocolStore.getState() })
+                setToastMessage({
+                  type: "success",
+                  message: "Protocol updated sucessfully"
+                });
+              }
+              }
+              variant="contained"
+              size="large"
+              startIcon={<SaveAltIcon />}
+              sx={{
+                borderRadius: "30px"
+              }}
+            >
+              Save
+            </Button>
+          </Box>
+        </Paper>
       </Box>
-      <Paper
-        elevation={5}
-        sx={{
-          display: "flex",
-          border: "solid 1px",
-          alignContent: "center",
-          justifyContent: "center",
-          padding: "10px",
-          marginTop: "20px"
-        }}
-      >
-        <Box sx={{
-          display: "flex",
-          flex: "1 0",
-          justifyContent: "center",
-        }} >
-          <Button
-            onClick={async () => {
-              await updateProtocol(protocolId, useProtocolStore.getState());
-              router.push("/protocols/");
-            }}
-            variant="contained"
-            size="large"
-            startIcon={<ArrowBackIcon />}
-            sx={{
-              borderRadius: "30px"
-            }}
-          >
-            Exit and save
-          </Button>
-        </Box>
-        <Box sx={{
-          display: "flex",
-          flex: "1 0",
-          justifyContent: "center",
-        }} >
-          <Button
-            onClick={() => updateProtocol(protocolId, useProtocolStore.getState())}
-            variant="contained"
-            size="large"
-            startIcon={<SaveAltIcon />}
-            sx={{
-              borderRadius: "30px"
-            }}
-          >
-            Save
-          </Button>
-        </Box>
-      </Paper>
-    </Box>
+      <Snackbar open={isOpen} autoHideDuration={3000} onClose={handleClose}>
+        <Alert
+          onClose={handleClose}
+          severity={messageType}
+          variant="filled"
+        >
+          {toastMessage}
+        </Alert>
+      </Snackbar>
+    </>
   )
 }

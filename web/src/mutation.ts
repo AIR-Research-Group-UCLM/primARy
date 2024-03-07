@@ -22,7 +22,9 @@ async function deleteProtocol({ protocolId }: { protocolId: number }) {
   });
 }
 
-export async function updateProtocol(protocolId: number, protocolData: ProtocolData) {
+async function updateProtocol(
+  { protocolId, protocolData }: { protocolId: number, protocolData: ProtocolData }
+) {
   return fetch(`${process.env.API_BASE}/protocols/${protocolId}`, {
     method: "PUT",
     headers: {
@@ -45,5 +47,13 @@ export function useDeleteProtocol() {
   return {
     triggerDeleteProtocol: trigger,
     isDeletingProtocol: isMutating
+  }
+}
+
+export function useUpdateProtocol() {
+  const { trigger, isMutating } = useMutate(updateProtocol);
+  return {
+    triggerUpdateProtocol: trigger,
+    isUpdatingProtocol: isMutating
   }
 }
