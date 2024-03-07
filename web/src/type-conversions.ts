@@ -10,9 +10,8 @@ export function protocolToProtocolData(protocol: Protocol): ProtocolData {
       position: node.position,
       type: "flowchart-node"
     })),
-    edges: protocol.edges.map((edge) => ({
-      // TODO: change this
-      id: `${protocol.id}${edge.source}${edge.target}`,
+    edges: protocol.edges.map((edge, index) => ({
+      id: `${index}`,
       source: edge.source,
       target: edge.target,
       sourceHandle: edge.sourceHandle,
