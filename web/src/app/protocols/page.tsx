@@ -3,6 +3,7 @@
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
+import LinearProgress from "@mui/material/LinearProgress";
 import AddIcon from '@mui/icons-material/Add';
 
 import ProtocolCard from "@/ui/protocols/protocol-card";
@@ -16,31 +17,34 @@ import ConfirmDialog from "@/ui/dialogs/confirm";
 import LoadingSpinner from "@/ui/loading-spinner";
 import useProtocols from "@/hooks/useProtocols";
 
-import { createProtocol, deleteProtocol } from "@/mutation";
+import { useCreateProtocol, useDeleteProtocol } from "@/mutation";
 
 export default function Page() {
   const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
   const [protocolForDelete, setProtocolForDelete] = useState<ProtocolSummary | null>(null);
+  const { triggerCreateProtocol, isCreatingProtocol } = useCreateProtocol();
+  const { triggerDeleteProtocol, isDeletingProtocol } = useDeleteProtocol();
+  const { protocols, isLoading, mutate } = useProtocols();
   const router = useRouter();
 
-  const {protocols, isLoading, mutate} = useProtocols();
-  
+  const showLinearProgress = isDeletingProtocol || isCreatingProtocol;
+
 
   async function onCreateClick(name: string) {
-    const protocol = await createProtocol(name);
+    const protocol = await triggerCreateProtocol({ name });
     router.push(`/protocols/${protocol.id}`);
   }
 
   async function onDeleteProtocol(protocolId: number) {
-    await deleteProtocol(protocolId);
-    const remainingProtocols = protocols!.filter((protocol) => protocol.id !== protocolId);
-    mutate(remainingProtocols, {
-      revalidate: false
-    });
     setProtocolForDelete(null);
+    await triggerDeleteProtocol({ protocolId });
+    const remainingProtocols = protocols.filter((protocol) => protocol.id !== protocolId);
+    mutate(remainingProtocols, {
+      revalidate: false,
+    });
   }
 
-  if (!protocols || isLoading) {
+  if (isLoading) {
     return <LoadingSpinner />
   }
 
@@ -75,6 +79,11 @@ export default function Page() {
           )}
         </Paper>
         <Box sx={{
+          width: "100%"
+        }}>
+          {showLinearProgress && <LinearProgress />}
+        </Box>
+        <Box sx={{
           display: "flex",
           justifyContent: "center",
           flex: "1",
@@ -97,10 +106,13 @@ export default function Page() {
       {isDialogOpen && <CreateProtocolDialog
         isOpen={isDialogOpen}
         handleClose={() => setDialogOpen(false)}
-        onCreateClick={(name) => onCreateClick(name)}
+        onCreateClick={async (name) => {
+          setDialogOpen(false);
+          await onCreateClick(name);
+        }}
       />}
       {protocolForDelete !== null && <ConfirmDialog
-        isOpen={deleteProtocol !== null}
+        isOpen={protocolForDelete !== null}
         title="Confirm delete"
         contentText={
           `Are you sure you want to delete the protocol ${protocolForDelete.name}? This action cannot be undone`

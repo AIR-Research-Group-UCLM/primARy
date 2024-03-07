@@ -1,5 +1,5 @@
 
-class UnsuccessfulResponse extends Error {
+export class UnsuccessfulResponse extends Error {
   info: any;
   status: number;
 
@@ -12,13 +12,18 @@ class UnsuccessfulResponse extends Error {
 
 // source: https://swr.vercel.app/docs/error-handling
 export async function defaultFetcher(url: string) {
-  const res = await fetch(url)
+  return JSONfetcher(url);
+}
 
+export async function JSONfetcher<S = null, E = any>(url: string, options?: RequestInit): Promise<S> {
+  const res = await fetch(url, options);
   if (!res.ok) {
-    const info = await res.json();
-    const error = new UnsuccessfulResponse("Unsucessfull response", info, res.status);
-    throw error
+    const info = await res.json() as E;
+    throw new UnsuccessfulResponse(
+      res.statusText,
+      info,
+      res.status
+    )
   }
-
   return res.json();
 }
