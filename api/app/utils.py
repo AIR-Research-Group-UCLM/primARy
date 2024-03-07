@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from . import models as md
     from . import schemas as sc
 
+
 def node_to_schema(node: md.Node):
     return {
         "id": node.id,
@@ -14,6 +15,7 @@ def node_to_schema(node: md.Node):
         "pos_x": node.position.x,
         "pos_y": node.position.y,
     }
+
 
 def schema_to_node(node: sc.Node):
     return {

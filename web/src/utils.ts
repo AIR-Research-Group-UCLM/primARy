@@ -11,8 +11,8 @@ export class UnsuccessfulResponse extends Error {
 }
 
 // source: https://swr.vercel.app/docs/error-handling
-export async function defaultFetcher(url: string) {
-  return JSONfetcher(url);
+export async function defaultFetcher<S>(url: string) {
+  return JSONfetcher<S>(url);
 }
 
 export async function JSONfetcher<S = null, E = any>(url: string, options?: RequestInit): Promise<S> {

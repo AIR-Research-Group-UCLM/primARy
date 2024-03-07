@@ -3,6 +3,7 @@ from __future__ import annotations
 from pydantic import BaseModel as PydanticBaseModel, Field, ConfigDict
 from pydantic import alias_generators
 
+
 class BaseModel(PydanticBaseModel):
     model_config = ConfigDict(
         alias_generator=alias_generators.to_camel,
@@ -10,18 +11,22 @@ class BaseModel(PydanticBaseModel):
         from_attributes=True
     )
 
+
 class Position(BaseModel):
     x: float
     y: float
+
 
 class NodeData(BaseModel):
     name: str = Field(min_length=1)
     description: str = Field(min_length=1)
 
+
 class Node(BaseModel):
     id: str = Field(min_length=1)
     position: Position
     data: NodeData
+
 
 class Edge(BaseModel):
     source: str = Field(min_length=1)
@@ -30,14 +35,17 @@ class Edge(BaseModel):
     source_handle: str
     target_handle: str
 
+
 class ProtocolCreate(BaseModel):
     name: str = Field(min_length=1)
     nodes: list[Node] = []
     edges: list[Edge] = []
 
+
 class ProtocolSummary(BaseModel):
     id: int
     name: str = Field(min_length=1)
+
 
 class Protocol(BaseModel):
     id: int

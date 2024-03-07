@@ -14,8 +14,10 @@ if TYPE_CHECKING:
 initial_node = utils.node_to_schema(md.Node(
     id="0",
     position=md.Position(x=0, y=0),
-    data=md.NodeData(name="Initial Node", description="Intial Node description")
+    data=md.NodeData(name="Initial Node",
+                     description="Initial Node description")
 ))
+
 
 def get_protocols(session: Session):
     query = sa.select(sc.Protocol.id, sc.Protocol.name)
@@ -75,7 +77,8 @@ def create_protocol(session: Session, protocol: md.ProtocolCreate) -> md.Protoco
             protocol_id=protocol_id, **initial_node
         ))
     else:
-        _insert_nodes_edges(session, protocol_id, protocol.nodes, protocol.edges)
+        _insert_nodes_edges(session, protocol_id,
+                            protocol.nodes, protocol.edges)
 
     session.commit()
     return md.ProtocolSummary(
