@@ -32,8 +32,7 @@ export default function ProtocolCard({ protocol, onDeleteClick }: Props) {
         justifyContent: "center",
         alignItems: "center",
         padding: "2px",
-        flex: "3",
-        overflow: "scroll"
+        flex: "3"
       }}>
         <Typography
           variant="h5"
