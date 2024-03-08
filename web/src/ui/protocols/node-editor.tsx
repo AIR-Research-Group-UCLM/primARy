@@ -4,6 +4,7 @@ import Box from "@mui/material/Box";
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 
 import useProtocolStore from "@/hooks/store";
+import NodeResourcesDialog from "@/ui/dialogs/node-resources";
 
 import "@/ui/protocols/textfield.css";
 import { Button } from "@mui/material";
@@ -25,61 +26,63 @@ export default function NodeInfoEditor({ selectedNodeId }: Props) {
   }
 
   return (
-    <Paper
-      elevation={5}
-      sx={{
-        flex: "1 0",
-        border: "solid 1px",
-        padding: "15px",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <TextField
-        fullWidth
-        label="Name"
-        value={data.name}
-        onChange={(e) => onNameChange(e.target.value)}
-        variant="outlined"
+    <>
+      <Paper
+        elevation={5}
         sx={{
-          marginBottom: "10px"
-        }}
-      />
-      <TextField
-        fullWidth
-        multiline
-        onChange={(e) => onDescriptionChange(e.target.value)}
-        value={data.description ?? ""}
-        id="description"
-        label="Description"
-        variant="outlined"
-        maxRows={10}
-        InputProps={{
-          sx: {
-            height: "100%",
-            alignItems: "normal",
-            overflow: "scroll"
-          }
-        }}
-      />
-      <Box
-        sx={{
+          flex: "1 0",
+          border: "solid 1px",
+          padding: "15px",
           display: "flex",
-          justifyContent: "center",
-          marginTop: "20px"
+          flexDirection: "column",
         }}
       >
-        <Button
-          variant="contained"
-          size="medium"
+        <TextField
+          fullWidth
+          label="Name"
+          value={data.name}
+          onChange={(e) => onNameChange(e.target.value)}
+          variant="outlined"
           sx={{
-            borderRadius: "30px"
+            marginBottom: "10px"
           }}
-          startIcon={<LibraryBooksIcon />}
+        />
+        <TextField
+          fullWidth
+          multiline
+          onChange={(e) => onDescriptionChange(e.target.value)}
+          value={data.description ?? ""}
+          id="description"
+          label="Description"
+          variant="outlined"
+          maxRows={10}
+          InputProps={{
+            sx: {
+              height: "100%",
+              alignItems: "normal",
+            }
+          }}
+        />
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "20px"
+          }}
         >
-          Add resources
-        </Button>
-      </Box>
-    </Paper>
+          <Button
+            variant="contained"
+            size="medium"
+            sx={{
+              borderRadius: "30px"
+            }}
+            startIcon={<LibraryBooksIcon />}
+          >
+            Resources
+          </Button>
+        </Box>
+      </Paper>
+      <NodeResourcesDialog isOpen selectedNodeId={selectedNodeId} />
+    </>
   );
 }
