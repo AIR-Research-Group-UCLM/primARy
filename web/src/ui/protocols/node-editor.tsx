@@ -1,7 +1,12 @@
 import TextField from "@mui/material/TextField";
+import Paper from "@mui/material/Paper";
+import Box from "@mui/material/Box";
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
+
 import useProtocolStore from "@/hooks/store";
 
 import "@/ui/protocols/textfield.css";
+import { Button } from "@mui/material";
 
 type Props = {
   selectedNodeId: string
@@ -20,7 +25,16 @@ export default function NodeInfoEditor({ selectedNodeId }: Props) {
   }
 
   return (
-    <>
+    <Paper
+      elevation={5}
+      sx={{
+        flex: "1 0",
+        border: "solid 1px",
+        padding: "15px",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <TextField
         fullWidth
         label="Name"
@@ -39,16 +53,33 @@ export default function NodeInfoEditor({ selectedNodeId }: Props) {
         id="description"
         label="Description"
         variant="outlined"
-        // TODO: this should not depend on a hardcoded value but
-        // on the dimensions of the textarea
-        maxRows={19}
+        maxRows={10}
         InputProps={{
           sx: {
             height: "100%",
             alignItems: "normal",
+            overflow: "scroll"
           }
         }}
       />
-    </>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          marginTop: "20px"
+        }}
+      >
+        <Button
+          variant="contained"
+          size="medium"
+          sx={{
+            borderRadius: "30px"
+          }}
+          startIcon={<LibraryBooksIcon />}
+        >
+          Add resources
+        </Button>
+      </Box>
+    </Paper>
   );
 }

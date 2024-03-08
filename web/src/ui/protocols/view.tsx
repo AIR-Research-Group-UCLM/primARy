@@ -117,18 +117,7 @@ export default function ProtocolView({ protocolId }: Props) {
             </ReactFlowProvider>
           </Paper>
 
-          {<Paper
-            elevation={5}
-            sx={{
-              flex: "1 0",
-              border: "solid 1px",
-              padding: "15px",
-              display: selectedNodeId === null ? "none" : "flex",
-              flexDirection: "column"
-            }}
-          >
-            {selectedNodeId && <NodeEditor selectedNodeId={selectedNodeId} />}
-          </Paper>}
+          {selectedNodeId && <NodeEditor selectedNodeId={selectedNodeId} />}
         </Box>
         <Paper
           elevation={5}
