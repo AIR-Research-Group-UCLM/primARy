@@ -68,7 +68,6 @@ function EdgeTextField({ edgeId, label, labelX, labelY, isError, onFocusChange }
         textAlign: "center",
         background: "#ffffff",
         width: "75px",
-        borderColor: "green"
       }} />
   );
 }
