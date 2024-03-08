@@ -55,7 +55,6 @@ def update_protocol(session: Session, protocol_id: int, protocol: md.ProtocolCre
             "The initial node has not been specified"
         )
 
-    # TODO: update initial node id
     update_protocol = sa.update(sc.Protocol).where(sc.Protocol.id == protocol_id).values(
         name=protocol.name
     )
@@ -63,11 +62,21 @@ def update_protocol(session: Session, protocol_id: int, protocol: md.ProtocolCre
     if row_count == 0:
         return False
 
-    session.execute(sa.delete(sc.Node).where(
-        sc.Node.protocol_id == protocol_id)
+    session.execute(
+        sa.delete(sc.Node)
+        .where(
+            sc.Node.protocol_id == protocol_id
+        )
     )
-
     _insert_nodes_edges(session, protocol_id, protocol.nodes, protocol.edges)
+
+    session.execute(
+        sa.update(sc.Protocol)
+        .where(sc.Protocol.id == protocol_id)
+        .values(
+            initial_node_id=protocol.initial_node_id
+        )
+    )
 
     session.commit()
     return True
