@@ -47,11 +47,9 @@ class Protocol(Base):
     __tablename__ = "protocols"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    initial_node_id: Mapped[str | None] = mapped_column(
-        sa.ForeignKey("nodes.id", ondelete="SET NULL")
-    )
+    initial_node_id: Mapped[str] = mapped_column(sa.CHAR(21))
     name: Mapped[str] = mapped_column(sa.String(255))
-    nodes: Mapped[list[Node]] = relationship(foreign_keys="Node.protocol_id")
+    nodes: Mapped[list[Node]] = relationship()
     edges: Mapped[list[Edge]] = relationship()
 
 

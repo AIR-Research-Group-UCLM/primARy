@@ -10,5 +10,5 @@ DB_URL = sa.URL.create(
     port=3306,
 )
 
-engine = sa.create_engine(DB_URL, echo=True)
+engine = sa.create_engine(DB_URL)
 SessionLocal = sessionmaker(bind=engine)

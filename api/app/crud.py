@@ -54,9 +54,11 @@ def update_protocol(session: Session, protocol_id: int, protocol: md.ProtocolCre
         raise InvalidProtocolException(
             "The initial node has not been specified"
         )
-
+    
+    # TODO: check that the initial_node_id actually references a node
     update_protocol = sa.update(sc.Protocol).where(sc.Protocol.id == protocol_id).values(
-        name=protocol.name
+        name=protocol.name,
+        initial_node_id=protocol.initial_node_id
     )
     row_count = session.execute(update_protocol).rowcount
     if row_count == 0:
@@ -70,14 +72,6 @@ def update_protocol(session: Session, protocol_id: int, protocol: md.ProtocolCre
     )
     _insert_nodes_edges(session, protocol_id, protocol.nodes, protocol.edges)
 
-    session.execute(
-        sa.update(sc.Protocol)
-        .where(sc.Protocol.id == protocol_id)
-        .values(
-            initial_node_id=protocol.initial_node_id
-        )
-    )
-
     session.commit()
     return True
 
@@ -90,6 +84,7 @@ def create_protocol(session: Session, protocol: md.ProtocolCreate) -> md.Protoco
 
     insert_protocol = sa.insert(sc.Protocol).values(
         name=protocol.name,
+        initial_node_id=protocol.initial_node_id if len(protocol.nodes) > 0 else initial_node.id
     ).returning(sc.Protocol.id)
 
     protocol_id = session.execute(insert_protocol).one()[0]
@@ -101,12 +96,6 @@ def create_protocol(session: Session, protocol: md.ProtocolCreate) -> md.Protoco
     else:
         _insert_nodes_edges(session, protocol_id,
                             protocol.nodes, protocol.edges)
-
-    insert_initial_node = sa.update(sc.Protocol).values(
-        initial_node_id=protocol.initial_node_id if len(
-            protocol.nodes) > 0 else initial_node.id
-    )
-    session.execute(insert_initial_node)
 
     session.commit()
     return md.ProtocolSummary(
