@@ -68,7 +68,7 @@ export default function Page() {
           backgroundColor: "inherit",
           flex: "12",
           padding: "10px",
-          overflow: "scroll"
+          overflow: "auto"
         }}>
           {protocols.map((protocol) =>
             <ProtocolCard
