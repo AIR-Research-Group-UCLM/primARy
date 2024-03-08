@@ -4,6 +4,7 @@ import type { ProtocolData } from "./hooks/store";
 export function protocolToProtocolData(protocol: Protocol): ProtocolData {
   return {
     name: protocol.name,
+    initialNodeId: protocol.initialNodeId,
     nodes: protocol.nodes.map((node) => ({
       id: node.id,
       data: { isSelectedModification: false },
@@ -28,6 +29,7 @@ export function protocolToProtocolData(protocol: Protocol): ProtocolData {
 export function protocolDataToProtocol(protocolId: number, protocolData: ProtocolData): Protocol {
   return {
     id: protocolId,
+    initialNodeId: protocolData.initialNodeId,
     name: protocolData.name,
     nodes: protocolData.nodes.map((node) => ({
       id: node.id,

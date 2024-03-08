@@ -86,7 +86,8 @@ function SideBar({ drawerWidth }: { drawerWidth: number }) {
               <ListItemButton disableGutters component={Link} href={link.href} sx={{
                 width: "100%",
                 margin: "5px",
-                border: `solid ${rootPath == link.href ? "#4295f5" : "#c5c8c9"}`,
+                border: `solid ${rootPath === link.href ? "#4295f5" : "#c5c8c9"}`,
+                backgroundColor: rootPath == link.href ? "#ebf8fc" : "white",
                 borderRadius: 3,
                 padding: "10px"
               }}>

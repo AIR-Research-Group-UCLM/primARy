@@ -38,6 +38,7 @@ class Edge(BaseModel):
 
 class ProtocolCreate(BaseModel):
     name: str = Field(min_length=1)
+    initial_node_id: str | None = None
     nodes: list[Node] = []
     edges: list[Edge] = []
 
@@ -49,6 +50,7 @@ class ProtocolSummary(BaseModel):
 
 class Protocol(BaseModel):
     id: int
+    initial_node_id: str = Field(min_length=1)
     name: str = Field(min_length=1)
     nodes: list[Node]
     edges: list[Edge]

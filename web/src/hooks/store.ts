@@ -23,6 +23,7 @@ import type { FlowchartEdge, FlowchartEdgeData } from "@/ui/protocols/flowchart/
 
 export type ProtocolData = {
   name: string;
+  initialNodeId: string;
   nodes: FlowchartNode[];
   edges: FlowchartEdge[];
   nodesData: Map<string, NodeData>;
@@ -40,18 +41,24 @@ export type ProtocolActions = {
   changeNode: (nodeId: string, nodeData: Partial<FlowchartNode>) => void;
   changeNodeData: (nodeId: string, nodeData: Partial<NodeData>) => void;
   changeEdgeData: (edgeId: string, edgeData: Partial<FlowchartEdgeData>) => void;
+  changeInitialNodeId: (string: string) => void;
 }
 
 export type ProtocolState = ProtocolData & ProtocolActions & {
   selectedNodeId: string | null;
 }
 
-const useProtocolStore = create<ProtocolState>((set, get) => ({
+export const defaultProtocolState = {
   name: "",
+  initialNodeId: "",
   nodes: [],
   edges: [],
   nodesData: new Map(),
-  selectedNodeId: null,
+  selectedNodeId: null
+}
+
+const useProtocolStore = create<ProtocolState>((set, get) => ({
+  ...defaultProtocolState,
 
   onNodesChange: (changes: NodeChange[]) => {
     set((state) => ({
@@ -124,6 +131,9 @@ const useProtocolStore = create<ProtocolState>((set, get) => ({
   changeName(name) {
     set({ name });
   },
+  changeInitialNodeId(initialNodeId: string) {
+    set({initialNodeId});
+  }
 }));
 
 export default useProtocolStore;

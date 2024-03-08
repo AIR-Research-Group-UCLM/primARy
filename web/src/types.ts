@@ -24,6 +24,7 @@ export type Edge = {
 
 export type Protocol = {
     id: number;
+    initialNodeId: string;
     name: string;
     nodes: Node[];
     edges: Edge[];

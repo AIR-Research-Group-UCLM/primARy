@@ -25,9 +25,6 @@ import type { FlowchartEdge } from "@/ui/protocols/flowchart/edge";
 import "reactflow/dist/style.css";
 import { nanoid } from "nanoid";
 
-let id = 10;
-const getId = () => `${id++}`;
-
 type NodeHandle = {
   nodeId: string;
   handleId: HandlePosition;
