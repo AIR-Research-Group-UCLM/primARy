@@ -82,7 +82,7 @@ export default function NodeInfoEditor({ selectedNodeId }: Props) {
           </Button>
         </Box>
       </Paper>
-      <NodeResourcesDialog isOpen selectedNodeId={selectedNodeId} />
+      <NodeResourcesDialog isOpen nodeId={selectedNodeId} />
     </>
   );
 }

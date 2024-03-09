@@ -1,19 +1,20 @@
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
-import ImageList from "@mui/material/ImageList";
-import ImageListItem from "@mui/material/ImageListItem";
-import Box from "@mui/material/Box";
-import Divider from "@mui/material/Divider";
-import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import DeleteIcon from "@mui/icons-material/Delete";
+import Box from "@mui/material/Box";
+import ImageList from "@mui/material/ImageList";
 
-import useProtocolStore from "@/hooks/store";
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+
+import NodeResourcesCard from "@/ui/dialogs/node-resources-card";
 
 type Props = {
   isOpen: boolean;
-  selectedNodeId: string;
+  nodeId: string;
   handleClose?: () => void;
 }
 
@@ -69,10 +70,8 @@ const itemData = [
 ];
 
 export default function NodeResourcesDialog(
-  { isOpen, selectedNodeId, handleClose }: Props
+  { isOpen, nodeId, handleClose }: Props
 ) {
-  const name = useProtocolStore((state) => state.nodesData.get(selectedNodeId)!.name);
-
   return (
     <Dialog
       open={isOpen}
@@ -81,69 +80,44 @@ export default function NodeResourcesDialog(
       onClose={handleClose}
     >
       <DialogTitle>
-        {"Node resources"}
+        Node Resources
       </DialogTitle>
-      <DialogContent>
+      <IconButton size="large" sx={{
+        position: 'absolute',
+        right: 8,
+        top: 8
+      }}>
+        <CloseIcon />
+      </IconButton>
+      <DialogContent dividers>
+        <Box sx={{
+          display: "flex",
+          justifyContent: "center",
+          marginRight: "20px"
+        }}>
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<CloudUploadIcon />}
+            sx={{
+              borderRadius: "30px"
+            }}
+          >
+            Upload
+          </Button>
+        </Box>
         <ImageList
           sx={{
             width: "100%",
             height: "100%",
-            padding: "0 10px"
+            padding: "0 20px"
           }}
           cols={3}
           gap={10}
         >
-          {itemData.map((item) => (
-            <ImageListItem
-              key={item.img}
-              sx={{
-                border: "solid 1px",
-                borderRadius: "20px",
-                padding: "10px",
-              }}
-            >
-              <Typography
-                variant="h6"
-                component="div"
-                sx={{
-                  marginBottom: "5px",
-                  maxHeight: "90px",
-                  display: "flex",
-                  justifyContent: "center",
-                  overflowY: "auto",
-                }}>
-                {item.title}
-              </Typography>
-              <Divider sx={{
-                marginBottom: "10px"
-              }} />
-              <img
-                src={`${item.img}?w=164&h=164&fit=crop&auto=format`}
-                style={{
-                  borderRadius: "10px"
-                }}
-                alt={item.title}
-                loading="lazy"
-              />
-              <Divider sx={{
-                marginTop: "10px"
-              }} />
-              <Box sx={{
-                marginTop: "5px",
-                display: "flex",
-                justifyContent: "center",
-              }}>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  startIcon={<DeleteIcon />}
-                >
-                  Delete
-                </Button>
-              </Box>
-            </ImageListItem>
-          ))}
+          {itemData.map((item) => <NodeResourcesCard key={item.img} item={item} />)}
         </ImageList>
       </DialogContent>
-    </Dialog>);
+    </Dialog>
+  );
 }
