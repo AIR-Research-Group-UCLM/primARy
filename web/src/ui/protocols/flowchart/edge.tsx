@@ -65,7 +65,6 @@ function EdgeTextField({ edgeId, label, labelX, labelY, isError, onFocusChange }
         position: "absolute",
         transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
         pointerEvents: "all",
-        textAlign: "center",
         background: "#ffffff",
         width: "75px",
       }} />

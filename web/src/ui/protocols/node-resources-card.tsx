@@ -6,8 +6,54 @@ import Button from "@mui/material/Button";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from '@mui/icons-material/Edit';
 import IconButton from "@mui/material/IconButton";
+import TextField from "@mui/material/TextField";
+import SaveIcon from '@mui/icons-material/SaveAlt';
 
-export default function NodeResourcesCard({ item }: { item: { img: string; title: string; } }) {
+type Props = {
+  img: string;
+}
+
+export default function NodeResourcesCard( 
+  { img, provisionalName, onSaveName, onNameChange, onModifyName, onCancelName }: Props
+) {
+  const resourceName = isModifying ? (
+    <TextField
+      margin="dense"
+      fullWidth
+      inputProps={{
+        style: {
+          textAlign: "center"
+        }
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          onSaveName();
+        } else if  (e.key === "Escape") {
+          onCancelName();
+        }
+      }}
+      onChange={(e) => onNameChange(e.target.value)}
+      maxRows={2}
+      multiline
+      variant="standard"
+    />
+  ) : (
+    <Typography
+      variant="h6"
+      component="div"
+      sx={{
+        marginBottom: "5px",
+        maxHeight: "90px",
+        display: "flex",
+        justifyContent: "center",
+        overflowY: "auto",
+        flex: "1"
+      }}>
+      {item.title}
+    </Typography>
+  );
+
   return (
     <ImageListItem
       key={item.img}
@@ -22,21 +68,9 @@ export default function NodeResourcesCard({ item }: { item: { img: string; title
         alignItems: "center",
         marginLeft: "30px",
       }}>
-        <Typography
-          variant="h6"
-          component="div"
-          sx={{
-            marginBottom: "5px",
-            maxHeight: "90px",
-            display: "flex",
-            justifyContent: "center",
-            overflowY: "auto",
-            flex: "1"
-          }}>
-          {item.title}
-        </Typography>
-        <IconButton>
-          <EditIcon />
+        {resourceName}
+        <IconButton onClick={() => isModifying ? onSaveName() : onModifyName(item.img)}>
+          {isModifying ? <SaveIcon /> : <EditIcon />}
         </IconButton>
       </Box>
       <Divider sx={{

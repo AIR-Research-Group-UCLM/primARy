@@ -9,6 +9,8 @@ import NodeResourcesDialog from "@/ui/dialogs/node-resources";
 import "@/ui/protocols/textfield.css";
 import { Button } from "@mui/material";
 
+import { useState } from "react";
+
 type Props = {
   selectedNodeId: string
 }
@@ -16,6 +18,14 @@ type Props = {
 export default function NodeInfoEditor({ selectedNodeId }: Props) {
   const changeNodeData = useProtocolStore((state) => state.changeNodeData);
   const data = useProtocolStore((state) => state.nodesData.get(selectedNodeId)!);
+  const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
+
+  function handleClose(event?: React.SyntheticEvent | Event, reason?: string) {
+    if (reason === "backdropClick" || reason === "escapeKeyDown") {
+      return;
+    }
+    setDialogOpen(false);
+  }
 
   function onNameChange(name: string) {
     changeNodeData(selectedNodeId, { name });
@@ -73,6 +83,7 @@ export default function NodeInfoEditor({ selectedNodeId }: Props) {
           <Button
             variant="contained"
             size="medium"
+            onClick={() => setDialogOpen(true)}
             sx={{
               borderRadius: "30px"
             }}
@@ -82,7 +93,11 @@ export default function NodeInfoEditor({ selectedNodeId }: Props) {
           </Button>
         </Box>
       </Paper>
-      <NodeResourcesDialog isOpen nodeId={selectedNodeId} />
+      {isDialogOpen && <NodeResourcesDialog
+        isOpen={isDialogOpen}
+        nodeId={selectedNodeId}
+        handleClose={handleClose}
+      />}
     </>
   );
 }

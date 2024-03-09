@@ -3,14 +3,19 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
 import ImageList from "@mui/material/ImageList";
+import Typography from "@mui/material/Typography";
+import SaveIcon from '@mui/icons-material/SaveAlt';
 
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 
-import NodeResourcesCard from "@/ui/dialogs/node-resources-card";
+import { useState } from "react";
+
+import NodeResourcesCard from "@/ui/protocols/node-resources-card";
 
 type Props = {
   isOpen: boolean;
@@ -69,9 +74,88 @@ const itemData = [
   },
 ];
 
+type ModifyingHeaderProps = {
+  name: string;
+  onNameChange: (name: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+}
+
+function ModifyingHeader(
+  { name, onNameChange, onSave, onCancel }: ModifyingHeaderProps
+) {
+  return (
+    <>
+      <TextField
+        margin="dense"
+        fullWidth
+        value={name}
+        inputProps={{
+          style: {
+            textAlign: "center"
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            onSave();
+          } else if (e.key === "Escape") {
+            onCancel();
+          }
+        }}
+        onChange={(e) => onNameChange(e.target.value)}
+        maxRows={2}
+        multiline
+        variant="standard"
+      />
+      <IconButton onClick={() => onSave()}>
+        <SaveIcon />
+      </IconButton>
+    </>
+  );
+}
+
+type NormalHeaderProps = {
+  // TODO: these two attributes can be changed by the type which represents
+  // the response from the backend
+  name: string;
+  resourceId: string;
+  onModifyClick: (resourceId: string) => void;
+}
+
+function NormalHeader(
+  { name, resourceId, onModifyClick }: NormalHeaderProps
+) {
+  return (
+    <>
+      <Typography
+        variant="h6"
+        component="div"
+        sx={{
+          marginBottom: "5px",
+          maxHeight: "90px",
+          display: "flex",
+          justifyContent: "center",
+          overflowY: "auto",
+          flex: "1"
+        }}>
+        {name}
+      </Typography>
+      <IconButton onClick={() => onModifyClick(resourceId)}>
+        <SaveIcon />
+      </IconButton>
+    </>
+  );
+}
+
 export default function NodeResourcesDialog(
   { isOpen, nodeId, handleClose }: Props
 ) {
+
+  // Actually, this will be handled by SWR
+  const [resources, setResources] = useState<{ img: string; title: string; }[]>(itemData);
+  const [selectedResource, setSelectedResource] = useState<{ id: string; provisionalName: string } | null>(null);
+
   return (
     <Dialog
       open={isOpen}
@@ -82,11 +166,14 @@ export default function NodeResourcesDialog(
       <DialogTitle>
         Node Resources
       </DialogTitle>
-      <IconButton size="large" sx={{
-        position: 'absolute',
-        right: 8,
-        top: 8
-      }}>
+      <IconButton
+        size="large"
+        onClick={handleClose}
+        sx={{
+          position: 'absolute',
+          right: 8,
+          top: 8
+        }}>
         <CloseIcon />
       </IconButton>
       <DialogContent dividers>
@@ -115,7 +202,18 @@ export default function NodeResourcesDialog(
           cols={3}
           gap={10}
         >
-          {itemData.map((item) => <NodeResourcesCard key={item.img} item={item} />)}
+          {itemData.map((item) =>
+            <NodeResourcesCard
+              key={item.img}
+              item={item}
+              provisionalName={selectedResource?.provisionalName}
+              onSaveName={() => console.log("Se ha guardado")}
+              onNameChange={(name) => console.log(`Cambiando a ${name}`)}
+              onModifyName={(resourceId) => console.log(`Se está modificando ${resourceId}`)}
+              onCancelName={() => console.log("Se ha cancelado")}
+            />
+          )
+          }
         </ImageList>
       </DialogContent>
     </Dialog>
