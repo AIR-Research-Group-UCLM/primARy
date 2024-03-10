@@ -51,6 +51,19 @@ async def invalid_protocol_exception_handler(request: Request, exc: InvalidProto
 def get_nodes(session: Annotated[Session, Depends(get_session)], protocol_id: int):
     return crud.get_nodes(session, protocol_id)
 
+@app.get("/protocols/{protocol_id}/nodes/{node_id}/resources", response_model=list[NodeResource])
+def get_node_resources(
+    session: Annotated[Session, Depends(get_session)],
+    protocol_id: int,
+    node_id: str
+):
+    result = crud.get_node_resources(session, protocol_id, node_id)
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Protocol with id {protocol_id} does not have a node with id {node_id}"
+        )
+    return result
 
 @app.post("/protocols/{protocol_id}/nodes/{node_id}/resources")
 def create_node_resource(
@@ -68,8 +81,7 @@ def create_node_resource(
     if result is None:
         raise HTTPException(
             status_code=404,
-            detail=f"Protocol with id {
-                protocol_id} does not have a node with id {node_id}"
+            detail=f"Protocol with id {protocol_id} does not have a node with id {node_id}"
         )
     return result
 

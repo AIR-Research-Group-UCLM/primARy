@@ -37,6 +37,23 @@ def get_nodes(session: Session, protocol_id: int) -> list[md.Node]:
     nodes = session.execute(query).all()
     return [utils.schema_to_node(node[0]) for node in nodes]
 
+def get_node_resources(session: Session, protocol_id: int, node_id: str):
+    node_query = sa.select(sc.Node.id).where(
+        (sc.Node.protocol_id == protocol_id) & (sc.Node.id == node_id)
+    )
+    result = session.execute(node_query).first()
+    if result is None:
+        return None
+
+    resource_query = (
+        sa.select(
+            sc.NodeResource.id, sc.NodeResource.name, sc.NodeResource.extension, sc.NodeResource.size
+        )
+        .where(
+            (sc.NodeResource.protocol_id == protocol_id) & (sc.NodeResource.node_id == node_id)
+    ))
+
+    return list(session.execute(resource_query).mappings())
 
 def get_protocol(session: Session, protocol_id: int) -> md.Protocol:
     query = sa.select(sc.Protocol).where(sc.Protocol.id == protocol_id)
