@@ -12,10 +12,11 @@ import { Button } from "@mui/material";
 import { useState } from "react";
 
 type Props = {
+  protocolId: number;
   selectedNodeId: string
 }
 
-export default function NodeInfoEditor({ selectedNodeId }: Props) {
+export default function NodeInfoEditor({ protocolId, selectedNodeId }: Props) {
   const changeNodeData = useProtocolStore((state) => state.changeNodeData);
   const data = useProtocolStore((state) => state.nodesData.get(selectedNodeId)!);
   const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
@@ -95,6 +96,7 @@ export default function NodeInfoEditor({ selectedNodeId }: Props) {
       </Paper>
       {isDialogOpen && <NodeResourcesDialog
         isOpen={isDialogOpen}
+        protocolId={protocolId}
         nodeId={selectedNodeId}
         handleClose={handleClose}
       />}

@@ -33,6 +33,15 @@ async function updateProtocol(
   });
 }
 
+export async function uploadFiles(
+  { protocolId, nodeId, formData }: { protocolId: number; nodeId: string, formData: FormData }
+) {
+  return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}/resources`, {
+    method: "POST",
+    body: formData
+  })
+}
+
 export function useCreateProtocol() {
   const { trigger, isMutating } = useMutate(createProtocol);
   return {

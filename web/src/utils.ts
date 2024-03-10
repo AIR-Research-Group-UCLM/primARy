@@ -27,3 +27,12 @@ export async function JSONfetcher<S = null, E = any>(url: string, options?: Requ
   }
   return res.json();
 }
+
+export function stripExtension(name: string) {
+  const lastIndex = name.lastIndexOf(".")
+  if (lastIndex === -1 || lastIndex === name.length - 1) {
+    return name;
+  }
+
+  return name.slice(0, lastIndex);
+}

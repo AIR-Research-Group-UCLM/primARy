@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from . import models as md
 if TYPE_CHECKING:
-    from . import models as md
     from . import schemas as sc
 
 
-def node_to_schema(node: md.Node):
+def node_to_schema(node: md.Node) -> sc.Node:
     return {
         "id": node.id,
         "name": node.data.name,
@@ -17,15 +17,15 @@ def node_to_schema(node: md.Node):
     }
 
 
-def schema_to_node(node: sc.Node):
-    return {
-        "id": node.id,
-        "position": {
-            "x": node.pos_x,
-            "y": node.pos_y
-        },
-        "data": {
-            "name": node.name,
-            "description": node.description
-        }
-    }
+def schema_to_node(node: sc.Node) -> md.Node:
+    return md.Node(
+        id=node.id,
+        position=md.Position(
+            x=node.pos_x,
+            y=node.pos_y
+        ),
+        data=md.NodeData(
+            name=node.name,
+            description=node.description
+        )
+    )

@@ -9,6 +9,7 @@ import Typography from "@mui/material/Typography";
 import SaveIcon from '@mui/icons-material/SaveAlt';
 import EditIcon from '@mui/icons-material/Edit';
 
+
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 import IconButton from '@mui/material/IconButton';
@@ -17,9 +18,13 @@ import CloseIcon from '@mui/icons-material/Close';
 import { KeyboardEvent, useState } from "react";
 
 import NodeResourcesCard from "@/ui/protocols/node-resources-card";
+import VisuallyHiddenInput from "@/ui/visually-hidden-input";
+import { stripExtension } from "@/utils";
+import { uploadFiles } from "@/mutation";
 
 type Props = {
   isOpen: boolean;
+  protocolId: number;
   nodeId: string;
   handleClose?: () => void;
 }
@@ -158,12 +163,24 @@ function NormalHeader(
 }
 
 export default function NodeResourcesDialog(
-  { isOpen, nodeId, handleClose }: Props
+  { isOpen, protocolId, nodeId, handleClose }: Props
 ) {
 
   // Actually, this will be handled by SWR
   const [resources, setResources] = useState<{ img: string; title: string; }[]>(itemData);
   const [selectedResource, setSelectedResource] = useState<{ id: string; provisionalName: string } | null>(null);
+
+  async function onFilesUpload(files: File[]) {
+    if (files.length === 0) {
+      return;
+    }
+    const formData = new FormData();
+    for (const file of files) {
+      formData.append("files", file, stripExtension(file.name));
+    }
+
+    await uploadFiles({ protocolId, nodeId, formData });
+  }
 
   function onModifyClick(item: ProvisionalItem) {
     setSelectedResource({
@@ -233,6 +250,7 @@ export default function NodeResourcesDialog(
           marginRight: "20px"
         }}>
           <Button
+            component="label"
             variant="contained"
             size="large"
             startIcon={<CloudUploadIcon />}
@@ -241,6 +259,12 @@ export default function NodeResourcesDialog(
             }}
           >
             Upload
+            <VisuallyHiddenInput
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => onFilesUpload(Array.from(e.target.files || []))}
+            />
           </Button>
         </Box>
         <ImageList

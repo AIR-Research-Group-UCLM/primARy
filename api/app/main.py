@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Annotated
 from sqlalchemy.orm import Session
 
-from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi import FastAPI, Depends, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,9 +27,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 def get_session() -> Session:
     with SessionLocal() as session:
         return session
+
 
 @app.exception_handler(InvalidProtocolException)
 async def invalid_protocol_exception_handler(request: Request, exc: InvalidProtocolException):
@@ -37,6 +39,16 @@ async def invalid_protocol_exception_handler(request: Request, exc: InvalidProto
         status_code=409,
         content={"detail": str(exc)}
     )
+
+
+@app.get("/protocols/{protocol_id}/nodes")
+def get_nodes(session: Annotated[Session, Depends(get_session)], protocol_id: int):
+    return crud.get_nodes(session, protocol_id)
+
+
+@app.post("/protocols/{protocol_id}/nodes/{node_id}/resources")
+def create_node_resource(protocol_id: int, node_id: str, files: list[UploadFile]):
+    print(files)
 
 
 @app.get("/protocols", response_model=list[ProtocolSummary])

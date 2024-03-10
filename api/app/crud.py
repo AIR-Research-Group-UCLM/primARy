@@ -26,20 +26,26 @@ def get_protocols(session: Session):
     return result.mappings()
 
 
-def get_protocol(session: Session, protocol_id: int) -> sc.Protocol:
+def get_nodes(session: Session, protocol_id: int) -> list[md.Node]:
+    query = sa.select(sc.Node).where(sc.Node.protocol_id == protocol_id)
+    nodes = session.execute(query).all()
+    return [utils.schema_to_node(node[0]) for node in nodes]
+
+
+def get_protocol(session: Session, protocol_id: int) -> md.Protocol:
     query = sa.select(sc.Protocol).where(sc.Protocol.id == protocol_id)
     result = session.execute(query).first()
     if result is None:
         return None
 
     result = result[0]
-    return {
-        "id": result.id,
-        "initial_node_id": result.initial_node_id,
-        "name": result.name,
-        "nodes": [utils.schema_to_node(node) for node in result.nodes],
-        "edges": result.edges
-    }
+    return md.Protocol(
+        id=result.id,
+        initial_node_id=result.initial_node_id,
+        name=result.name,
+        nodes=[utils.schema_to_node(node) for node in result.nodes],
+        edges=result.edges
+    )
 
 
 def delete_protocol(session: Session, protocol_id: int) -> bool:
@@ -54,7 +60,7 @@ def update_protocol(session: Session, protocol_id: int, protocol: md.ProtocolCre
         raise InvalidProtocolException(
             "The initial node has not been specified"
         )
-    
+
     # TODO: check that the initial_node_id actually references a node
     update_protocol = sa.update(sc.Protocol).where(sc.Protocol.id == protocol_id).values(
         name=protocol.name,
@@ -84,7 +90,8 @@ def create_protocol(session: Session, protocol: md.ProtocolCreate) -> md.Protoco
 
     insert_protocol = sa.insert(sc.Protocol).values(
         name=protocol.name,
-        initial_node_id=protocol.initial_node_id if len(protocol.nodes) > 0 else initial_node.id
+        initial_node_id=protocol.initial_node_id if len(
+            protocol.nodes) > 0 else initial_node.id
     ).returning(sc.Protocol.id)
 
     protocol_id = session.execute(insert_protocol).one()[0]
