@@ -13,21 +13,14 @@ class Base(DeclarativeBase):
     pass
 
 
-class Edge(Base):
-    __tablename__ = "edges"
+class Protocol(Base):
+    __tablename__ = "protocols"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    protocol_id: Mapped[int] = mapped_column(
-        sa.ForeignKey("protocols.id", ondelete="CASCADE"),
-    )
-    source: Mapped[str] = mapped_column(
-        sa.ForeignKey("nodes.id", ondelete="CASCADE"))
-    target: Mapped[str] = mapped_column(
-        sa.ForeignKey("nodes.id", ondelete="CASCADE"))
-
-    label: Mapped[str] = mapped_column(sa.String(255))
-    source_handle: Mapped[str] = mapped_column(sa.String(255))
-    target_handle: Mapped[str] = mapped_column(sa.String(255))
+    initial_node_id: Mapped[str] = mapped_column(sa.CHAR(21))
+    name: Mapped[str] = mapped_column(sa.String(255))
+    nodes: Mapped[list[Node]] = relationship()
+    edges: Mapped[list[Edge]] = relationship(foreign_keys="[Edge.protocol_id]")
 
 
 class Node(Base):
@@ -43,6 +36,26 @@ class Node(Base):
     pos_y: Mapped[float]
 
 
+class Edge(Base):
+    __tablename__ = "edges"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    protocol_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("protocols.id", ondelete="CASCADE")
+    )
+    source: Mapped[str] = mapped_column(sa.CHAR(21))
+    target: Mapped[str] = mapped_column(sa.CHAR(21))
+
+    label: Mapped[str] = mapped_column(sa.String(255))
+    source_handle: Mapped[str] = mapped_column(sa.String(255))
+    target_handle: Mapped[str] = mapped_column(sa.String(255))
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint([protocol_id, source], [Node.protocol_id, Node.id], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint([protocol_id, target], [Node.protocol_id, Node.id], ondelete="CASCADE")
+    )
+
+
 class NodeResource(Base):
     __tablename__ = "nodes_resources"
 
@@ -50,20 +63,12 @@ class NodeResource(Base):
     protocol_id: Mapped[int] = mapped_column()
     node_id: Mapped[str] = mapped_column(sa.CHAR(21))
     name: Mapped[str] = mapped_column(sa.String(255))
+    extension: Mapped[str] = mapped_column(sa.String(15))
     size: Mapped[int] = mapped_column()
 
     __table_args__ = (
-        sa.ForeignKeyConstraint([protocol_id, node_id], [Node.protocol_id, Node.id]),)
-
-
-class Protocol(Base):
-    __tablename__ = "protocols"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    initial_node_id: Mapped[str] = mapped_column(sa.CHAR(21))
-    name: Mapped[str] = mapped_column(sa.String(255))
-    nodes: Mapped[list[Node]] = relationship()
-    edges: Mapped[list[Edge]] = relationship()
+        sa.ForeignKeyConstraint([protocol_id, node_id], [Node.protocol_id, Node.id], ondelete="CASCADE"),
+    )
 
 
 if __name__ == "__main__":

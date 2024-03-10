@@ -61,7 +61,7 @@ def create_node_resources(
     node_files: list[utils.NodeFile]
 ) -> list[md.NodeResource]:
     query = sa.insert(sc.NodeResource).returning(
-        sc.NodeResource.id, sc.NodeResource.name, sc.NodeResource.size
+        sc.NodeResource.id, sc.NodeResource.extension, sc.NodeResource.name, sc.NodeResource.size
     )
 
     try:
@@ -71,7 +71,8 @@ def create_node_resources(
                 {
                     "protocol_id": protocol_id,
                     "node_id": node_id,
-                    "name": node_file.filename,
+                    "extension": node_file.extension,
+                    "name": node_file.name,
                     "size": node_file.size
                 }
                 for node_file in node_files
@@ -80,15 +81,17 @@ def create_node_resources(
     except IntegrityError:
         return None
 
-    node_resources = [md.NodeResource(**row) for row in result.mappings()]
+    saved_resources = [md.NodeResource(**row) for row in result.mappings()]
 
-    for node_file, saved_resource in zip(node_files, node_resources):
-        with open(os.path.join(RESOURCES_PATH, str(saved_resource.id)), "wb") as f:
+    for node_file, saved_resource in zip(node_files, saved_resources):
+        path = os.path.join(RESOURCES_PATH, f"{saved_resource.id}.{
+                            saved_resource.extension}")
+        with open(path, "wb") as f:
             shutil.copyfileobj(node_file.blob, f)
 
     session.commit()
 
-    return node_resources
+    return saved_resources
 
 
 def delete_protocol(session: Session, protocol_id: int) -> bool:

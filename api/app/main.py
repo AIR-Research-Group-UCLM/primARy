@@ -5,14 +5,15 @@ from sqlalchemy.orm import Session
 
 from fastapi import FastAPI, Depends, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from fastapi.middleware.cors import CORSMiddleware
 
 from .models import Protocol, ProtocolCreate, ProtocolSummary, NodeResource
 from .db import SessionLocal
 from .exceptions import InvalidProtocolException
-from .utils import NodeFile
 
+from . import utils
 from . import crud
 
 app = FastAPI(
@@ -28,12 +29,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# TODO: delete this. This is only for testing purposes
+app.mount("/static", StaticFiles(directory="env"), name="static")
+
 
 def get_session() -> Session:
     with SessionLocal() as session:
         return session
 
 
+# TODO: handle InvalidFileException
 @app.exception_handler(InvalidProtocolException)
 async def invalid_protocol_exception_handler(request: Request, exc: InvalidProtocolException):
     return JSONResponse(
@@ -54,8 +59,10 @@ def create_node_resource(
     protocol_id: int,
     node_id: str
 ) -> list[NodeResource]:
-    node_files = [NodeFile(filename=file.filename,
-                           size=file.size, blob=file.file) for file in files]
+
+    # TODO: check actual content (mime sniffing, what the command file does)
+    node_files = [utils.file_upload_to_node_file(file) for file in files]
+
     result = crud.create_node_resources(
         session, protocol_id, node_id, node_files)
     if result is None:

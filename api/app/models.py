@@ -30,6 +30,7 @@ class Node(BaseModel):
 
 class NodeResource(BaseModel):
     id: int
+    extension: str = Field(min_length=1)
     name: str
     size: int
 

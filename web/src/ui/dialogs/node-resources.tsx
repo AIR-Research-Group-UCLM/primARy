@@ -176,7 +176,7 @@ export default function NodeResourcesDialog(
     }
     const formData = new FormData();
     for (const file of files) {
-      formData.append("files", file, stripExtension(file.name));
+      formData.append("files", file);
     }
 
     await uploadFiles({ protocolId, nodeId, formData });

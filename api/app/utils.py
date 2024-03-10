@@ -4,15 +4,40 @@ from typing import BinaryIO, TYPE_CHECKING
 from dataclasses import dataclass
 
 from . import models as md
+from .exceptions import InvalidFileException
+
 if TYPE_CHECKING:
+    from fastapi import UploadFile
     from . import schemas as sc
 
 
 @dataclass
 class NodeFile:
-    filename: str
+    name: str
+    extension: str
     size: int
     blob: BinaryIO
+
+
+def split_extension(filename: str):
+    delimiter_index = filename.rfind(".")
+    if delimiter_index == -1 or delimiter_index == len(filename) - 1:
+        return filename, ""
+    return filename[:delimiter_index], filename[delimiter_index + 1:]
+
+
+def file_upload_to_node_file(file: UploadFile):
+    name, extension = split_extension(file.filename)
+    if extension == "":
+        raise InvalidFileException(
+            f"{file.filename} does not contain any extension")
+
+    return NodeFile(
+        name=name,
+        extension=extension,
+        size=file.size,
+        blob=file.file
+    )
 
 
 def node_to_schema(node: md.Node) -> sc.Node:
