@@ -30,7 +30,7 @@ class Node(BaseModel):
 
 class NodeResource(BaseModel):
     id: int
-    extension: str = Field(min_length=1)
+    filename: str
     name: str
     size: int
 
@@ -61,3 +61,7 @@ class Protocol(BaseModel):
     name: str = Field(min_length=1)
     nodes: list[Node]
     edges: list[Edge]
+
+
+class PatchNodeResource(BaseModel):
+    name: str = Field(min_length=1)

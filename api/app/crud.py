@@ -37,7 +37,8 @@ def get_nodes(session: Session, protocol_id: int) -> list[md.Node]:
     nodes = session.execute(query).all()
     return [utils.schema_to_node(node[0]) for node in nodes]
 
-def get_node_resources(session: Session, protocol_id: int, node_id: str):
+
+def get_node_resources(session: Session, protocol_id: int, node_id: str) -> list[md.NodeResource]:
     node_query = sa.select(sc.Node.id).where(
         (sc.Node.protocol_id == protocol_id) & (sc.Node.id == node_id)
     )
@@ -50,10 +51,37 @@ def get_node_resources(session: Session, protocol_id: int, node_id: str):
             sc.NodeResource.id, sc.NodeResource.name, sc.NodeResource.extension, sc.NodeResource.size
         )
         .where(
-            (sc.NodeResource.protocol_id == protocol_id) & (sc.NodeResource.node_id == node_id)
-    ))
+            (sc.NodeResource.protocol_id == protocol_id) & (
+                sc.NodeResource.node_id == node_id)
+        ))
 
-    return list(session.execute(resource_query).mappings())
+    result = session.execute(resource_query)
+
+    return (
+        md.NodeResource(**row, filename=f"{row['id']}.{row['extension']}") for row in result.mappings()
+    )
+
+
+def change_name_resource_name(
+    session: Session,
+    protocol_id: int,
+    node_id: str,
+    resource_id: str,
+    patch: md.PatchNodeResource
+) -> bool:
+    update_node_resource = (
+        sa.update(sc.NodeResource)
+        .where((sc.NodeResource.id == resource_id) &
+               (sc.NodeResource.protocol_id == protocol_id) &
+               (sc.NodeResource.node_id == node_id))
+        .values(
+            name=patch.name
+        )
+    )
+    rowcount = session.execute(update_node_resource).rowcount
+    session.commit()
+    return rowcount != 0
+
 
 def get_protocol(session: Session, protocol_id: int) -> md.Protocol:
     query = sa.select(sc.Protocol).where(sc.Protocol.id == protocol_id)
@@ -98,11 +126,12 @@ def create_node_resources(
     except IntegrityError:
         return None
 
-    saved_resources = [md.NodeResource(**row) for row in result.mappings()]
+    saved_resources = [
+        md.NodeResource(**row, filename=f"{row['id']}.{row['extension']}") for row in result.mappings()
+    ]
 
     for node_file, saved_resource in zip(node_files, saved_resources):
-        path = os.path.join(RESOURCES_PATH, f"{saved_resource.id}.{
-                            saved_resource.extension}")
+        path = os.path.join(RESOURCES_PATH, saved_resource.filename)
         with open(path, "wb") as f:
             shutil.copyfileobj(node_file.blob, f)
 

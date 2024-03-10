@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from fastapi.middleware.cors import CORSMiddleware
 
-from .models import Protocol, ProtocolCreate, ProtocolSummary, NodeResource
+from .models import Protocol, ProtocolCreate, ProtocolSummary, NodeResource, PatchNodeResource
 from .db import SessionLocal
 from .exceptions import InvalidProtocolException
 
@@ -65,6 +65,21 @@ def get_node_resources(
         )
     return result
 
+@app.patch("/protocols/{protocol_id}/nodes/{node_id}/resources/{resource_id}")
+def change_name_resource_name(
+    session: Annotated[Session, Depends(get_session)],
+    protocol_id: int,
+    node_id: str,
+    resource_id,
+    patch: PatchNodeResource
+):
+    success = crud.change_name_resource_name(session, protocol_id, node_id, resource_id, patch)
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Node resource '{resource_id}' not found"
+        )
+
 @app.post("/protocols/{protocol_id}/nodes/{node_id}/resources")
 def create_node_resource(
     session: Annotated[Session, Depends(get_session)],
@@ -73,7 +88,8 @@ def create_node_resource(
     node_id: str
 ) -> list[NodeResource]:
 
-    # TODO: check actual content (mime sniffing, what the command file does)
+    # TODO: check actual content (mime sniffing, what the unix command file does)
+    # TODO: check filename is nonempty
     node_files = [utils.file_upload_to_node_file(file) for file in files]
 
     result = crud.create_node_resources(
