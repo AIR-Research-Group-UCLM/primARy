@@ -7,13 +7,14 @@ import TextField from "@mui/material/TextField";
 import ImageList from "@mui/material/ImageList";
 import Typography from "@mui/material/Typography";
 import SaveIcon from '@mui/icons-material/SaveAlt';
+import EditIcon from '@mui/icons-material/Edit';
 
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 
-import { useState } from "react";
+import { KeyboardEvent, useState } from "react";
 
 import NodeResourcesCard from "@/ui/protocols/node-resources-card";
 
@@ -74,6 +75,11 @@ const itemData = [
   },
 ];
 
+type ProvisionalItem = {
+  title: string;
+  img: string;
+}
+
 type ModifyingHeaderProps = {
   name: string;
   onNameChange: (name: string) => void;
@@ -84,10 +90,21 @@ type ModifyingHeaderProps = {
 function ModifyingHeader(
   { name, onNameChange, onSave, onCancel }: ModifyingHeaderProps
 ) {
+
+  function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onSave();
+    } else if (e.key === "Escape") {
+      onCancel();
+    }
+  }
+
   return (
     <>
       <TextField
         margin="dense"
+        error={name === ""}
         fullWidth
         value={name}
         inputProps={{
@@ -95,20 +112,15 @@ function ModifyingHeader(
             textAlign: "center"
           }
         }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            onSave();
-          } else if (e.key === "Escape") {
-            onCancel();
-          }
-        }}
+        onKeyDown={onKeyDown}
         onChange={(e) => onNameChange(e.target.value)}
         maxRows={2}
         multiline
         variant="standard"
       />
-      <IconButton onClick={() => onSave()}>
+      <IconButton
+        disabled={name === ""}
+        onClick={() => onSave()}>
         <SaveIcon />
       </IconButton>
     </>
@@ -116,15 +128,12 @@ function ModifyingHeader(
 }
 
 type NormalHeaderProps = {
-  // TODO: these two attributes can be changed by the type which represents
-  // the response from the backend
-  name: string;
-  resourceId: string;
-  onModifyClick: (resourceId: string) => void;
+  item: ProvisionalItem;
+  onModifyClick: (item: ProvisionalItem) => void;
 }
 
 function NormalHeader(
-  { name, resourceId, onModifyClick }: NormalHeaderProps
+  { item, onModifyClick }: NormalHeaderProps
 ) {
   return (
     <>
@@ -139,10 +148,10 @@ function NormalHeader(
           overflowY: "auto",
           flex: "1"
         }}>
-        {name}
+        {item.title}
       </Typography>
-      <IconButton onClick={() => onModifyClick(resourceId)}>
-        <SaveIcon />
+      <IconButton onClick={() => onModifyClick(item)}>
+        <EditIcon />
       </IconButton>
     </>
   );
@@ -155,6 +164,47 @@ export default function NodeResourcesDialog(
   // Actually, this will be handled by SWR
   const [resources, setResources] = useState<{ img: string; title: string; }[]>(itemData);
   const [selectedResource, setSelectedResource] = useState<{ id: string; provisionalName: string } | null>(null);
+
+  function onModifyClick(item: ProvisionalItem) {
+    setSelectedResource({
+      id: item.img,
+      provisionalName: item.title
+    })
+  }
+
+  function onNameChange(name: string) {
+    if (selectedResource === null) {
+      return;
+    }
+
+    setSelectedResource({
+      ...selectedResource,
+      provisionalName: name
+    });
+  }
+
+  function onSave() {
+    if (selectedResource === null || selectedResource.provisionalName === "") {
+      return;
+    }
+
+    setResources(
+      resources.map((resource) => {
+        if (resource.img !== selectedResource.id) {
+          return resource;
+        }
+        return {
+          ...resource,
+          title: selectedResource.provisionalName
+        };
+      })
+    );
+    setSelectedResource(null);
+  }
+
+  function onCancel() {
+    setSelectedResource(null);
+  }
 
   return (
     <Dialog
@@ -202,15 +252,26 @@ export default function NodeResourcesDialog(
           cols={3}
           gap={10}
         >
-          {itemData.map((item) =>
+          {resources.map((item) =>
             <NodeResourcesCard
               key={item.img}
-              item={item}
-              provisionalName={selectedResource?.provisionalName}
-              onSaveName={() => console.log("Se ha guardado")}
-              onNameChange={(name) => console.log(`Cambiando a ${name}`)}
-              onModifyName={(resourceId) => console.log(`Se está modificando ${resourceId}`)}
-              onCancelName={() => console.log("Se ha cancelado")}
+              img={item.img}
+              alt={item.title}
+              header={
+                selectedResource?.id === item.img ? (
+                  <ModifyingHeader
+                    name={selectedResource.provisionalName}
+                    onNameChange={onNameChange}
+                    onSave={onSave}
+                    onCancel={onCancel}
+                  />
+                ) : (
+                  <NormalHeader
+                    item={item}
+                    onModifyClick={onModifyClick}
+                  />
+                )
+              }
             />
           )
           }
