@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+import shutil
+import os
 
+from pymysql.err import IntegrityError
 import sqlalchemy as sa
 
 from . import schemas as sc
@@ -11,6 +14,9 @@ from .exceptions import InvalidProtocolException
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
+
+# TODO: pass this data as an env variable
+RESOURCES_PATH = "env/"
 
 initial_node = md.Node(
     id="V1StGXR8_Z5jdHi6B-myT",
@@ -46,6 +52,43 @@ def get_protocol(session: Session, protocol_id: int) -> md.Protocol:
         nodes=[utils.schema_to_node(node) for node in result.nodes],
         edges=result.edges
     )
+
+
+def create_node_resources(
+    session: Session,
+    protocol_id: int,
+    node_id: str,
+    node_files: list[utils.NodeFile]
+) -> list[md.NodeResource]:
+    query = sa.insert(sc.NodeResource).returning(
+        sc.NodeResource.id, sc.NodeResource.name, sc.NodeResource.size
+    )
+
+    try:
+        result = session.execute(
+            query,
+            [
+                {
+                    "protocol_id": protocol_id,
+                    "node_id": node_id,
+                    "name": node_file.filename,
+                    "size": node_file.size
+                }
+                for node_file in node_files
+            ]
+        )
+    except IntegrityError:
+        return None
+
+    node_resources = [md.NodeResource(**row) for row in result.mappings()]
+
+    for node_file, saved_resource in zip(node_files, node_resources):
+        with open(os.path.join(RESOURCES_PATH, str(saved_resource.id)), "wb") as f:
+            shutil.copyfileobj(node_file.blob, f)
+
+    session.commit()
+
+    return node_resources
 
 
 def delete_protocol(session: Session, protocol_id: int) -> bool:

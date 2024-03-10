@@ -28,6 +28,12 @@ class Node(BaseModel):
     data: NodeData
 
 
+class NodeResource(BaseModel):
+    id: int
+    name: str
+    size: int
+
+
 class Edge(BaseModel):
     source: str = Field(min_length=1)
     target: str = Field(min_length=1)

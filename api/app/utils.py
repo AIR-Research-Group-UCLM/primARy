@@ -1,10 +1,18 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import BinaryIO, TYPE_CHECKING
+from dataclasses import dataclass
 
 from . import models as md
 if TYPE_CHECKING:
     from . import schemas as sc
+
+
+@dataclass
+class NodeFile:
+    filename: str
+    size: int
+    blob: BinaryIO
 
 
 def node_to_schema(node: md.Node) -> sc.Node:

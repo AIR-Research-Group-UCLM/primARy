@@ -43,6 +43,19 @@ class Node(Base):
     pos_y: Mapped[float]
 
 
+class NodeResource(Base):
+    __tablename__ = "nodes_resources"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    protocol_id: Mapped[int] = mapped_column()
+    node_id: Mapped[str] = mapped_column(sa.CHAR(21))
+    name: Mapped[str] = mapped_column(sa.String(255))
+    size: Mapped[int] = mapped_column()
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint([protocol_id, node_id], [Node.protocol_id, Node.id]),)
+
+
 class Protocol(Base):
     __tablename__ = "protocols"
 

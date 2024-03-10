@@ -8,9 +8,10 @@ from fastapi.responses import JSONResponse
 
 from fastapi.middleware.cors import CORSMiddleware
 
-from .models import Protocol, ProtocolCreate, ProtocolSummary
+from .models import Protocol, ProtocolCreate, ProtocolSummary, NodeResource
 from .db import SessionLocal
 from .exceptions import InvalidProtocolException
+from .utils import NodeFile
 
 from . import crud
 
@@ -47,8 +48,23 @@ def get_nodes(session: Annotated[Session, Depends(get_session)], protocol_id: in
 
 
 @app.post("/protocols/{protocol_id}/nodes/{node_id}/resources")
-def create_node_resource(protocol_id: int, node_id: str, files: list[UploadFile]):
-    print(files)
+def create_node_resource(
+    session: Annotated[Session, Depends(get_session)],
+    files: list[UploadFile],
+    protocol_id: int,
+    node_id: str
+) -> list[NodeResource]:
+    node_files = [NodeFile(filename=file.filename,
+                           size=file.size, blob=file.file) for file in files]
+    result = crud.create_node_resources(
+        session, protocol_id, node_id, node_files)
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Protocol with id {
+                protocol_id} does not have a node with id {node_id}"
+        )
+    return result
 
 
 @app.get("/protocols", response_model=list[ProtocolSummary])
