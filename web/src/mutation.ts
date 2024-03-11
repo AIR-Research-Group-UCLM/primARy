@@ -22,7 +22,7 @@ async function deleteProtocol({ protocolId }: { protocolId: number }) {
 }
 
 async function updateProtocol(
-  { protocolId, protocolData }: { protocolId: number, protocolData: ProtocolData }
+  { protocolId, protocolData }: { protocolId: number; protocolData: ProtocolData }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}`, {
     method: "PUT",
@@ -34,11 +34,20 @@ async function updateProtocol(
 }
 
 export async function uploadFiles(
-  { protocolId, nodeId, formData }: { protocolId: number; nodeId: string, formData: FormData }
+  { protocolId, nodeId, formData }: { protocolId: number; nodeId: string; formData: FormData }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}/resources`, {
     method: "POST",
     body: formData
+  })
+}
+
+export async function changeResourceName(
+  {protocolId, nodeId, resourceId, name}: {protocolId: number; nodeId: string; resourceId: number; name: string}
+) {
+  return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}/resources/${resourceId}`, {
+    method: "PATCH",
+    body: JSON.stringify({name})
   })
 }
 

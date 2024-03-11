@@ -35,4 +35,9 @@ export type ProtocolSummary = {
     name: string;
 }
 
-
+export type NodeResource = {
+   id: number; 
+   filename: string;
+   name: string;
+   size: number;
+}

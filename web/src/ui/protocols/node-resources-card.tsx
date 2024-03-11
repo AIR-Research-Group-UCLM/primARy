@@ -34,7 +34,7 @@ export default function NodeResourcesCard(
         marginBottom: "10px"
       }} />
       <img
-        src={`${img}?w=164&h=164&fit=crop&auto=format`}
+        src={img}
         style={{
           borderRadius: "10px"
         }}

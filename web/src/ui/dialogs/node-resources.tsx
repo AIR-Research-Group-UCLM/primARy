@@ -19,8 +19,11 @@ import { KeyboardEvent, useState } from "react";
 
 import NodeResourcesCard from "@/ui/protocols/node-resources-card";
 import VisuallyHiddenInput from "@/ui/visually-hidden-input";
-import { stripExtension } from "@/utils";
 import { uploadFiles } from "@/mutation";
+
+// TODO: these imports are not necessary if we create a custom hook for the resources
+import type { NodeResource } from "@/types";
+import useNodeResources from "@/hooks/useNodeResources";
 
 type Props = {
   isOpen: boolean;
@@ -80,11 +83,6 @@ const itemData = [
   },
 ];
 
-type ProvisionalItem = {
-  title: string;
-  img: string;
-}
-
 type ModifyingHeaderProps = {
   name: string;
   onNameChange: (name: string) => void;
@@ -133,12 +131,12 @@ function ModifyingHeader(
 }
 
 type NormalHeaderProps = {
-  item: ProvisionalItem;
-  onModifyClick: (item: ProvisionalItem) => void;
+  nodeResource: NodeResource;
+  onModifyClick: (nodeResource: NodeResource) => void;
 }
 
 function NormalHeader(
-  { item, onModifyClick }: NormalHeaderProps
+  { nodeResource, onModifyClick }: NormalHeaderProps
 ) {
   return (
     <>
@@ -153,22 +151,29 @@ function NormalHeader(
           overflowY: "auto",
           flex: "1"
         }}>
-        {item.title}
+        {nodeResource.name}
       </Typography>
-      <IconButton onClick={() => onModifyClick(item)}>
+      <IconButton onClick={() => onModifyClick(nodeResource)}>
         <EditIcon />
       </IconButton>
     </>
   );
 }
 
+type SelectedResource = {
+  id: number;
+  provisionalName: string;
+}
+
 export default function NodeResourcesDialog(
   { isOpen, protocolId, nodeId, handleClose }: Props
 ) {
 
-  // Actually, this will be handled by SWR
-  const [resources, setResources] = useState<{ img: string; title: string; }[]>(itemData);
-  const [selectedResource, setSelectedResource] = useState<{ id: string; provisionalName: string } | null>(null);
+  const { nodeResources, mutate } = useNodeResources(protocolId, nodeId);
+  const [selectedResource, setSelectedResource] = useState<SelectedResource | null>(null);
+
+  console.log({ nodeResources });
+
 
   async function onFilesUpload(files: File[]) {
     if (files.length === 0) {
@@ -182,11 +187,11 @@ export default function NodeResourcesDialog(
     await uploadFiles({ protocolId, nodeId, formData });
   }
 
-  function onModifyClick(item: ProvisionalItem) {
+  function onModifyClick(nodeResource: NodeResource) {
     setSelectedResource({
-      id: item.img,
-      provisionalName: item.title
-    })
+      id: nodeResource.id,
+      provisionalName: nodeResource.name
+    });
   }
 
   function onNameChange(name: string) {
@@ -205,18 +210,18 @@ export default function NodeResourcesDialog(
       return;
     }
 
-    setResources(
-      resources.map((resource) => {
-        if (resource.img !== selectedResource.id) {
-          return resource;
-        }
-        return {
-          ...resource,
-          title: selectedResource.provisionalName
-        };
-      })
-    );
-    setSelectedResource(null);
+    // setResources(
+    //   resources.map((resource) => {
+    //     if (resource.img !== selectedResource.id) {
+    //       return resource;
+    //     }
+    //     return {
+    //       ...resource,
+    //       title: selectedResource.provisionalName
+    //     };
+    //   })
+    // );
+    // setSelectedResource(null);
   }
 
   function onCancel() {
@@ -276,13 +281,14 @@ export default function NodeResourcesDialog(
           cols={3}
           gap={10}
         >
-          {resources.map((item) =>
+          {nodeResources.map((nodeResource) =>
             <NodeResourcesCard
-              key={item.img}
-              img={item.img}
-              alt={item.title}
+              key={nodeResource.id}
+              // TODO: use ENV VAR for this
+              img={`${process.env.API_BASE}/static/${nodeResource.filename}`}
+              alt={nodeResource.name}
               header={
-                selectedResource?.id === item.img ? (
+                selectedResource?.id === nodeResource.id ? (
                   <ModifyingHeader
                     name={selectedResource.provisionalName}
                     onNameChange={onNameChange}
@@ -291,7 +297,7 @@ export default function NodeResourcesDialog(
                   />
                 ) : (
                   <NormalHeader
-                    item={item}
+                    nodeResource={nodeResource}
                     onModifyClick={onModifyClick}
                   />
                 )
