@@ -51,6 +51,7 @@ async def invalid_protocol_exception_handler(request: Request, exc: InvalidProto
 def get_nodes(session: Annotated[Session, Depends(get_session)], protocol_id: int):
     return crud.get_nodes(session, protocol_id)
 
+
 @app.get("/protocols/{protocol_id}/nodes/{node_id}/resources", response_model=list[NodeResource])
 def get_node_resources(
     session: Annotated[Session, Depends(get_session)],
@@ -61,10 +62,13 @@ def get_node_resources(
     if result is None:
         raise HTTPException(
             status_code=404,
-            detail=f"Protocol with id {protocol_id} does not have a node with id {node_id}"
+            detail=f"Protocol with id {
+                protocol_id} does not have a node with id {node_id}"
         )
     return result
 
+
+# TODO: decide if PUT or UPDATE fit better
 @app.patch("/protocols/{protocol_id}/nodes/{node_id}/resources/{resource_id}")
 def change_name_resource_name(
     session: Annotated[Session, Depends(get_session)],
@@ -73,12 +77,14 @@ def change_name_resource_name(
     resource_id,
     patch: PatchNodeResource
 ):
-    success = crud.change_name_resource_name(session, protocol_id, node_id, resource_id, patch)
+    success = crud.change_name_resource_name(
+        session, protocol_id, node_id, resource_id, patch)
     if not success:
         raise HTTPException(
             status_code=404,
             detail=f"Node resource '{resource_id}' not found"
         )
+
 
 @app.post("/protocols/{protocol_id}/nodes/{node_id}/resources")
 def create_node_resource(
@@ -97,7 +103,8 @@ def create_node_resource(
     if result is None:
         raise HTTPException(
             status_code=404,
-            detail=f"Protocol with id {protocol_id} does not have a node with id {node_id}"
+            detail=f"Protocol with id {
+                protocol_id} does not have a node with id {node_id}"
         )
     return result
 
