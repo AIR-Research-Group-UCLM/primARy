@@ -74,7 +74,7 @@ def change_name_resource_name(
     session: Annotated[Session, Depends(get_session)],
     protocol_id: int,
     node_id: str,
-    resource_id,
+    resource_id: int,
     patch: PatchNodeResource
 ):
     success = crud.change_name_resource_name(
@@ -85,6 +85,21 @@ def change_name_resource_name(
             detail=f"Node resource '{resource_id}' not found"
         )
 
+@app.delete("/protocols/{protocol_id}/nodes/{node_id}/resources/{resource_id}")
+def delete_node_resources(
+    session: Annotated[Session, Depends(get_session)],
+    protocol_id: int,
+    node_id: str,
+    resource_id: int
+):
+    success = crud.delete_node_resource(
+        session, protocol_id, node_id, resource_id
+    )
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Node resource '{resource_id}' not found"
+        )
 
 @app.post("/protocols/{protocol_id}/nodes/{node_id}/resources")
 def create_node_resource(

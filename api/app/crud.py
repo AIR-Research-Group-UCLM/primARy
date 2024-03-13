@@ -38,6 +38,25 @@ def get_nodes(session: Session, protocol_id: int) -> list[md.Node]:
     return [utils.schema_to_node(node[0]) for node in nodes]
 
 
+def delete_node_resource(
+    session: Session,
+    protocol_id: int,
+    node_id: str,
+    resource_id: str
+):
+    result = session.execute(
+        sa.delete(sc.NodeResource)
+        .where(
+            (sc.NodeResource.id == resource_id) &
+            (sc.NodeResource.protocol_id == protocol_id) &
+            (sc.NodeResource.node_id == node_id)
+        )
+    )
+    # TODO: delete files from filesystem
+    session.commit()
+    return result.rowcount != 0
+
+
 def get_node_resources(session: Session, protocol_id: int, node_id: str) -> list[md.NodeResource]:
     node_query = sa.select(sc.Node.id).where(
         (sc.Node.protocol_id == protocol_id) & (sc.Node.id == node_id)

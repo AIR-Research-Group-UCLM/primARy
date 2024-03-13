@@ -18,7 +18,7 @@ import { KeyboardEvent, useState } from "react";
 
 import NodeResourcesCard from "@/ui/protocols/node-resources-card";
 import VisuallyHiddenInput from "@/ui/visually-hidden-input";
-import { useUploadFiles, useChangeResourceName } from "@/mutation";
+import { useUploadFiles, useChangeResourceName, deleteNodeResource } from "@/mutation";
 
 // TODO: these imports are not necessary if we create a custom hook for the resources
 import type { NodeResource } from "@/types";
@@ -122,8 +122,16 @@ export default function NodeResourcesDialog(
   const {triggerChangeResourceName, isChangingResourceName} = useChangeResourceName();
   const [selectedResource, setSelectedResource] = useState<SelectedResource | null>(null);
 
-  const showProgressBar = isUploadingFiles || isChangingResourceName;
+  async function onDelete(resourceId: number) {
+    await deleteNodeResource({
+      protocolId, nodeId, resourceId
+    })
 
+    const remainingResources = nodeResources.filter((nodeResource) => nodeResource.id !== resourceId);
+    mutate(remainingResources, {
+      revalidate: false
+    })
+  }
 
   async function onFilesUpload(files: File[]) {
     if (files.length === 0) {
@@ -253,6 +261,8 @@ export default function NodeResourcesDialog(
             <NodeResourcesCard
               key={nodeResource.id}
               // TODO: use ENV VAR for this
+              onDelete={onDelete}
+              id={nodeResource.id}
               img={`${process.env.API_BASE}/static/${nodeResource.filename}`}
               alt={nodeResource.name}
               header={
