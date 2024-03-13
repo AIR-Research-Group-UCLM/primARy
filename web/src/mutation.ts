@@ -1,4 +1,4 @@
-import type { ProtocolSummary } from "@/types";
+import { NodeResource, type ProtocolSummary } from "@/types";
 import type { ProtocolData } from "@/hooks/store";
 
 import { protocolDataToProtocol } from "@/type-conversions";
@@ -33,22 +33,41 @@ async function updateProtocol(
   });
 }
 
-export async function uploadFiles(
+async function uploadFiles(
   { protocolId, nodeId, formData }: { protocolId: number; nodeId: string; formData: FormData }
 ) {
-  return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}/resources`, {
+  return JSONfetcher<NodeResource[]>(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}/resources`, {
     method: "POST",
     body: formData
   })
 }
 
-export async function changeResourceName(
-  {protocolId, nodeId, resourceId, name}: {protocolId: number; nodeId: string; resourceId: number; name: string}
+async function changeResourceName(
+  { protocolId, nodeId, resourceId, name }: { protocolId: number; nodeId: string; resourceId: number; name: string }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}/resources/${resourceId}`, {
     method: "PATCH",
-    body: JSON.stringify({name})
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ name })
   })
+}
+
+export function useUploadFiles() {
+  const { trigger, isMutating } = useMutate(uploadFiles);
+  return {
+    triggerUploadFiles: trigger,
+    isUploadingFiles: isMutating
+  }
+}
+
+export function useChangeResourceName() {
+  const { trigger, isMutating } = useMutate(changeResourceName);
+  return {
+    triggerChangeResourceName: trigger,
+    isChangingResourceName: isMutating
+  }
 }
 
 export function useCreateProtocol() {
