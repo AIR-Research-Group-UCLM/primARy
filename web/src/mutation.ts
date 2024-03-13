@@ -1,4 +1,4 @@
-import type { ProtocolSummary } from "@/types";
+import { NodeResource, type ProtocolSummary } from "@/types";
 import type { ProtocolData } from "@/hooks/store";
 
 import { protocolDataToProtocol } from "@/type-conversions";
@@ -22,7 +22,7 @@ async function deleteProtocol({ protocolId }: { protocolId: number }) {
 }
 
 async function updateProtocol(
-  { protocolId, protocolData }: { protocolId: number, protocolData: ProtocolData }
+  { protocolId, protocolData }: { protocolId: number; protocolData: ProtocolData }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}`, {
     method: "PUT",
@@ -31,6 +31,51 @@ async function updateProtocol(
     },
     body: JSON.stringify(protocolDataToProtocol(protocolId, protocolData))
   });
+}
+
+async function uploadFiles(
+  { protocolId, nodeId, formData }: { protocolId: number; nodeId: string; formData: FormData }
+) {
+  return JSONfetcher<NodeResource[]>(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}/resources`, {
+    method: "POST",
+    body: formData
+  })
+}
+
+async function changeResourceName(
+  { protocolId, nodeId, resourceId, name }: { protocolId: number; nodeId: string; resourceId: number; name: string }
+) {
+  return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}/resources/${resourceId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ name })
+  })
+}
+
+export async function deleteNodeResource(
+  {protocolId, nodeId, resourceId}: {protocolId: number; nodeId: string; resourceId: number}
+) {
+  return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}/resources/${resourceId}`, {
+    method: "DELETE"
+  });
+}
+
+export function useUploadFiles() {
+  const { trigger, isMutating } = useMutate(uploadFiles);
+  return {
+    triggerUploadFiles: trigger,
+    isUploadingFiles: isMutating
+  }
+}
+
+export function useChangeResourceName() {
+  const { trigger, isMutating } = useMutate(changeResourceName);
+  return {
+    triggerChangeResourceName: trigger,
+    isChangingResourceName: isMutating
+  }
 }
 
 export function useCreateProtocol() {

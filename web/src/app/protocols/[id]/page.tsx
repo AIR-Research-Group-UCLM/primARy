@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import Box from "@mui/material/Box";
 
 import ProtocolStoreProvider from "@/ui/protocols/store-provider";

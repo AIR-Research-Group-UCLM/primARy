@@ -1,13 +1,46 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import BinaryIO, TYPE_CHECKING
+from dataclasses import dataclass
+
+from . import models as md
+from .exceptions import InvalidFileException
 
 if TYPE_CHECKING:
-    from . import models as md
+    from fastapi import UploadFile
     from . import schemas as sc
 
 
-def node_to_schema(node: md.Node):
+@dataclass
+class NodeFile:
+    name: str
+    extension: str
+    size: int
+    blob: BinaryIO
+
+
+def split_extension(filename: str):
+    delimiter_index = filename.rfind(".")
+    if delimiter_index == -1 or delimiter_index == len(filename) - 1:
+        return filename, ""
+    return filename[:delimiter_index], filename[delimiter_index + 1:]
+
+
+def file_upload_to_node_file(file: UploadFile):
+    name, extension = split_extension(file.filename)
+    if extension == "":
+        raise InvalidFileException(
+            f"{file.filename} does not contain any extension")
+
+    return NodeFile(
+        name=name,
+        extension=extension,
+        size=file.size,
+        blob=file.file
+    )
+
+
+def node_to_schema(node: md.Node) -> sc.Node:
     return {
         "id": node.id,
         "name": node.data.name,
@@ -17,15 +50,15 @@ def node_to_schema(node: md.Node):
     }
 
 
-def schema_to_node(node: sc.Node):
-    return {
-        "id": node.id,
-        "position": {
-            "x": node.pos_x,
-            "y": node.pos_y
-        },
-        "data": {
-            "name": node.name,
-            "description": node.description
-        }
-    }
+def schema_to_node(node: sc.Node) -> md.Node:
+    return md.Node(
+        id=node.id,
+        position=md.Position(
+            x=node.pos_x,
+            y=node.pos_y
+        ),
+        data=md.NodeData(
+            name=node.name,
+            description=node.description
+        )
+    )

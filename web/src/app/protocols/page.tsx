@@ -61,14 +61,13 @@ export default function Page() {
           border: "solid 1px",
           borderRadius: "10px",
           display: "grid",
-          // gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
           gridTemplateColumns: "repeat(3, 1fr)",
           gridAutoRows: "200px",
           gridGap: "30px 20px",
           backgroundColor: "inherit",
           flex: "12",
           padding: "10px",
-          overflow: "scroll"
+          overflow: "auto"
         }}>
           {protocols.map((protocol) =>
             <ProtocolCard

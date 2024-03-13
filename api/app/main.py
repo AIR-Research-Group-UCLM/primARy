@@ -3,15 +3,17 @@ from __future__ import annotations
 from typing import Annotated
 from sqlalchemy.orm import Session
 
-from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi import FastAPI, Depends, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from fastapi.middleware.cors import CORSMiddleware
 
-from .models import Protocol, ProtocolCreate, ProtocolSummary
+from .models import Protocol, ProtocolCreate, ProtocolSummary, NodeResource, PatchNodeResource
 from .db import SessionLocal
 from .exceptions import InvalidProtocolException
 
+from . import utils
 from . import crud
 
 app = FastAPI(
@@ -27,16 +29,99 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# TODO: delete this. This is only for testing purposes
+app.mount("/static", StaticFiles(directory="env"), name="static")
+
+
 def get_session() -> Session:
     with SessionLocal() as session:
         return session
 
+
+# TODO: handle InvalidFileException
 @app.exception_handler(InvalidProtocolException)
 async def invalid_protocol_exception_handler(request: Request, exc: InvalidProtocolException):
     return JSONResponse(
         status_code=409,
         content={"detail": str(exc)}
     )
+
+
+@app.get("/protocols/{protocol_id}/nodes")
+def get_nodes(session: Annotated[Session, Depends(get_session)], protocol_id: int):
+    return crud.get_nodes(session, protocol_id)
+
+
+@app.get("/protocols/{protocol_id}/nodes/{node_id}/resources", response_model=list[NodeResource])
+def get_node_resources(
+    session: Annotated[Session, Depends(get_session)],
+    protocol_id: int,
+    node_id: str
+):
+    result = crud.get_node_resources(session, protocol_id, node_id)
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Node {node_id} not found protocol {protocol_id}"
+        )
+    return result
+
+
+# TODO: decide if PUT or UPDATE fit better
+@app.patch("/protocols/{protocol_id}/nodes/{node_id}/resources/{resource_id}")
+def change_name_resource_name(
+    session: Annotated[Session, Depends(get_session)],
+    protocol_id: int,
+    node_id: str,
+    resource_id: int,
+    patch: PatchNodeResource
+):
+    success = crud.change_name_resource_name(
+        session, protocol_id, node_id, resource_id, patch)
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Node resource '{resource_id}' not found"
+        )
+
+
+@app.delete("/protocols/{protocol_id}/nodes/{node_id}/resources/{resource_id}")
+def delete_node_resources(
+    session: Annotated[Session, Depends(get_session)],
+    protocol_id: int,
+    node_id: str,
+    resource_id: int
+):
+    success = crud.delete_node_resource(
+        session, protocol_id, node_id, resource_id
+    )
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Node resource '{resource_id}' not found"
+        )
+
+
+@app.post("/protocols/{protocol_id}/nodes/{node_id}/resources")
+def create_node_resource(
+    session: Annotated[Session, Depends(get_session)],
+    files: list[UploadFile],
+    protocol_id: int,
+    node_id: str
+) -> list[NodeResource]:
+
+    # TODO: check actual content (mime sniffing, what the unix command file does)
+    # TODO: check filename is nonempty
+    node_files = [utils.file_upload_to_node_file(file) for file in files]
+
+    result = crud.create_node_resources(
+        session, protocol_id, node_id, node_files)
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Node {node_id} not found protocol {protocol_id}"
+        )
+    return result
 
 
 @app.get("/protocols", response_model=list[ProtocolSummary])

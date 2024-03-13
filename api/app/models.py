@@ -28,6 +28,13 @@ class Node(BaseModel):
     data: NodeData
 
 
+class NodeResource(BaseModel):
+    id: int
+    filename: str
+    name: str
+    size: int
+
+
 class Edge(BaseModel):
     source: str = Field(min_length=1)
     target: str = Field(min_length=1)
@@ -54,3 +61,7 @@ class Protocol(BaseModel):
     name: str = Field(min_length=1)
     nodes: list[Node]
     edges: list[Edge]
+
+
+class PatchNodeResource(BaseModel):
+    name: str = Field(min_length=1)
