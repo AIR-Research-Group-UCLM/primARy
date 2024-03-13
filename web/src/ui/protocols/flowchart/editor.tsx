@@ -33,6 +33,7 @@ type NodeHandle = {
 type OnNodeClick = (event: MouseEvent, node: FlowchartNode) => void;
 type OnPaneClick = (event: MouseEvent) => void;
 type OnEdgeClick = (event: MouseEvent, edge: FlowchartEdge) => void;
+type OnNodesDelete = (nodes: FlowchartNode[]) => void;
 
 const edgeTypes = {
   "flowchart-edge": RFFlowChartEdge
@@ -125,6 +126,16 @@ export default function FlowChartEditor() {
     }
   }, [selectedNodeId]);
 
+  const onNodesDelete: OnNodesDelete = useCallback((nodes) => {
+    if (selectedNodeId === null) {
+      return;
+    }
+    const isSelectedDeleted = nodes.some((node) => node.id === selectedNodeId);
+    if (isSelectedDeleted) {
+      setSelectedNodeId(null);
+    }
+  }, [selectedNodeId]);
+
   const onNodeDoubleClick: OnNodeClick = useCallback((_, node) => {
     changeNode(node.id, { data: { isSelectedModification: true } });
     setSelectedNodeId(node.id);
@@ -168,6 +179,7 @@ export default function FlowChartEditor() {
       onConnect={onConnect}
       onConnectStart={onConnectStart}
       onConnectEnd={onConnectEnd}
+      onNodesDelete={onNodesDelete}
       panOnScroll
       selectionOnDrag
       nodeOrigin={[0.5, 0]}
