@@ -50,6 +50,8 @@ export default function NodeInfoEditor({ protocolId, selectedNodeId }: Props) {
       >
         <TextField
           fullWidth
+          required
+          error={data.name === ""}
           label="Name"
           value={data.name}
           onChange={(e) => onNameChange(e.target.value)}

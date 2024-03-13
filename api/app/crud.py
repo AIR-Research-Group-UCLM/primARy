@@ -21,8 +21,7 @@ RESOURCES_PATH = "env/"
 initial_node = md.Node(
     id="V1StGXR8_Z5jdHi6B-myT",
     position=md.Position(x=0, y=0),
-    data=md.NodeData(name="Initial Node",
-                     description="Initial Node description")
+    data=md.NodeData(name="Initial Node")
 )
 
 

@@ -19,7 +19,7 @@ class Position(BaseModel):
 
 class NodeData(BaseModel):
     name: str = Field(min_length=1)
-    description: str = Field(min_length=1)
+    description: str = ""
 
 
 class Node(BaseModel):
