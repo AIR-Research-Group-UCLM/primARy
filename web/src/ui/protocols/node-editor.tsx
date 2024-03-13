@@ -29,11 +29,17 @@ export default function NodeInfoEditor({ protocolId, selectedNodeId }: Props) {
   }
 
   function onNameChange(name: string) {
-    changeNodeData(selectedNodeId, { name });
+    const trimmedName = name.trim();
+    if (data.name !== "" || trimmedName !== "") {
+      changeNodeData(selectedNodeId, { name });
+    }
   }
 
   function onDescriptionChange(description: string) {
-    changeNodeData(selectedNodeId, { description });
+    const trimmedDescription = description.trim();
+    if (data.description !== "" || trimmedDescription !== "") {
+      changeNodeData(selectedNodeId, { description });
+    }
   }
 
   return (
