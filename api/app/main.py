@@ -62,8 +62,7 @@ def get_node_resources(
     if result is None:
         raise HTTPException(
             status_code=404,
-            detail=f"Protocol with id {
-                protocol_id} does not have a node with id {node_id}"
+            detail=f"Node {node_id} not found protocol {protocol_id}"
         )
     return result
 
@@ -85,6 +84,7 @@ def change_name_resource_name(
             detail=f"Node resource '{resource_id}' not found"
         )
 
+
 @app.delete("/protocols/{protocol_id}/nodes/{node_id}/resources/{resource_id}")
 def delete_node_resources(
     session: Annotated[Session, Depends(get_session)],
@@ -100,6 +100,7 @@ def delete_node_resources(
             status_code=404,
             detail=f"Node resource '{resource_id}' not found"
         )
+
 
 @app.post("/protocols/{protocol_id}/nodes/{node_id}/resources")
 def create_node_resource(
@@ -118,8 +119,7 @@ def create_node_resource(
     if result is None:
         raise HTTPException(
             status_code=404,
-            detail=f"Protocol with id {
-                protocol_id} does not have a node with id {node_id}"
+            detail=f"Node {node_id} not found protocol {protocol_id}"
         )
     return result
 
