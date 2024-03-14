@@ -16,6 +16,8 @@ import type {
   OnConnect,
   OnConnectStart,
   OnConnectEnd,
+  OnNodesChange,
+  OnEdgesChange,
 } from "reactflow";
 
 import type { HandlePosition } from "@/ui/protocols/flowchart/handle";
@@ -51,9 +53,10 @@ export default function FlowChartEditor() {
   const nodes = useProtocolStore((state) => state.nodes);
   const edges = useProtocolStore((state) => state.edges);
   const selectedNodeId = useProtocolStore((state) => state.selectedNodeId);
+  const initialNodeId = useProtocolStore((state) => state.initialNodeId);
 
-  const onNodesChange = useProtocolStore((state) => state.onNodesChange);
-  const onEdgesChange = useProtocolStore((state) => state.onEdgesChange);
+  const applyNodeChanges = useProtocolStore((state) => state.applyNodeChanges);
+  const applyEdgeChanges = useProtocolStore((state) => state.applyEdgeChanges);
   const addEdgeFromConnection = useProtocolStore((state) => state.addEdgeFromConnection);
   const addNode = useProtocolStore((state) => state.addNode);
   const addEdge = useProtocolStore((state) => state.addEdge);
@@ -64,6 +67,45 @@ export default function FlowChartEditor() {
   const connectingNode = useRef<NodeHandle | null>(null);
   const selectedEdgeId = useRef<string | null>(null);
   const { screenToFlowPosition } = useReactFlow();
+
+  function canRemoveNode(nodeId: string): boolean {
+    return nodes.length > 1 && nodeId !== initialNodeId;
+  }
+
+  const onNodesChange: OnNodesChange = useCallback((changes) => {
+    const allowedChanges = changes.filter((change) => (
+      change.type !== "remove" || (change.type === "remove" && canRemoveNode(change.id))
+    ));
+    applyNodeChanges(allowedChanges);
+
+  }, [nodes, initialNodeId]);
+
+  const onEdgesChange: OnEdgesChange = useCallback((changes) => {
+    const nodeIds = nodes.filter((node) => node.selected).map((node) => node.id);
+    const removeCandidates = new Set(nodeIds);
+    const edgeMap = new Map(edges.map((edge) => [edge.id, edge]));
+
+    const allowedChanges = [];
+
+    for (const change of changes) {
+      if (change.type === "remove") {
+        const edge = edgeMap.get(change.id)!;
+        const canBeDeleted = (
+          (removeCandidates.has(edge.source) && canRemoveNode(edge.source)) ||
+          (removeCandidates.has(edge.target) && canRemoveNode(edge.target))
+        );
+
+        if (canBeDeleted) {
+          allowedChanges.push(change);
+        }
+      } else {
+        allowedChanges.push(change);
+      }
+    }
+
+    applyEdgeChanges(allowedChanges);
+
+  }, [nodes, edges, initialNodeId]);
 
   const onConnect: OnConnect = useCallback((connection) => {
     connectingNode.current = null;

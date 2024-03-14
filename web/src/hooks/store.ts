@@ -30,8 +30,8 @@ export type ProtocolData = {
 }
 
 export type ProtocolActions = {
-  onNodesChange: OnNodesChange;
-  onEdgesChange: OnEdgesChange;
+  applyNodeChanges: OnNodesChange;
+  applyEdgeChanges: OnEdgesChange;
   addEdgeFromConnection: OnConnect;
   addNode: (node: FlowchartNode, nodeData: NodeData) => void;
   addEdge: (edge: FlowchartEdge) => void;
@@ -60,14 +60,14 @@ export const defaultProtocolState = {
 const useProtocolStore = create<ProtocolState>((set, get) => ({
   ...defaultProtocolState,
 
-  onNodesChange: (changes: NodeChange[]) => {
+  applyNodeChanges: (changes: NodeChange[]) => {
     set((state) => ({
       nodes: applyNodeChanges(changes, state.nodes),
     }));
   },
-  onEdgesChange: (changes: EdgeChange[]) => {
+  applyEdgeChanges: (changes: EdgeChange[]) => {
     set((state) => ({
-      edges: applyEdgeChanges(changes, get().edges),
+      edges: applyEdgeChanges(changes, state.edges),
     }));
   },
   addEdgeFromConnection: (connection: Connection) => {
@@ -132,7 +132,7 @@ const useProtocolStore = create<ProtocolState>((set, get) => ({
     set({ name });
   },
   changeInitialNodeId(initialNodeId: string) {
-    set({initialNodeId});
+    set({ initialNodeId });
   }
 }));
 
