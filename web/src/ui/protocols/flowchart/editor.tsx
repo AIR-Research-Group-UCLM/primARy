@@ -74,8 +74,9 @@ export default function FlowChartEditor() {
 
   function canRemoveEdge(edge: FlowchartEdge, removeCandidates: Set<string>) {
     return (
-      (removeCandidates.has(edge.source) && canRemoveNode(edge.source)) ||
-      (removeCandidates.has(edge.target) && canRemoveNode(edge.target))
+      !removeCandidates.has(edge.source) && !removeCandidates.has(edge.target) ||
+      removeCandidates.has(edge.source) && canRemoveNode(edge.source) ||
+      removeCandidates.has(edge.target) && canRemoveNode(edge.target)
     );
   }
 
@@ -93,7 +94,7 @@ export default function FlowChartEditor() {
     const edgeMap = new Map(edges.map((edge) => [edge.id, edge]));
 
     const allowedChanges = changes.filter((change) => (
-      (change.type !== "remove") || 
+      (change.type !== "remove") ||
       (change.type === "remove" && canRemoveEdge(edgeMap.get(change.id)!, removeCandidates))
     ));
 
