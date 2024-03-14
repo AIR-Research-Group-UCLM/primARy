@@ -84,6 +84,19 @@ def change_name_resource_name(
             detail=f"Node resource '{resource_id}' not found"
         )
 
+@app.delete("/protocols/{protocol_id}/nodes/{node_id}")
+def delete_node(
+    session: Annotated[Session, Depends(get_session)],
+    protocol_id: int,
+    node_id: str
+):
+    success = crud.delete_node(session, protocol_id, node_id)
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Node id '{node_id}' not found"
+        )
+
 
 @app.delete("/protocols/{protocol_id}/nodes/{node_id}/resources/{resource_id}")
 def delete_node_resources(

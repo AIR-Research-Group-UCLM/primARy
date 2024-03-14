@@ -36,6 +36,17 @@ def get_nodes(session: Session, protocol_id: int) -> list[md.Node]:
     nodes = session.execute(query).all()
     return [utils.schema_to_node(node[0]) for node in nodes]
 
+def delete_node(session: Session, protocol_id: int, node_id: str):
+    result = session.execute(
+        sa.delete(sc.Node)
+        .where(
+            (sc.Node.id == node_id) &
+            (sc.Node.protocol_id == protocol_id)
+        )
+    )
+    session.commit()
+    return result.rowcount != 0
+
 
 def delete_node_resource(
     session: Session,
