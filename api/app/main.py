@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from fastapi.middleware.cors import CORSMiddleware
 
-from .models import Protocol, ProtocolCreate, ProtocolSummary, NodeResource, PatchNodeResource
+from . import models as md
 from .db import SessionLocal
 from .exceptions import InvalidProtocolException
 
@@ -52,7 +52,7 @@ def get_nodes(session: Annotated[Session, Depends(get_session)], protocol_id: in
     return crud.get_nodes(session, protocol_id)
 
 
-@app.get("/protocols/{protocol_id}/nodes/{node_id}/resources", response_model=list[NodeResource])
+@app.get("/protocols/{protocol_id}/nodes/{node_id}/resources", response_model=list[md.NodeResource])
 def get_node_resources(
     session: Annotated[Session, Depends(get_session)],
     protocol_id: int,
@@ -74,7 +74,7 @@ def change_name_resource_name(
     protocol_id: int,
     node_id: str,
     resource_id: int,
-    patch: PatchNodeResource
+    patch: md.PatchNodeResource
 ):
     success = crud.change_name_resource_name(
         session, protocol_id, node_id, resource_id, patch)
@@ -96,6 +96,15 @@ def delete_node(
             status_code=404,
             detail=f"Node id '{node_id}' not found"
         )
+
+@app.post("/protocols/{protocol_id}/nodes")
+def create_node(
+    session: Annotated[Session, Depends(get_session)],
+    protocol_id: int,
+    node: md.Node
+):
+    # Catch integrity exceptions
+    crud.create_node(session, protocol_id, node)
 
 
 @app.delete("/protocols/{protocol_id}/nodes/{node_id}/resources/{resource_id}")
@@ -121,7 +130,7 @@ def create_node_resource(
     files: list[UploadFile],
     protocol_id: int,
     node_id: str
-) -> list[NodeResource]:
+) -> list[md.NodeResource]:
 
     # TODO: check actual content (mime sniffing, what the unix command file does)
     # TODO: check filename is nonempty
@@ -137,12 +146,12 @@ def create_node_resource(
     return result
 
 
-@app.get("/protocols", response_model=list[ProtocolSummary])
+@app.get("/protocols", response_model=list[md.ProtocolSummary])
 def get_protocols(session: Annotated[Session, Depends(get_session)]):
     return crud.get_protocols(session)
 
 
-@app.get("/protocols/{protocol_id}", response_model=Protocol)
+@app.get("/protocols/{protocol_id}", response_model=md.Protocol)
 def get_protocol(session: Annotated[Session, Depends(get_session)], protocol_id: int):
     protocol = crud.get_protocol(session, protocol_id)
     if protocol is None:
@@ -154,15 +163,15 @@ def get_protocol(session: Annotated[Session, Depends(get_session)], protocol_id:
 def update_protocol(
     session: Annotated[Session, Depends(get_session)],
     protocol_id: int,
-    protocol: ProtocolCreate
+    protocol: md.ProtocolCreate
 ):
     success = crud.update_protocol(session, protocol_id, protocol)
     if not success:
         raise HTTPException(status_code=404, detail="Protocol not found")
 
 
-@app.post("/protocols", response_model=ProtocolSummary)
-def create_protocol(session: Annotated[Session, Depends(get_session)], protocol: ProtocolCreate):
+@app.post("/protocols", response_model=md.ProtocolSummary)
+def create_protocol(session: Annotated[Session, Depends(get_session)], protocol: md.ProtocolCreate):
     return crud.create_protocol(session, protocol)
 
 

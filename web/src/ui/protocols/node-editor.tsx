@@ -6,6 +6,9 @@ import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import useProtocolStore from "@/hooks/store";
 import NodeResourcesDialog from "@/ui/dialogs/node-resources";
 
+import type { Node } from "@/types";
+import { createNode } from "@/mutation";
+
 import "@/ui/protocols/textfield.css";
 import { Button } from "@mui/material";
 
@@ -20,7 +23,16 @@ type Props = {
 export default function NodeInfoEditor({ protocolId, selectedNodeId }: Props) {
   const changeNodeData = useProtocolStore((state) => state.changeNodeData);
   const data = useProtocolStore((state) => state.nodesData.get(selectedNodeId));
+  const position = useProtocolStore((state) => 
+    state.nodes.find((node) => node.id === selectedNodeId)?.position
+  );
+  const isLocal = useProtocolStore((state) => state.localNodesIds.has(selectedNodeId));
+  const removeLocalNode = useProtocolStore((state) => state.removeLocalNode);
   const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
+
+  if (data === undefined) {
+    return null;
+  }
 
   function handleClose(event?: React.SyntheticEvent | Event, reason?: string) {
     if (reason === "backdropClick" || reason === "escapeKeyDown") {
@@ -29,17 +41,33 @@ export default function NodeInfoEditor({ protocolId, selectedNodeId }: Props) {
     setDialogOpen(false);
   }
 
+  async function onResourcesClick() {
+    if (data == undefined || position == null) {
+      return;
+    }
+
+    if (isLocal) {
+      const node: Node = {
+        id: selectedNodeId,
+        position,
+        data
+      }
+      await createNode({ protocolId, node })
+      removeLocalNode(selectedNodeId);
+    }
+
+    setDialogOpen(true);
+  }
+
   function onNameChange(name: string) {
-    changeNodeData(selectedNodeId, {name: noInitialSpace(name)})
+    changeNodeData(selectedNodeId, { name: noInitialSpace(name) })
   }
 
   function onDescriptionChange(description: string) {
     changeNodeData(selectedNodeId, { description: noInitialSpace(description) });
   }
 
-  if (data === undefined) {
-    return null;
-  }
+
 
   return (
     <>
@@ -92,7 +120,7 @@ export default function NodeInfoEditor({ protocolId, selectedNodeId }: Props) {
             disabled={data.name === ""}
             variant="contained"
             size="medium"
-            onClick={() => setDialogOpen(true)}
+            onClick={onResourcesClick}
             sx={{
               borderRadius: "30px"
             }}

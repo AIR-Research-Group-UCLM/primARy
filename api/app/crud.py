@@ -24,6 +24,12 @@ initial_node = md.Node(
     data=md.NodeData(name="Initial Node")
 )
 
+def create_node(session: Session, protocol_id: int, node: md.Node):
+    session.execute(sa.insert(sc.Node).values(
+        protocol_id=protocol_id,
+        **utils.node_to_schema(node)
+    ))
+    session.commit()
 
 def get_protocols(session: Session):
     query = sa.select(sc.Protocol.id, sc.Protocol.name)

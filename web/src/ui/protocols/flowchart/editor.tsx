@@ -60,6 +60,7 @@ export default function FlowChartEditor() {
   const addEdgeFromConnection = useProtocolStore((state) => state.addEdgeFromConnection);
   const addNode = useProtocolStore((state) => state.addNode);
   const addEdge = useProtocolStore((state) => state.addEdge);
+  const addLocalNode = useProtocolStore((state) => state.addLocalNode);
   const setSelectedNodeId = useProtocolStore((state) => state.setSelectedNodeId);
   const changeEdgeData = useProtocolStore((state) => state.changeEdgeData);
   const changeNode = useProtocolStore((state) => state.changeNode);
@@ -153,6 +154,7 @@ export default function FlowChartEditor() {
       description: ""
     });
     addEdge(newEdge);
+    addLocalNode(newNode.id);
   }, [screenToFlowPosition]);
 
   const onNodeClick: OnNodeClick = useCallback((_, node) => {

@@ -1,4 +1,4 @@
-import { NodeResource, type ProtocolSummary } from "@/types";
+import type { NodeResource, ProtocolSummary, Node } from "@/types";
 import type { ProtocolData } from "@/hooks/store";
 
 import { protocolDataToProtocol } from "@/type-conversions";
@@ -19,6 +19,16 @@ async function deleteProtocol({ protocolId }: { protocolId: number }) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}`, {
     method: "DELETE"
   });
+}
+
+export async function createNode({protocolId, node}: {protocolId: number, node: Node}) {
+  return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/nodes`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(node)
+  })
 }
 
 async function updateProtocol(

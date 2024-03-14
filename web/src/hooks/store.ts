@@ -37,7 +37,6 @@ export type ProtocolActions = {
   addNode: (node: FlowchartNode, nodeData: NodeData) => void;
   addEdge: (edge: FlowchartEdge) => void;
   addLocalNode: (nodeId: string) => void;
-  isLocalNode: (nodeId: string) => boolean;
   removeLocalNode: (nodeId: string) => void;
   setSelectedNodeId: (selectedNodeId: string | null) => void;
 
@@ -106,9 +105,6 @@ const useProtocolStore = create<ProtocolState>((set, get) => ({
     set((state) => ({
       localNodesIds: new Set(state.localNodesIds).add(nodeId)
     }));
-  },
-  isLocalNode: (nodeId) => {
-    return get().localNodesIds.has(nodeId)
   },
   removeLocalNode: (nodeId) => {
     const newLocalNodesIds = new Set(get().localNodesIds);
