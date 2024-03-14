@@ -16,7 +16,7 @@ import useToastMessage from "@/hooks/useToastMessage";
 import FlowChartEditor from "@/ui/protocols/flowchart/editor";
 import NodeEditor from "@/ui/protocols/node-editor";
 
-import { UnsuccessfulResponse } from "@/utils";
+import { UnsuccessfulResponse, noInitialSpace } from "@/utils";
 
 import { useUpdateProtocol } from "@/mutation";
 
@@ -36,9 +36,7 @@ export default function ProtocolView({ protocolId }: Props) {
   const { triggerUpdateProtocol, isUpdatingProtocol } = useUpdateProtocol();
 
   function onNameChange(newName: string) {
-    if (name !== "" || newName !== " ") {
-      changeName(newName);
-    }
+    changeName(noInitialSpace(newName));
   }
 
   function handleClose(event?: React.SyntheticEvent | Event, reason?: string) {

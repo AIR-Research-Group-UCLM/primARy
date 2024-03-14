@@ -9,6 +9,7 @@ import NodeResourcesDialog from "@/ui/dialogs/node-resources";
 import "@/ui/protocols/textfield.css";
 import { Button } from "@mui/material";
 
+import { noInitialSpace } from "@/utils";
 import { useState } from "react";
 
 type Props = {
@@ -29,17 +30,11 @@ export default function NodeInfoEditor({ protocolId, selectedNodeId }: Props) {
   }
 
   function onNameChange(name: string) {
-    const trimmedName = name.trim();
-    if (data.name !== "" || trimmedName !== "") {
-      changeNodeData(selectedNodeId, { name });
-    }
+    changeNodeData(selectedNodeId, {name: noInitialSpace(name)})
   }
 
   function onDescriptionChange(description: string) {
-    const trimmedDescription = description.trim();
-    if (data.description !== "" || trimmedDescription !== "") {
-      changeNodeData(selectedNodeId, { description });
-    }
+    changeNodeData(selectedNodeId, { description: noInitialSpace(description) });
   }
 
   return (
