@@ -35,6 +35,12 @@ export default function ProtocolView({ protocolId }: Props) {
 
   const { triggerUpdateProtocol, isUpdatingProtocol } = useUpdateProtocol();
 
+  function onNameChange(newName: string) {
+    if (name !== "" || newName !== " ") {
+      changeName(newName);
+    }
+  }
+
   function handleClose(event?: React.SyntheticEvent | Event, reason?: string) {
     if (reason === "clickaway") {
       return;
@@ -77,18 +83,18 @@ export default function ProtocolView({ protocolId }: Props) {
         padding: "5px",
         height: "100%"
       }}>
-        <Box sx={{
-          display: "flex",
-          background: "white",
-        }}>
+        <Box>
           <TextField
             fullWidth
+            error={name === ""}
+            required
             label="Protocol Name"
             value={name}
-            onChange={(e) => changeName(e.target.value)}
+            onChange={(e) => onNameChange(e.target.value)}
             variant="outlined"
             sx={{
               marginBottom: "10px",
+              background: "white",
               flexGrow: 1
             }}
             inputProps={{
