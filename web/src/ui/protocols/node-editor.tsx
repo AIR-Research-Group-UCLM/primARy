@@ -19,7 +19,7 @@ type Props = {
 
 export default function NodeInfoEditor({ protocolId, selectedNodeId }: Props) {
   const changeNodeData = useProtocolStore((state) => state.changeNodeData);
-  const data = useProtocolStore((state) => state.nodesData.get(selectedNodeId)!);
+  const data = useProtocolStore((state) => state.nodesData.get(selectedNodeId));
   const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
 
   function handleClose(event?: React.SyntheticEvent | Event, reason?: string) {
@@ -35,6 +35,10 @@ export default function NodeInfoEditor({ protocolId, selectedNodeId }: Props) {
 
   function onDescriptionChange(description: string) {
     changeNodeData(selectedNodeId, { description: noInitialSpace(description) });
+  }
+
+  if (data === undefined) {
+    return null;
   }
 
   return (
@@ -85,6 +89,7 @@ export default function NodeInfoEditor({ protocolId, selectedNodeId }: Props) {
           }}
         >
           <Button
+            disabled={data.name === ""}
             variant="contained"
             size="medium"
             onClick={() => setDialogOpen(true)}

@@ -9,6 +9,7 @@ import useProtocolStore from "@/hooks/store";
 
 import type { EdgeProps } from "reactflow";
 import { useState } from "react";
+import { noInitialSpace } from "@/utils";
 
 export type FlowchartEdgeData = {
   label: string;
@@ -55,7 +56,7 @@ function EdgeTextField({ edgeId, label, labelX, labelY, isError, onFocusChange }
         },
       }}
       value={label}
-      onChange={(e) => changeEdgeData(edgeId, { label: e.target.value })}
+      onChange={(e) => changeEdgeData(edgeId, { label: noInitialSpace(e.target.value) })}
       onFocus={onFocusChange}
       onBlur={onFocusChange}
       variant="outlined"
@@ -66,7 +67,7 @@ function EdgeTextField({ edgeId, label, labelX, labelY, isError, onFocusChange }
         transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
         pointerEvents: "all",
         background: "#ffffff",
-        width: "75px",
+        maxWidth: "100px",
       }} />
   );
 }

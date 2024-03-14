@@ -62,6 +62,14 @@ export async function deleteNodeResource(
   });
 }
 
+export async function deleteNode(
+  {protocolId, nodeId} : {protocolId: number; nodeId: string}
+) {
+  return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}`, {
+    method: "DELETE"
+  })
+}
+
 export function useUploadFiles() {
   const { trigger, isMutating } = useMutate(uploadFiles);
   return {

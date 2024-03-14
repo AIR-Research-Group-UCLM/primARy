@@ -52,7 +52,11 @@ function selectBackgroundColor(isInitial: boolean, isComplete: boolean) {
 
 export default function RFFlowchartNode({ id, data, selected }: NodeProps<RFNodeData>) {
   const isInitial = useProtocolStore((state) => state.initialNodeId === id);
-  const name = useProtocolStore((state) => state.nodesData.get(id)!.name);
+  const name = useProtocolStore((state) => state.nodesData.get(id)?.name);
+
+  if (name === undefined) {
+    return null
+  }
 
   const isComplete = name !== "";
 

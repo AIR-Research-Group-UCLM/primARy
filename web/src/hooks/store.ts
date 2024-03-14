@@ -14,6 +14,7 @@ import type {
   EdgeChange,
   OnConnect,
   Connection,
+  NodeRemoveChange,
 } from "reactflow";
 
 import type { NodeData } from "@/types";
@@ -35,6 +36,9 @@ export type ProtocolActions = {
   addEdgeFromConnection: OnConnect;
   addNode: (node: FlowchartNode, nodeData: NodeData) => void;
   addEdge: (edge: FlowchartEdge) => void;
+  addLocalNode: (nodeId: string) => void;
+  isLocalNode: (nodeId: string) => boolean;
+  removeLocalNode: (nodeId: string) => void;
   setSelectedNodeId: (selectedNodeId: string | null) => void;
 
   changeName: (name: string) => void;
@@ -46,6 +50,7 @@ export type ProtocolActions = {
 
 export type ProtocolState = ProtocolData & ProtocolActions & {
   selectedNodeId: string | null;
+  localNodesIds: Set<string>;
 }
 
 export const defaultProtocolState = {
@@ -54,6 +59,8 @@ export const defaultProtocolState = {
   nodes: [],
   edges: [],
   nodesData: new Map(),
+
+  localNodesIds: new Set<string>(),
   selectedNodeId: null
 }
 
@@ -61,8 +68,19 @@ const useProtocolStore = create<ProtocolState>((set, get) => ({
   ...defaultProtocolState,
 
   applyNodeChanges: (changes: NodeChange[]) => {
+    const removeChanges = changes.filter((change) => change.type === "remove") as NodeRemoveChange[];
+
+    let nodesData = get().nodesData;
+    if (removeChanges.length > 0) {
+      nodesData = new Map(nodesData);
+      for (const removeChange of removeChanges) {
+        nodesData.delete(removeChange.id);
+      }
+    }
+
     set((state) => ({
       nodes: applyNodeChanges(changes, state.nodes),
+      nodesData
     }));
   },
   applyEdgeChanges: (changes: EdgeChange[]) => {
@@ -82,6 +100,22 @@ const useProtocolStore = create<ProtocolState>((set, get) => ({
     set((state) => ({
       nodes: [...state.nodes, node],
       nodesData: new Map(state.nodesData).set(node.id, nodeData)
+    }));
+  },
+  addLocalNode: (nodeId) => {
+    set((state) => ({
+      localNodesIds: new Set(state.localNodesIds).add(nodeId)
+    }));
+  },
+  isLocalNode: (nodeId) => {
+    return get().localNodesIds.has(nodeId)
+  },
+  removeLocalNode: (nodeId) => {
+    const newLocalNodesIds = new Set(get().localNodesIds);
+    newLocalNodesIds.delete(nodeId);
+
+    set((state) => ({
+      localNodesIds: newLocalNodesIds
     }));
   },
   changeEdgeData: (edgeId, edgeData) => {
