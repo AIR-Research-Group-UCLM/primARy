@@ -39,7 +39,7 @@ class Node(Base):
 class Edge(Base):
     __tablename__ = "edges"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[str] = mapped_column(sa.CHAR(21), primary_key=True)
     protocol_id: Mapped[int] = mapped_column(
         sa.ForeignKey("protocols.id", ondelete="CASCADE")
     )

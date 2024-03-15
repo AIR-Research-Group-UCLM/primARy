@@ -36,9 +36,10 @@ class NodeResource(BaseModel):
 
 
 class Edge(BaseModel):
+    id: str = Field(min_length=1)
     source: str = Field(min_length=1)
     target: str = Field(min_length=1)
-    label: str | None
+    label: str
     source_handle: str
     target_handle: str
 
