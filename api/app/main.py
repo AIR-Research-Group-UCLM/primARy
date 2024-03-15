@@ -99,8 +99,6 @@ def delete_node(
         )
 
 # This is an atomic operation. Either all of them fail or all of them succeed
-
-
 @app.delete("/protocols/{protocol_id}/nodes")
 def delete_nodes(
     session: Annotated[Session, Depends(get_session)],
@@ -114,6 +112,19 @@ def delete_nodes(
             detail=f"Some node ids do not exist"
         )
 
+# This is an atomic operation. Either all of them fail or all of them succeed
+@app.delete("/protocols/{protocol_id}/edges")
+def delete_edges(
+    session: Annotated[Session, Depends(get_session)],
+    protocol_id: int,
+    edges_ids: Annotated[list[str], Body()] = []
+):
+    success = crud.delete_edges(session, protocol_id, edges_ids)
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Some edges ids do not exist"
+        )
 
 @app.post("/protocols/{protocol_id}/nodes")
 def create_node(

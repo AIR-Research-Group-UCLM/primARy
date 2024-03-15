@@ -76,6 +76,18 @@ export async function deleteNodes(
   });
 }
 
+export async function deleteEdges(
+  { protocolId, edgesIds }: { protocolId: number; edgesIds: string[] }
+) {
+  return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/edges`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(edgesIds)
+  });
+}
+
 export async function deleteNodeResource(
   { protocolId, nodeId, resourceId }: { protocolId: number; nodeId: string; resourceId: number }
 ) {

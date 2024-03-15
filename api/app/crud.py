@@ -36,6 +36,17 @@ def get_protocols(session: Session):
     result = session.execute(query)
     return result.mappings()
 
+def delete_edges(session: Session, protocol_id: int, edges_ids: list[str]):
+    query = sa.delete(sc.Edge).where(
+        (sc.Edge.protocol_id == protocol_id) &
+        (sc.Edge.id.in_(edges_ids))
+    )
+    results = session.execute(query)
+    if results.rowcount != len(edges_ids):
+        return False
+    session.commit()
+    return True
+
 def delete_nodes(session: Session, protocol_id: int, nodes_ids: list[str]):
     # TODO: Check you are not trying to delete the initial node
 
