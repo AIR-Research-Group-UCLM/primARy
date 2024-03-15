@@ -5,6 +5,7 @@ import ReactFlow, {
   Background,
   ConnectionMode,
   MarkerType,
+  getConnectedEdges
 } from "reactflow";
 
 import useProtocolStore from "@/hooks/store";
@@ -26,6 +27,7 @@ import type { FlowchartEdge } from "@/ui/protocols/flowchart/edge";
 
 import "reactflow/dist/style.css";
 import { nanoid } from "nanoid";
+import { deleteNodes } from "@/mutation";
 
 type NodeHandle = {
   nodeId: string;
@@ -49,11 +51,13 @@ function isEventTargetPane(target: Element): boolean {
   return target.classList.contains("react-flow__pane");
 }
 
-export default function FlowChartEditor() {
+export default function FlowChartEditor({ protocolId }: { protocolId: number }) {
   const nodes = useProtocolStore((state) => state.nodes);
   const edges = useProtocolStore((state) => state.edges);
   const selectedNodeId = useProtocolStore((state) => state.selectedNodeId);
   const initialNodeId = useProtocolStore((state) => state.initialNodeId);
+
+  console.log({ nodes });
 
   const applyNodeChanges = useProtocolStore((state) => state.applyNodeChanges);
   const applyEdgeChanges = useProtocolStore((state) => state.applyEdgeChanges);
@@ -64,6 +68,8 @@ export default function FlowChartEditor() {
   const setSelectedNodeId = useProtocolStore((state) => state.setSelectedNodeId);
   const changeEdgeData = useProtocolStore((state) => state.changeEdgeData);
   const changeNode = useProtocolStore((state) => state.changeNode);
+  const removeNodesData = useProtocolStore((state) => state.removeNodesData);
+  const isLocalNode = useProtocolStore((state) => state.isLocalNode);
 
   const connectingNode = useRef<NodeHandle | null>(null);
   const selectedEdgeId = useRef<string | null>(null);
@@ -79,6 +85,16 @@ export default function FlowChartEditor() {
       removeCandidates.has(edge.source) && canRemoveNode(edge.source) ||
       removeCandidates.has(edge.target) && canRemoveNode(edge.target)
     );
+  }
+
+  function updateSelectionAfterDelete(nodes: FlowchartNode[]) {
+    if (selectedNodeId === null) {
+      return;
+    }
+    const isSelectedDeleted = nodes.some((node) => node.id === selectedNodeId);
+    if (isSelectedDeleted) {
+      setSelectedNodeId(null);
+    }
   }
 
   const onNodesChange: OnNodesChange = useCallback((changes) => {
@@ -166,14 +182,27 @@ export default function FlowChartEditor() {
   }, [selectedNodeId]);
 
   const onNodesDelete: OnNodesDelete = useCallback((nodes) => {
-    if (selectedNodeId === null) {
+    updateSelectionAfterDelete(nodes);
+
+    const nonLocalNodes = nodes.filter((node) => !isLocalNode(node.id))
+    const nodesIds = nonLocalNodes.map((node) => node.id);
+    if (nodesIds.length === 0) {
       return;
     }
-    const isSelectedDeleted = nodes.some((node) => node.id === selectedNodeId);
-    if (isSelectedDeleted) {
-      setSelectedNodeId(null);
-    }
-  }, [selectedNodeId]);
+
+    const connectedEdges = getConnectedEdges(nodes, edges);
+    // TODO: show toast message in case it fails
+    deleteNodes({ protocolId, nodesIds })
+      .then(() => removeNodesData(nodesIds))
+      .catch(() => {
+        useProtocolStore.setState((state) => ({
+          nodes: [...state.nodes, ...nonLocalNodes],
+          edges: [...state.edges, ...connectedEdges]
+        }));
+      }
+      );
+
+  }, [selectedNodeId, edges]);
 
   const onNodeDoubleClick: OnNodeClick = useCallback((_, node) => {
     changeNode(node.id, { data: { isSelectedModification: true } });

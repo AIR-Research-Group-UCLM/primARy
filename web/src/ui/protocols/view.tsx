@@ -117,7 +117,7 @@ export default function ProtocolView({ protocolId }: Props) {
             border: "solid 1px"
           }}>
             <ReactFlowProvider>
-              <FlowChartEditor />
+              <FlowChartEditor protocolId={protocolId} />
             </ReactFlowProvider>
           </Paper>
 

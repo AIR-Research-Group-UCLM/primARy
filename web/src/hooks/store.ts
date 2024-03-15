@@ -14,7 +14,6 @@ import type {
   EdgeChange,
   OnConnect,
   Connection,
-  NodeRemoveChange,
 } from "reactflow";
 
 import type { NodeData } from "@/types";
@@ -36,13 +35,16 @@ export type ProtocolActions = {
   addEdgeFromConnection: OnConnect;
   addNode: (node: FlowchartNode, nodeData: NodeData) => void;
   addEdge: (edge: FlowchartEdge) => void;
+
   addLocalNode: (nodeId: string) => void;
+  isLocalNode: (nodeId: string) => boolean;
   removeLocalNode: (nodeId: string) => void;
   setSelectedNodeId: (selectedNodeId: string | null) => void;
 
   changeName: (name: string) => void;
   changeNode: (nodeId: string, nodeData: Partial<FlowchartNode>) => void;
   changeNodeData: (nodeId: string, nodeData: Partial<NodeData>) => void;
+  removeNodesData: (nodeIds: string[]) => void;
   changeEdgeData: (edgeId: string, edgeData: Partial<FlowchartEdgeData>) => void;
   changeInitialNodeId: (string: string) => void;
 }
@@ -67,19 +69,8 @@ const useProtocolStore = create<ProtocolState>((set, get) => ({
   ...defaultProtocolState,
 
   applyNodeChanges: (changes: NodeChange[]) => {
-    const removeChanges = changes.filter((change) => change.type === "remove") as NodeRemoveChange[];
-
-    let nodesData = get().nodesData;
-    if (removeChanges.length > 0) {
-      nodesData = new Map(nodesData);
-      for (const removeChange of removeChanges) {
-        nodesData.delete(removeChange.id);
-      }
-    }
-
     set((state) => ({
-      nodes: applyNodeChanges(changes, state.nodes),
-      nodesData
+      nodes: applyNodeChanges(changes, state.nodes)
     }));
   },
   applyEdgeChanges: (changes: EdgeChange[]) => {
@@ -113,6 +104,9 @@ const useProtocolStore = create<ProtocolState>((set, get) => ({
     set((state) => ({
       localNodesIds: newLocalNodesIds
     }));
+  },
+  isLocalNode: (nodeId) => {
+    return get().localNodesIds.has(nodeId);
   },
   changeEdgeData: (edgeId, edgeData) => {
     set((state) => ({
@@ -156,6 +150,17 @@ const useProtocolStore = create<ProtocolState>((set, get) => ({
 
     set((state) => ({
       nodesData: new Map(state.nodesData).set(nodeId, { ...previousData, ...nodeData })
+    }));
+  },
+  removeNodesData: (nodeIds) => {
+    const copy = new Map(get().nodesData);
+
+    for (const nodeId of nodeIds) {
+      copy.delete(nodeId);
+    }
+
+    set((state) => ({
+      nodesData: copy
     }));
   },
   changeName(name) {

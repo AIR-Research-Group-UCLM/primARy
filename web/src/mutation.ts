@@ -21,7 +21,7 @@ async function deleteProtocol({ protocolId }: { protocolId: number }) {
   });
 }
 
-export async function createNode({protocolId, node}: {protocolId: number, node: Node}) {
+export async function createNode({ protocolId, node }: { protocolId: number, node: Node }) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/nodes`, {
     method: "POST",
     headers: {
@@ -64,8 +64,20 @@ async function changeResourceName(
   })
 }
 
+export async function deleteNodes(
+  { protocolId, nodesIds }: { protocolId: number, nodesIds: string[] }
+) {
+  return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/nodes`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(nodesIds)
+  });
+}
+
 export async function deleteNodeResource(
-  {protocolId, nodeId, resourceId}: {protocolId: number; nodeId: string; resourceId: number}
+  { protocolId, nodeId, resourceId }: { protocolId: number; nodeId: string; resourceId: number }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}/resources/${resourceId}`, {
     method: "DELETE"
@@ -73,7 +85,7 @@ export async function deleteNodeResource(
 }
 
 export async function deleteNode(
-  {protocolId, nodeId} : {protocolId: number; nodeId: string}
+  { protocolId, nodeId }: { protocolId: number; nodeId: string }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}`, {
     method: "DELETE"
