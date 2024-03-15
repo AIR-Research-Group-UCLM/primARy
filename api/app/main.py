@@ -66,6 +66,13 @@ def get_node_resources(
         )
     return result
 
+@app.get("/protocols/{protocol_id}/upsert")
+def upsert_protocol(
+    session: Annotated[Session, Depends(get_session)],
+    protocol_id: int,
+    protocol: md.ProtocolUpsert
+):
+    result = crud.upsert_protocol(session, protocol_id, protocol)
 
 # TODO: decide if PUT or UPDATE fit better
 @app.patch("/protocols/{protocol_id}/nodes/{node_id}/resources/{resource_id}")

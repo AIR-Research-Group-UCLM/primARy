@@ -5,6 +5,7 @@ import shutil
 import os
 
 from pymysql.err import IntegrityError
+import sqlalchemy.dialects.mysql as mysql
 import sqlalchemy as sa
 
 from . import schemas as sc
@@ -59,6 +60,25 @@ def delete_nodes(session: Session, protocol_id: int, nodes_ids: list[str]):
         return False
     session.commit()
     return True
+
+def upsert_protocol(session: Session, protocol_id: int, protocol: md.ProtocolUpsert):
+    if protocol.name is not None:
+        if protocol.name.strip() == "":
+            raise InvalidProtocolException("Name can't be empty")
+        query = sa.update(sc.Protocol).where(
+            sc.Protocol.id == protocol_id
+        ).values(
+            name=protocol.name
+        )
+        session.execute(query)
+
+    if len(protocol.nodes) > 0:
+        records = [
+            {"protocol_id": protocol_id, **utils.node_to_schema(node)} for node in protocol.nodes
+        ]
+        # https://stackoverflow.com/questions/59291434/python-sqlalchemy-on-duplicate-key-update-with-multiple-records
+        insert_query = mysql.insert(sc.Node).values(records)
+        update_values  = {inserted_col.name : inserted_col for inserted_col in insert_query.inserted}
 
 def get_nodes(session: Session, protocol_id: int) -> list[md.Node]:
     query = sa.select(sc.Node).where(sc.Node.protocol_id == protocol_id)
