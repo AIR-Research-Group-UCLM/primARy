@@ -1,8 +1,7 @@
 
 import {
   applyNodeChanges,
-  applyEdgeChanges,
-  addEdge
+  applyEdgeChanges
 } from "reactflow";
 
 import { create } from "zustand";
@@ -12,14 +11,13 @@ import type {
   OnEdgesChange,
   NodeChange,
   EdgeChange,
-  OnConnect,
   Connection,
 } from "reactflow";
 
 import type { NodeData } from "@/types";
 
 import type { FlowchartNode } from "@/ui/protocols/flowchart/node";
-import type { FlowchartEdge, FlowchartEdgeData } from "@/ui/protocols/flowchart/edge";
+import { type FlowchartEdge, type FlowchartEdgeData, defaultEdgeData } from "@/ui/protocols/flowchart/edge";
 
 export type ProtocolData = {
   name: string;
@@ -32,7 +30,7 @@ export type ProtocolData = {
 export type ProtocolActions = {
   applyNodeChanges: OnNodesChange;
   applyEdgeChanges: OnEdgesChange;
-  addEdgeFromConnection: OnConnect;
+  addEdgeFromConnection: (connection: Connection, edgeId: string) => void;
   addNode: (node: FlowchartNode, nodeData: NodeData) => void;
   addEdge: (edge: FlowchartEdge) => void;
 
@@ -78,9 +76,24 @@ const useProtocolStore = create<ProtocolState>((set, get) => ({
       edges: applyEdgeChanges(changes, state.edges),
     }));
   },
-  addEdgeFromConnection: (connection: Connection) => {
+  addEdgeFromConnection: (connection: Connection, edgeId: string) => {
+    if (connection.source == null || connection.target == null ||
+      connection.sourceHandle == null || connection.targetHandle == null) {
+      return
+    }
+
+    const edge = {
+      id: edgeId,
+      source: connection.source,
+      target: connection.target,
+      sourceHandle: connection.sourceHandle,
+      targetHandle: connection.targetHandle,
+      data: {
+        ...defaultEdgeData
+      }
+    }
     set((state) => ({
-      edges: addEdge(connection, state.edges)
+      edges: [...state.edges, edge]
     }));
   },
   addEdge: (edge) => {

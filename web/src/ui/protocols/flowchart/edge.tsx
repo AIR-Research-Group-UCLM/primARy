@@ -16,6 +16,11 @@ export type FlowchartEdgeData = {
   doubleClickSelected: boolean;
 }
 
+export const defaultEdgeData: FlowchartEdgeData = {
+  label: "",
+  doubleClickSelected: false
+}
+
 
 export type FlowchartEdge = Edge<FlowchartEdgeData>;
 

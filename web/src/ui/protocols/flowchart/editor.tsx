@@ -10,7 +10,7 @@ import ReactFlow, {
 
 import useProtocolStore from "@/hooks/store";
 import RFFlowchartNode from "@/ui/protocols/flowchart/node";
-import RFFlowChartEdge from "@/ui/protocols/flowchart/edge";
+import RFFlowChartEdge, {defaultEdgeData} from "@/ui/protocols/flowchart/edge";
 import { getOpposite } from "@/ui/protocols/flowchart/handle";
 
 import type {
@@ -120,7 +120,6 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
         continue;
       }
       const edge = edgeMap.get(allowedChange.id)!;
-      console.log({edge});
 
       if (removeCandidates.has(edge.source) || removeCandidates.has(edge.target)) {
         automaticDeletedEdges.current.add(edge.id);
@@ -133,7 +132,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
 
   const onConnect: OnConnect = useCallback((connection) => {
     connectingNode.current = null;
-    addEdgeFromConnection(connection);
+    addEdgeFromConnection(connection, nanoid());
   }, [addEdgeFromConnection]);
 
   const onEdgesDelete: OnEdgesDelete = useCallback((edges) => {
@@ -142,6 +141,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
 
     console.log({explicitlyDeletedEdges});
 
+    // TODO: show toast message
     deleteEdges({protocolId, edgesIds})
       .catch(() => 
         useProtocolStore.setState((state) => ({
@@ -187,8 +187,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
       targetHandle: getOpposite(connectingNode.current.handleId),
       target: id,
       data: {
-        label: "",
-        doubleClickSelected: false
+        ...defaultEdgeData
       }
     }
     addNode(newNode, {
