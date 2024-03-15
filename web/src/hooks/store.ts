@@ -37,6 +37,10 @@ export type ProtocolActions = {
   addLocalNode: (nodeId: string) => void;
   isLocalNode: (nodeId: string) => boolean;
   removeLocalNode: (nodeId: string) => void;
+  addLocalEdge: (edgeId: string) => void;
+  isLocalEdge: (edgeId: string) => boolean;
+  removeLocalEdge: (edgeId: string) => void;
+
   setSelectedNodeId: (selectedNodeId: string | null) => void;
 
   changeName: (name: string) => void;
@@ -49,7 +53,10 @@ export type ProtocolActions = {
 
 export type ProtocolState = ProtocolData & ProtocolActions & {
   selectedNodeId: string | null;
+
+  // This should in a a separate slice
   localNodesIds: Set<string>;
+  localEdgesIds: Set<string>;
 }
 
 export const defaultProtocolState = {
@@ -60,6 +67,7 @@ export const defaultProtocolState = {
   nodesData: new Map(),
 
   localNodesIds: new Set<string>(),
+  localEdgesIds: new Set<string>(),
   selectedNodeId: null
 }
 
@@ -103,6 +111,22 @@ const useProtocolStore = create<ProtocolState>((set, get) => ({
     set((state) => ({
       nodes: [...state.nodes, node],
       nodesData: new Map(state.nodesData).set(node.id, nodeData)
+    }));
+  },
+  addLocalEdge: (edgeId) => {
+    set((state) => ({
+      localEdgesIds: new Set(state.localEdgesIds).add(edgeId)
+    }));
+  },
+  isLocalEdge: (edgeId) => {
+    return get().localEdgesIds.has(edgeId);
+  },
+  removeLocalEdge: (edgeId) => {
+    const newLocalEdgesIds = new Set(get().localNodesIds);
+    newLocalEdgesIds.delete(edgeId);
+
+    set((state) => ({
+      localEdgesIds: newLocalEdgesIds
     }));
   },
   addLocalNode: (nodeId) => {
