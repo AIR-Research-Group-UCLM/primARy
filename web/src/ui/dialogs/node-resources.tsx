@@ -118,8 +118,8 @@ export default function NodeResourcesDialog(
 ) {
 
   const { nodeResources, mutate } = useNodeResources(protocolId, nodeId);
-  const {triggerUploadFiles, isUploadingFiles} = useUploadFiles();
-  const {triggerChangeResourceName, isChangingResourceName} = useChangeResourceName();
+  const { triggerUploadFiles, isUploadingFiles } = useUploadFiles();
+  const { triggerChangeResourceName, isChangingResourceName } = useChangeResourceName();
   const [selectedResource, setSelectedResource] = useState<SelectedResource | null>(null);
 
   async function onDelete(resourceId: number) {

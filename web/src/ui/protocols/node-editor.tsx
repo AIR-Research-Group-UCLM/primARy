@@ -23,7 +23,7 @@ type Props = {
 export default function NodeInfoEditor({ protocolId, selectedNodeId }: Props) {
   const changeNodeData = useProtocolStore((state) => state.changeNodeData);
   const data = useProtocolStore((state) => state.nodesData.get(selectedNodeId));
-  const position = useProtocolStore((state) => 
+  const position = useProtocolStore((state) =>
     state.nodes.find((node) => node.id === selectedNodeId)?.position
   );
   const isLocal = useProtocolStore((state) => state.localNodesIds.has(selectedNodeId));
@@ -46,6 +46,7 @@ export default function NodeInfoEditor({ protocolId, selectedNodeId }: Props) {
       return;
     }
 
+    // TODO: check for errors
     if (isLocal) {
       const node: Node = {
         id: selectedNodeId,
