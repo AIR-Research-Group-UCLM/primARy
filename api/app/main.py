@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Annotated
 from sqlalchemy.orm import Session
 
-from fastapi import FastAPI, Depends, HTTPException, Request, UploadFile
+from fastapi import FastAPI, Depends, HTTPException, Request, UploadFile, Body
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -84,6 +84,7 @@ def change_name_resource_name(
             detail=f"Node resource '{resource_id}' not found"
         )
 
+
 @app.delete("/protocols/{protocol_id}/nodes/{node_id}")
 def delete_node(
     session: Annotated[Session, Depends(get_session)],
@@ -96,6 +97,23 @@ def delete_node(
             status_code=404,
             detail=f"Node id '{node_id}' not found"
         )
+
+# This is an atomic operation. Either all of them fail or all of them succeed
+
+
+@app.delete("/protocols/{protocol_id}/nodes")
+def delete_nodes(
+    session: Annotated[Session, Depends(get_session)],
+    protocol_id: int,
+    nodes_ids: Annotated[list[str], Body()] = []
+):
+    success = crud.delete_nodes(session, protocol_id, nodes_ids)
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Some node ids do not exist"
+        )
+
 
 @app.post("/protocols/{protocol_id}/nodes")
 def create_node(

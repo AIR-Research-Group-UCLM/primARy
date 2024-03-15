@@ -36,6 +36,18 @@ def get_protocols(session: Session):
     result = session.execute(query)
     return result.mappings()
 
+def delete_nodes(session: Session, protocol_id: int, nodes_ids: list[str]):
+    # TODO: Check you are not trying to delete the initial node
+
+    query = sa.delete(sc.Node).where(
+        (sc.Node.protocol_id == protocol_id) &
+        (sc.Node.id.in_(nodes_ids))
+    )
+    results = session.execute(query)
+    if results.rowcount != len(nodes_ids):
+        return False
+    session.commit()
+    return True
 
 def get_nodes(session: Session, protocol_id: int) -> list[md.Node]:
     query = sa.select(sc.Node).where(sc.Node.protocol_id == protocol_id)
