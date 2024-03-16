@@ -66,7 +66,7 @@ def get_node_resources(
         )
     return result
 
-@app.get("/protocols/{protocol_id}/upsert")
+@app.post("/protocols/{protocol_id}/upsert")
 def upsert_protocol(
     session: Annotated[Session, Depends(get_session)],
     protocol_id: int,

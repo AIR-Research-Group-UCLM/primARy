@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 import shutil
 import os
 
@@ -62,9 +62,17 @@ def delete_nodes(session: Session, protocol_id: int, nodes_ids: list[str]):
     return True
 
 def upsert_protocol(session: Session, protocol_id: int, protocol: md.ProtocolUpsert):
+    exists_query = sa.select(sc.Protocol.id).where(sc.Protocol.id == protocol_id)
+    exists_result = session.execute(exists_query).first()
+
+    if exists_result is None:
+        # TODO: change to HTTPException
+        raise InvalidProtocolException("The protocol does not exist")
+
     if protocol.name is not None:
         if protocol.name.strip() == "":
             raise InvalidProtocolException("Name can't be empty")
+
         query = sa.update(sc.Protocol).where(
             sc.Protocol.id == protocol_id
         ).values(
@@ -76,9 +84,18 @@ def upsert_protocol(session: Session, protocol_id: int, protocol: md.ProtocolUps
         records = [
             {"protocol_id": protocol_id, **utils.node_to_schema(node)} for node in protocol.nodes
         ]
-        # https://stackoverflow.com/questions/59291434/python-sqlalchemy-on-duplicate-key-update-with-multiple-records
-        insert_query = mysql.insert(sc.Node).values(records)
-        update_values  = {inserted_col.name : inserted_col for inserted_col in insert_query.inserted}
+        upsert_query = create_upsert_query(mysql.insert(sc.Node), records)
+        session.execute(upsert_query)
+    
+    if len(protocol.edges) > 0:
+        # TODO: catch integrity error
+        records = [
+            {"protocol_id": protocol_id, **edge.model_dump()} for edge in protocol.edges
+        ]
+        upsert_query = create_upsert_query(mysql.insert(sc.Edge), records)
+        session.execute(upsert_query)
+    
+    session.commit()
 
 def get_nodes(session: Session, protocol_id: int) -> list[md.Node]:
     query = sa.select(sc.Node).where(sc.Node.protocol_id == protocol_id)
@@ -280,6 +297,13 @@ def create_protocol(session: Session, protocol: md.ProtocolCreate) -> md.Protoco
         name=protocol.name
     )
 
+def create_upsert_query(
+    insert_query: mysql.Insert,
+    records: list[dict[str, Any]],
+):
+    insert_query = insert_query.values(records)
+    update_values  = {inserted_col.name : inserted_col for inserted_col in insert_query.inserted}
+    return insert_query.on_duplicate_key_update(**update_values)
 
 def _insert_nodes_edges(
     session: Session,
