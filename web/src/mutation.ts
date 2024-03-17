@@ -1,4 +1,4 @@
-import type { NodeResource, ProtocolSummary, Node } from "@/types";
+import type { NodeResource, ProtocolSummary, Node, ProtocolUpsert } from "@/types";
 import type { ProtocolData } from "@/hooks/store";
 
 import { protocolDataToProtocol } from "@/type-conversions";
@@ -76,6 +76,18 @@ export async function deleteNodes(
   });
 }
 
+export async function upsertProtocol(
+  {protocolId, protocol} : {protocolId: number; protocol: ProtocolUpsert}
+) {
+  return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/upsert`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(protocol)
+  });
+}
+
 export async function deleteEdges(
   { protocolId, edgesIds }: { protocolId: number; edgesIds: string[] }
 ) {
@@ -96,6 +108,8 @@ export async function deleteNodeResource(
   });
 }
 
+// TODO: You can achieve the same using deleteNodes. Think if I should leave this endpoint
+// The same happens with deleteEdge and deleteEdges
 export async function deleteNode(
   { protocolId, nodeId }: { protocolId: number; nodeId: string }
 ) {

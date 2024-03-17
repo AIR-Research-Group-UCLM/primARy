@@ -28,6 +28,8 @@ import type { FlowchartEdge } from "@/ui/protocols/flowchart/edge";
 import "reactflow/dist/style.css";
 import { nanoid } from "nanoid";
 import { deleteEdges, deleteNodes } from "@/mutation";
+import useSaveEventsContext from "@/hooks/useSaveEventsContext";
+import useLocalEdgesNodes from "@/hooks/useLocalEdgesNodes";
 
 type NodeHandle = {
   nodeId: string;
@@ -38,7 +40,6 @@ type OnNodeClick = (event: MouseEvent, node: FlowchartNode) => void;
 type OnPaneClick = (event: MouseEvent) => void;
 type OnEdgeClick = (event: MouseEvent, edge: FlowchartEdge) => void;
 type OnNodesDelete = (nodes: FlowchartNode[]) => void;
-type OnEdgesDelete = (edges: FlowchartEdge[]) => void;
 
 const edgeTypes = {
   "flowchart-edge": RFFlowChartEdge
@@ -68,11 +69,9 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
   const changeNode = useProtocolStore((state) => state.changeNode);
   const removeNodesData = useProtocolStore((state) => state.removeNodesData);
 
-  const addLocalNode = useProtocolStore((state) => state.addLocalNode);
-  const isLocalNode = useProtocolStore((state) => state.isLocalNode);
+  const { localNodes, localEdges } = useLocalEdgesNodes();
 
-  const addLocalEdge = useProtocolStore((state) => state.addLocalEdge);
-  const isLocalEdge = useProtocolStore((state) => state.isLocalEdge);
+  const { recordEvent } = useSaveEventsContext();
 
   const connectingNode = useRef<NodeHandle | null>(null);
   const selectedEdgeId = useRef<string | null>(null);
@@ -101,19 +100,31 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
   }
 
   function onExplicitEdgesDelete(edges: FlowchartEdge[]) {
-    const edgesIds = edges.map((edge) => edge.id).filter((edgeId) => !isLocalEdge(edgeId));
-    deleteEdges({ protocolId, edgesIds })
-      .catch(() =>
-        useProtocolStore.setState((state) => ({
-          edges: [...state.edges, ...edges]
-        }))
-      );
+    const edgesIds = edges.map((edge) => edge.id).filter((edgeId) => !localEdges.isLocalId(edgeId));
+    if (edgesIds.length > 0) {
+      deleteEdges({ protocolId, edgesIds })
+        .catch(() =>
+          useProtocolStore.setState((state) => ({
+            edges: [...state.edges, ...edges]
+          }))
+        );
+    }
   }
 
   const onNodesChange: OnNodesChange = useCallback((changes) => {
     const allowedChanges = changes.filter((change) => (
       change.type !== "remove" || (change.type === "remove" && canRemoveNode(change.id))
     ));
+
+    for (const allowedChange of allowedChanges) {
+      if (allowedChange.type === "position" && allowedChange.dragging) {
+        recordEvent({
+          type: "node",
+          id: allowedChange.id
+        })
+      }
+    }
+
     applyNodeChanges(allowedChanges);
 
   }, [nodes, initialNodeId]);
@@ -148,7 +159,13 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
 
   const onConnect: OnConnect = useCallback((connection) => {
     connectingNode.current = null;
-    addEdgeFromConnection(connection, nanoid());
+    const edgeId = nanoid();
+    localEdges.addLocalId(edgeId);
+    addEdgeFromConnection(connection, edgeId);
+    recordEvent({
+      type: "edge",
+      id: edgeId
+    })
   }, [addEdgeFromConnection]);
 
   const onConnectStart: OnConnectStart = useCallback((_, { nodeId, handleId }) => {
@@ -167,10 +184,10 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
       return;
     }
 
-    let id = nanoid();
+    let nodeId = nanoid();
 
     let newNode: FlowchartNode = {
-      id,
+      id: nodeId,
       position: screenToFlowPosition({
         // @ts-ignore
         x: event.clientX,
@@ -186,7 +203,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
       source: connectingNode.current.nodeId,
       sourceHandle: connectingNode.current.handleId,
       targetHandle: getOpposite(connectingNode.current.handleId),
-      target: id,
+      target: nodeId,
       data: {
         ...defaultEdgeData
       }
@@ -196,7 +213,16 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
       description: ""
     });
     addEdge(newEdge);
-    addLocalNode(newNode.id);
+    localNodes.addLocalId(newNode.id);
+    localEdges.addLocalId(newEdge.id);
+    recordEvent({
+      type: "node",
+      id: nodeId
+    });
+    recordEvent({
+      type: "edge",
+      id: newEdge.id
+    });
   }, [screenToFlowPosition]);
 
   const onNodeClick: OnNodeClick = useCallback((_, node) => {
@@ -211,19 +237,20 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
     updateSelectionAfterDelete(nodes);
 
     // Send request to the backend to delete these edges
-    const nonLocalNodes = nodes.filter((node) => !isLocalNode(node.id))
-    const nodesIds = nonLocalNodes.map((node) => node.id);
+    const allowedNodes = nodes.filter((node) => !localNodes.isLocalId(node.id) && canRemoveNode(node.id));
+    const nodesIds = allowedNodes.map((node) => node.id);
     if (nodesIds.length === 0) {
       return;
     }
 
     const connectedEdges = getConnectedEdges(nodes, edges);
+    // TODO: there might be a race condition if you try to update node which has already been deleted
     // TODO: show toast message in case it fails
     deleteNodes({ protocolId, nodesIds })
       .then(() => removeNodesData(nodesIds))
       .catch(() => {
         useProtocolStore.setState((state) => ({
-          nodes: [...state.nodes, ...nonLocalNodes],
+          nodes: [...state.nodes, ...allowedNodes],
           edges: [...state.edges, ...connectedEdges]
         }));
       }

@@ -31,6 +31,12 @@ export type Protocol = {
     edges: Edge[];
 }
 
+export type ProtocolUpsert = {
+    name?: string;
+    nodes?: Node[];
+    edges?: Edge[];
+}
+
 export type ProtocolSummary = {
     id: number;
     name: string;

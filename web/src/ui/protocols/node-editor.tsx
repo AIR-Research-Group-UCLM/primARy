@@ -6,14 +6,13 @@ import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import useProtocolStore from "@/hooks/store";
 import NodeResourcesDialog from "@/ui/dialogs/node-resources";
 
-import type { Node } from "@/types";
-import { createNode } from "@/mutation";
-
 import "@/ui/protocols/textfield.css";
 import { Button } from "@mui/material";
 
 import { noInitialSpace } from "@/utils";
 import { useState } from "react";
+import useSaveEventsContext from "@/hooks/useSaveEventsContext";
+import useLocalEdgesNodes from "@/hooks/useLocalEdgesNodes";
 
 type Props = {
   protocolId: number;
@@ -23,11 +22,9 @@ type Props = {
 export default function NodeInfoEditor({ protocolId, selectedNodeId }: Props) {
   const changeNodeData = useProtocolStore((state) => state.changeNodeData);
   const data = useProtocolStore((state) => state.nodesData.get(selectedNodeId));
-  const position = useProtocolStore((state) =>
-    state.nodes.find((node) => node.id === selectedNodeId)?.position
-  );
-  const isLocal = useProtocolStore((state) => state.localNodesIds.has(selectedNodeId));
-  const removeLocalNode = useProtocolStore((state) => state.removeLocalNode);
+  const { recordEvent, flush } = useSaveEventsContext();
+  const { localNodes } = useLocalEdgesNodes();
+
   const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
 
   if (data === undefined) {
@@ -42,33 +39,29 @@ export default function NodeInfoEditor({ protocolId, selectedNodeId }: Props) {
   }
 
   async function onResourcesClick() {
-    if (data == undefined || position == null) {
-      return;
-    }
-
-    // TODO: check for errors
-    if (isLocal) {
-      const node: Node = {
-        id: selectedNodeId,
-        position,
-        data
-      }
-      await createNode({ protocolId, node })
-      removeLocalNode(selectedNodeId);
+    if (localNodes.isLocalId(selectedNodeId)) {
+      // Create it if it is not already
+      await flush();
     }
 
     setDialogOpen(true);
   }
 
   function onNameChange(name: string) {
-    changeNodeData(selectedNodeId, { name: noInitialSpace(name) })
+    changeNodeData(selectedNodeId, { name: noInitialSpace(name) });
+    recordEvent({
+      type: "node",
+      id: selectedNodeId
+    })
   }
 
   function onDescriptionChange(description: string) {
     changeNodeData(selectedNodeId, { description: noInitialSpace(description) });
+    recordEvent({
+      type: "node",
+      id: selectedNodeId
+    })
   }
-
-
 
   return (
     <>
