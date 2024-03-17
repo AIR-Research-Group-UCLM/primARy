@@ -29,6 +29,7 @@ import { upsertProtocol } from "@/mutation";
 import { FlowchartEdge } from "./flowchart/edge";
 import useLocalEdgesNodes from "@/hooks/useLocalEdgesNodes";
 import { flowchartEdgeToEdge } from "@/type-conversions";
+import { useEffect } from "react";
 
 type Props = {
   protocolId: number;
@@ -41,11 +42,15 @@ export default function ProtocolView({ protocolId }: Props) {
 
   const { localNodes, localEdges } = useLocalEdgesNodes();
 
-  const saveEvents = useSaveEvents(onSave, 2000, 6000);
-  const { recordEvent, cancel, flush, isPending } = saveEvents;
+  const saveEvents = useSaveEvents(onSave, 2000, 10000);
+  const { recordEvent, flush, isPending } = saveEvents;
 
   const { isOpen, toastMessage, messageType, setToastMessage } = useToastMessage();
   const router = useRouter();
+
+  useEffect(() => () => {
+    flush();
+  }, []);
 
   async function onSave(events: ReturnEventStore) {
     const currentState = useProtocolStore.getState();
@@ -84,7 +89,8 @@ export default function ProtocolView({ protocolId }: Props) {
     }
 
     const edges = []
-    for (const edgeId of events.edgeIds) {
+    const edgesIds = [...events.edgeIds, ...extraEdgeIds];
+    for (const edgeId of edgesIds) {
       const edge = edgeMap.get(edgeId);
       if (edge == null) {
         continue;
@@ -93,15 +99,20 @@ export default function ProtocolView({ protocolId }: Props) {
       if (localNodes.isLocalId(edge.target) || localNodes.isLocalId(edge.source)) {
         continue;
       }
-
+      
+      localEdges.removeLocalId(edge.id);
       edges.push(flowchartEdgeToEdge(edge));
     }
 
     if (name || nodes.length > 0 || edges.length > 0) {
-      upsertProtocol({
+      await upsertProtocol({
         protocolId, protocol: {
           name, nodes, edges
         }
+      });
+      setToastMessage({
+        type: "success",
+        message: "Guardado"
       });
     }
   }
@@ -200,7 +211,8 @@ export default function ProtocolView({ protocolId }: Props) {
             }} >
               <Button
                 onClick={async () => {
-
+                  await flush();
+                  router.push("/protocols");
                 }}
                 variant="contained"
                 size="large"
@@ -218,6 +230,7 @@ export default function ProtocolView({ protocolId }: Props) {
               justifyContent: "center",
             }} >
               <Button
+                disabled={!isPending}
                 onClick={onSaveClick}
                 variant="contained"
                 size="large"

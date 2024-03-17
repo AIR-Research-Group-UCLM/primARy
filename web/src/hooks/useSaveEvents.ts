@@ -27,11 +27,11 @@ export type ReturnEventStore = {
 export type SaveEventsReturns<T = any> = {
   recordEvent: (event: Event) => void;
   cancel: () => void;
-  flush: () => T;
+  flush: () => Promise<T>;
   isPending: boolean;
 }
 
-export type SaveHandler<T> = (store: ReturnEventStore) => T;
+export type SaveHandler<T> = (store: ReturnEventStore) => Promise<T>;
 
 
 export default function useSaveEvents<T>(
@@ -72,8 +72,8 @@ export default function useSaveEvents<T>(
     };
   }
 
-  function flush() {
-    const result = funcRef.current({
+  async function flush() {
+    const result = await funcRef.current({
       nameChanged: eventStore.current.nameChanged,
       nodeIds: Array.from(eventStore.current.nodeIds),
       edgeIds: Array.from(eventStore.current.edgeIds),
