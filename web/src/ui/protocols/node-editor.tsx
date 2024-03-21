@@ -22,7 +22,7 @@ type Props = {
 export default function NodeInfoEditor({ protocolId, selectedNodeId }: Props) {
   const changeNodeData = useProtocolStore((state) => state.changeNodeData);
   const data = useProtocolStore((state) => state.nodesData.get(selectedNodeId));
-  const { recordEvent, flush } = useSaveEventsContext();
+  const { recordEvent, flush, cancelEvent } = useSaveEventsContext();
   const { localNodes } = useLocalEdgesNodes();
 
   const [isDialogOpen, setDialogOpen] = useState<boolean>(false);

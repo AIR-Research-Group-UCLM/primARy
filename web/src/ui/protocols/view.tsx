@@ -43,7 +43,7 @@ export default function ProtocolView({ protocolId }: Props) {
   const { localNodes, localEdges } = useLocalEdgesNodes();
 
   const saveEvents = useSaveEvents(onSave, 2000, 10000);
-  const { recordEvent, flush, isPending } = saveEvents;
+  const { recordEvent, cancelEvent, flush, isPending } = saveEvents;
 
   const { isOpen, toastMessage, messageType, setToastMessage } = useToastMessage();
   const router = useRouter();
@@ -99,7 +99,7 @@ export default function ProtocolView({ protocolId }: Props) {
       if (localNodes.isLocalId(edge.target) || localNodes.isLocalId(edge.source)) {
         continue;
       }
-      
+
       localEdges.removeLocalId(edge.id);
       edges.push(flowchartEdgeToEdge(edge));
     }

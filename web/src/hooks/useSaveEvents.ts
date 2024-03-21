@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 
 type NodeEdgeEvent = {
-  type: "node" | "edge";
+  type: "edge" | "node";
   id: string;
 }
 
@@ -26,7 +26,7 @@ export type ReturnEventStore = {
 
 export type SaveEventsReturns<T = any> = {
   recordEvent: (event: Event) => void;
-  cancel: () => void;
+  cancelEvent: (event: Event) => void;
   flush: () => Promise<T>;
   isPending: boolean;
 }
@@ -47,24 +47,27 @@ export default function useSaveEvents<T>(
 
   const [isPending, setIsPending] = useState<boolean>(false);
   const funcRef = useRef<SaveHandler<T>>(func);
-  const firstTimerId = useRef<ReturnType<typeof setInterval>>();
-  const secondTimerId = useRef<ReturnType<typeof setInterval>>();
+  const firstTimerId = useRef<ReturnType<typeof setTimeout>>();
+  const secondTimerId = useRef<ReturnType<typeof setTimeout>>();
   const secondTimerRunning = useRef<boolean>(false);
 
   useEffect(() => {
-    reset();
+    cancel();
   }, [firstDelay, secondDelay]);
 
   useEffect(() => {
     funcRef.current = func;
   }, [func]);
 
-  function reset() {
-    clearInterval(firstTimerId.current);
-    clearInterval(secondTimerId.current);
+  function clearTimeouts() {
+    clearTimeout(firstTimerId.current);
+    clearTimeout(secondTimerId.current);
     secondTimerRunning.current = false;
     setIsPending(false);
+  }
 
+  function cancel() {
+    clearTimeouts();
     eventStore.current = {
       nameChanged: false,
       nodeIds: new Set(),
@@ -73,23 +76,47 @@ export default function useSaveEvents<T>(
   }
 
   async function flush() {
+    clearTimeouts();
     const result = await funcRef.current({
       nameChanged: eventStore.current.nameChanged,
       nodeIds: Array.from(eventStore.current.nodeIds),
       edgeIds: Array.from(eventStore.current.edgeIds),
     });
-    reset();
+
+    eventStore.current = {
+      nameChanged: false,
+      nodeIds: new Set(),
+      edgeIds: new Set(),
+    };
+
     return result;
+  }
+
+  function cancelEvent(event: Event) {
+    switch (event.type) {
+      case "node": {
+        eventStore.current.nodeIds.delete(event.id);
+        break;
+      }
+      case "edge": {
+        eventStore.current.edgeIds.delete(event.id);
+        break;
+      }
+      case "name": {
+        eventStore.current.nameChanged = false;
+      }
+    }
   }
 
   function recordEvent(event: Event) {
     if (!secondTimerRunning.current) {
-      secondTimerId.current = setInterval(flush, secondDelay);
+      secondTimerId.current = setTimeout(flush, secondDelay);
       secondTimerRunning.current = true;
       setIsPending(true);
     }
+
     clearTimeout(firstTimerId.current);
-    firstTimerId.current = setInterval(flush, firstDelay);
+    firstTimerId.current = setTimeout(flush, firstDelay);
 
     switch (event.type) {
       case "node": {
@@ -102,7 +129,6 @@ export default function useSaveEvents<T>(
       }
       case "name": {
         eventStore.current.nameChanged = true;
-        break;
       }
     }
   }
@@ -110,7 +136,7 @@ export default function useSaveEvents<T>(
   return {
     recordEvent,
     flush,
-    cancel: reset,
+    cancelEvent,
     isPending
   }
 

@@ -71,7 +71,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
 
   const { localNodes, localEdges } = useLocalEdgesNodes();
 
-  const { recordEvent } = useSaveEventsContext();
+  const { recordEvent, cancelEvent } = useSaveEventsContext();
 
   const connectingNode = useRef<NodeHandle | null>(null);
   const selectedEdgeId = useRef<string | null>(null);
@@ -101,6 +101,14 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
 
   function onExplicitEdgesDelete(edges: FlowchartEdge[]) {
     const edgesIds = edges.map((edge) => edge.id).filter((edgeId) => !localEdges.isLocalId(edgeId));
+
+    for (const edgeId of edgesIds) {
+      cancelEvent({
+        type: "edge",
+        id: edgeId
+      });
+    }
+
     if (edgesIds.length > 0) {
       deleteEdges({ protocolId, edgesIds })
         .catch(() =>
@@ -244,7 +252,22 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
     }
 
     const connectedEdges = getConnectedEdges(nodes, edges);
-    // TODO: there might be a race condition if you try to update node which has already been deleted
+
+    // Ensure these edges are not marked to be modified
+    for (const connectedEdge of connectedEdges) {
+      cancelEvent({
+        type: "edge",
+        id: connectedEdge.id
+      });
+    }
+
+    for (const nodeId of nodesIds) {
+      cancelEvent({
+        type: "node",
+        id: nodeId 
+      });
+    }
+
     // TODO: show toast message in case it fails
     deleteNodes({ protocolId, nodesIds })
       .then(() => removeNodesData(nodesIds))
