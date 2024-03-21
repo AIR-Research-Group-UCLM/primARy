@@ -29,6 +29,7 @@ import "reactflow/dist/style.css";
 import { nanoid } from "nanoid";
 import { deleteEdges, deleteNodes } from "@/mutation";
 import useSaveEventsContext from "@/hooks/useSaveEventsContext";
+import useToastMessageContext from "@/hooks/useToastMessageContext";
 import useLocalEdgesNodes from "@/hooks/useLocalEdgesNodes";
 
 type NodeHandle = {
@@ -72,6 +73,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
   const { localNodes, localEdges } = useLocalEdgesNodes();
 
   const { recordEvent, cancelEvent } = useSaveEventsContext();
+  const setToastMessage = useToastMessageContext();
 
   const connectingNode = useRef<NodeHandle | null>(null);
   const selectedEdgeId = useRef<string | null>(null);
@@ -111,10 +113,15 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
 
     if (edgesIds.length > 0) {
       deleteEdges({ protocolId, edgesIds })
-        .catch(() =>
+        .catch((error) => {
+          setToastMessage({
+            type: "error",
+            text: `Could not delete edges: ${error}`
+          })
           useProtocolStore.setState((state) => ({
             edges: [...state.edges, ...edges]
           }))
+        }
         );
     }
   }
@@ -264,14 +271,18 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
     for (const nodeId of nodesIds) {
       cancelEvent({
         type: "node",
-        id: nodeId 
+        id: nodeId
       });
     }
 
     // TODO: show toast message in case it fails
     deleteNodes({ protocolId, nodesIds })
       .then(() => removeNodesData(nodesIds))
-      .catch(() => {
+      .catch((error) => {
+        setToastMessage({
+          type: "error",
+          text: `Could not delete nodes: ${error}`
+        })
         useProtocolStore.setState((state) => ({
           nodes: [...state.nodes, ...allowedNodes],
           edges: [...state.edges, ...connectedEdges]

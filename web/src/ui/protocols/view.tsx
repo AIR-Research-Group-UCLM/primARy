@@ -16,7 +16,7 @@ import useToastMessage from "@/hooks/useToastMessage";
 import FlowChartEditor from "@/ui/protocols/flowchart/editor";
 import NodeEditor from "@/ui/protocols/node-editor";
 
-import { UnsuccessfulResponse, noInitialSpace } from "@/utils";
+import { noInitialSpace } from "@/utils";
 
 import { FlowchartNode } from "./flowchart/node";
 import useSaveEvents, { ReturnEventStore } from "@/hooks/useSaveEvents"
@@ -30,6 +30,7 @@ import { FlowchartEdge } from "./flowchart/edge";
 import useLocalEdgesNodes from "@/hooks/useLocalEdgesNodes";
 import { flowchartEdgeToEdge } from "@/type-conversions";
 import { useEffect } from "react";
+import useToastMessageContext from "@/hooks/useToastMessageContext";
 
 type Props = {
   protocolId: number;
@@ -43,9 +44,9 @@ export default function ProtocolView({ protocolId }: Props) {
   const { localNodes, localEdges } = useLocalEdgesNodes();
 
   const saveEvents = useSaveEvents(onSave, 2000, 10000);
+  const setToastMessage = useToastMessageContext();
   const { recordEvent, flush, isPending } = saveEvents;
 
-  const { isOpen, toastMessage, messageType, setToastMessage } = useToastMessage();
   const router = useRouter();
 
   useEffect(() => () => {
@@ -116,12 +117,12 @@ export default function ProtocolView({ protocolId }: Props) {
       });
       setToastMessage({
         type: "success",
-        message: "Saved"
+        text: "Saved"
       });
     } catch (error) {
       setToastMessage({
         type: "error",
-        message: String(error)
+        text: String(error)
       })
       throw error;
     }
@@ -134,140 +135,117 @@ export default function ProtocolView({ protocolId }: Props) {
     });
   }
 
-  function handleClose(event?: React.SyntheticEvent | Event, reason?: string) {
-    if (reason === "clickaway") {
-      return;
-    }
-
-    setToastMessage(null);
-  }
-
   async function onSaveClick() {
     flush();
   }
 
   return (
-    <>
-      <SaveEventsContext.Provider value={saveEvents}>
+    <SaveEventsContext.Provider value={saveEvents}>
+      <Box sx={{
+        display: "flex",
+        flexDirection: "column",
+        padding: "5px",
+        height: "100%"
+      }}>
+        <Box>
+          <TextField
+            fullWidth
+            error={name === ""}
+            required
+            label="Protocol Name"
+            value={name}
+            onChange={(e) => onNameChange(e.target.value)}
+            variant="outlined"
+            sx={{
+              marginBottom: "10px",
+              background: "white",
+              flexGrow: 1
+            }}
+            inputProps={{
+              style: {
+                fontSize: "20px"
+              }
+            }}
+            InputProps={{
+              style: {
+                fontSize: "15px"
+              }
+            }}
+          />
+        </Box>
         <Box sx={{
           display: "flex",
-          flexDirection: "column",
-          padding: "5px",
+          gap: "10px",
           height: "100%"
         }}>
-          <Box>
-            <TextField
-              fullWidth
-              error={name === ""}
-              required
-              label="Protocol Name"
-              value={name}
-              onChange={(e) => onNameChange(e.target.value)}
-              variant="outlined"
-              sx={{
-                marginBottom: "10px",
-                background: "white",
-                flexGrow: 1
-              }}
-              inputProps={{
-                style: {
-                  fontSize: "20px"
-                }
-              }}
-              InputProps={{
-                style: {
-                  fontSize: "15px"
-                }
-              }}
+          <Paper elevation={5} sx={{
+            flex: "2 0",
+            border: "solid 1px"
+          }}>
+            <ReactFlowProvider>
+              <FlowChartEditor protocolId={protocolId} />
+            </ReactFlowProvider>
+          </Paper>
+
+          {selectedNodeId &&
+            <NodeEditor
+              protocolId={protocolId}
+              selectedNodeId={selectedNodeId}
             />
+          }
+        </Box>
+        <Paper
+          elevation={5}
+          sx={{
+            display: "flex",
+            border: "solid 1px",
+            alignContent: "center",
+            justifyContent: "center",
+            padding: "10px",
+            marginTop: "20px"
+          }}
+        >
+          {false && <LinearProgress />}
+          <Box sx={{
+            display: "flex",
+            flex: "1",
+            justifyContent: "center",
+          }} >
+            <Button
+              onClick={async () => {
+                await flush();
+                router.push("/protocols");
+              }}
+              variant="contained"
+              size="large"
+              startIcon={<ArrowBackIcon />}
+              sx={{
+                borderRadius: "30px"
+              }}
+            >
+              Exit and save
+            </Button>
           </Box>
           <Box sx={{
             display: "flex",
-            gap: "10px",
-            height: "100%"
-          }}>
-            <Paper elevation={5} sx={{
-              flex: "2 0",
-              border: "solid 1px"
-            }}>
-              <ReactFlowProvider>
-                <FlowChartEditor protocolId={protocolId} />
-              </ReactFlowProvider>
-            </Paper>
-
-            {selectedNodeId &&
-              <NodeEditor
-                protocolId={protocolId}
-                selectedNodeId={selectedNodeId}
-              />
-            }
+            flex: "1",
+            justifyContent: "center",
+          }} >
+            <Button
+              disabled={!isPending}
+              onClick={onSaveClick}
+              variant="contained"
+              size="large"
+              startIcon={<SaveAltIcon />}
+              sx={{
+                borderRadius: "30px"
+              }}
+            >
+              Save
+            </Button>
           </Box>
-          <Paper
-            elevation={5}
-            sx={{
-              display: "flex",
-              border: "solid 1px",
-              alignContent: "center",
-              justifyContent: "center",
-              padding: "10px",
-              marginTop: "20px"
-            }}
-          >
-            {false && <LinearProgress />}
-            <Box sx={{
-              display: "flex",
-              flex: "1",
-              justifyContent: "center",
-            }} >
-              <Button
-                onClick={async () => {
-                  await flush();
-                  router.push("/protocols");
-                }}
-                variant="contained"
-                size="large"
-                startIcon={<ArrowBackIcon />}
-                sx={{
-                  borderRadius: "30px"
-                }}
-              >
-                Exit and save
-              </Button>
-            </Box>
-            <Box sx={{
-              display: "flex",
-              flex: "1",
-              justifyContent: "center",
-            }} >
-              <Button
-                disabled={!isPending}
-                onClick={onSaveClick}
-                variant="contained"
-                size="large"
-                startIcon={<SaveAltIcon />}
-                sx={{
-                  borderRadius: "30px"
-                }}
-              >
-                Save
-              </Button>
-            </Box>
-          </Paper>
-        </Box>
-      </ SaveEventsContext.Provider>
-      <Snackbar
-        open={isOpen}
-        autoHideDuration={messageType == "success" ? 1500 : 3000}
-        onClose={handleClose}
-      >
-        <Alert
-          onClose={handleClose}
-          severity={messageType}
-          variant="filled"
-        >
-          {toastMessage}
-        </Alert>
-      </Snackbar>
-    </>
+        </Paper>
+      </Box>
+    </ SaveEventsContext.Provider>
   )
 }

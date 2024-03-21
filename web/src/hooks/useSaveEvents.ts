@@ -90,6 +90,10 @@ export default function useSaveEvents(
       };
       return result;
     } catch (error) {
+      secondTimerRunning.current = true;
+      setIsPending(true);
+      secondTimerId.current = setTimeout(flush, secondDelay);
+
       console.error(error);
       return Promise.resolve();
     }

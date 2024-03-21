@@ -13,6 +13,7 @@ import { defaultFetcher } from "@/utils";
 
 import { protocolToProtocolData } from "@/type-conversions";
 import LocalEdgesNodesProvider from "@/providers/local-edges-nodes";
+import ToastMessageProvider from "@/providers/toast";
 
 export default function Page({ params }: { params: { id: string } }) {
   const { data, isLoading } = useSWR<Protocol>(
@@ -34,7 +35,9 @@ export default function Page({ params }: { params: { id: string } }) {
     }}>
       <LocalEdgesNodesProvider>
         <ProtocolStoreProvider protocol={protocol}>
-          <ProtocolView protocolId={data.id} />
+          <ToastMessageProvider>
+            <ProtocolView protocolId={data.id} />
+          </ToastMessageProvider>
         </ProtocolStoreProvider>
       </LocalEdgesNodesProvider>
     </Box>
