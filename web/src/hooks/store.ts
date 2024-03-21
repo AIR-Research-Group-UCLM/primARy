@@ -1,8 +1,7 @@
 
 import {
   applyNodeChanges,
-  applyEdgeChanges,
-  addEdge
+  applyEdgeChanges
 } from "reactflow";
 
 import { create } from "zustand";
@@ -12,14 +11,13 @@ import type {
   OnEdgesChange,
   NodeChange,
   EdgeChange,
-  OnConnect,
   Connection,
 } from "reactflow";
 
 import type { NodeData } from "@/types";
 
 import type { FlowchartNode } from "@/ui/protocols/flowchart/node";
-import type { FlowchartEdge, FlowchartEdgeData } from "@/ui/protocols/flowchart/edge";
+import { type FlowchartEdge, type FlowchartEdgeData, defaultEdgeData } from "@/ui/protocols/flowchart/edge";
 
 export type ProtocolData = {
   name: string;
@@ -30,16 +28,18 @@ export type ProtocolData = {
 }
 
 export type ProtocolActions = {
-  onNodesChange: OnNodesChange;
-  onEdgesChange: OnEdgesChange;
-  addEdgeFromConnection: OnConnect;
+  applyNodeChanges: OnNodesChange;
+  applyEdgeChanges: OnEdgesChange;
+  addEdgeFromConnection: (connection: Connection, edgeId: string) => void;
   addNode: (node: FlowchartNode, nodeData: NodeData) => void;
   addEdge: (edge: FlowchartEdge) => void;
+
   setSelectedNodeId: (selectedNodeId: string | null) => void;
 
   changeName: (name: string) => void;
   changeNode: (nodeId: string, nodeData: Partial<FlowchartNode>) => void;
   changeNodeData: (nodeId: string, nodeData: Partial<NodeData>) => void;
+  removeNodesData: (nodeIds: string[]) => void;
   changeEdgeData: (edgeId: string, edgeData: Partial<FlowchartEdgeData>) => void;
   changeInitialNodeId: (string: string) => void;
 }
@@ -54,25 +54,43 @@ export const defaultProtocolState = {
   nodes: [],
   edges: [],
   nodesData: new Map(),
+
+  localNodesIds: new Set<string>(),
+  localEdgesIds: new Set<string>(),
   selectedNodeId: null
 }
 
 const useProtocolStore = create<ProtocolState>((set, get) => ({
   ...defaultProtocolState,
 
-  onNodesChange: (changes: NodeChange[]) => {
+  applyNodeChanges: (changes: NodeChange[]) => {
     set((state) => ({
-      nodes: applyNodeChanges(changes, state.nodes),
+      nodes: applyNodeChanges(changes, state.nodes)
     }));
   },
-  onEdgesChange: (changes: EdgeChange[]) => {
+  applyEdgeChanges: (changes: EdgeChange[]) => {
     set((state) => ({
-      edges: applyEdgeChanges(changes, get().edges),
+      edges: applyEdgeChanges(changes, state.edges),
     }));
   },
-  addEdgeFromConnection: (connection: Connection) => {
+  addEdgeFromConnection: (connection: Connection, edgeId: string) => {
+    if (connection.source == null || connection.target == null ||
+      connection.sourceHandle == null || connection.targetHandle == null) {
+      return
+    }
+
+    const edge = {
+      id: edgeId,
+      source: connection.source,
+      target: connection.target,
+      sourceHandle: connection.sourceHandle,
+      targetHandle: connection.targetHandle,
+      data: {
+        ...defaultEdgeData
+      }
+    }
     set((state) => ({
-      edges: addEdge(connection, state.edges)
+      edges: [...state.edges, edge]
     }));
   },
   addEdge: (edge) => {
@@ -128,11 +146,22 @@ const useProtocolStore = create<ProtocolState>((set, get) => ({
       nodesData: new Map(state.nodesData).set(nodeId, { ...previousData, ...nodeData })
     }));
   },
+  removeNodesData: (nodeIds) => {
+    const copy = new Map(get().nodesData);
+
+    for (const nodeId of nodeIds) {
+      copy.delete(nodeId);
+    }
+
+    set((state) => ({
+      nodesData: copy
+    }));
+  },
   changeName(name) {
     set({ name });
   },
   changeInitialNodeId(initialNodeId: string) {
-    set({initialNodeId});
+    set({ initialNodeId });
   }
 }));
 

@@ -19,7 +19,7 @@ class Position(BaseModel):
 
 class NodeData(BaseModel):
     name: str = Field(min_length=1)
-    description: str = Field(min_length=1)
+    description: str = ""
 
 
 class Node(BaseModel):
@@ -36,9 +36,10 @@ class NodeResource(BaseModel):
 
 
 class Edge(BaseModel):
+    id: str = Field(min_length=1)
     source: str = Field(min_length=1)
     target: str = Field(min_length=1)
-    label: str | None
+    label: str
     source_handle: str
     target_handle: str
 
@@ -62,6 +63,10 @@ class Protocol(BaseModel):
     nodes: list[Node]
     edges: list[Edge]
 
+class ProtocolUpsert(BaseModel):
+    name: str | None = None
+    nodes: list[Node] = []
+    edges: list[Edge] = []
 
 class PatchNodeResource(BaseModel):
     name: str = Field(min_length=1)

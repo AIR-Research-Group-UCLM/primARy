@@ -2,7 +2,7 @@
 
 import Box from "@mui/material/Box";
 
-import ProtocolStoreProvider from "@/ui/protocols/store-provider";
+import ProtocolStoreProvider from "@/providers/store-provider";
 import ProtocolView from "@/ui/protocols/view";
 
 import LoadingSpinner from "@/ui/loading-spinner";
@@ -12,6 +12,7 @@ import useSWR from "swr";
 import { defaultFetcher } from "@/utils";
 
 import { protocolToProtocolData } from "@/type-conversions";
+import LocalEdgesNodesProvider from "@/providers/local-edges-nodes";
 
 export default function Page({ params }: { params: { id: string } }) {
   const { data, isLoading } = useSWR<Protocol>(
@@ -31,9 +32,11 @@ export default function Page({ params }: { params: { id: string } }) {
     <Box sx={{
       height: "91%"
     }}>
-      <ProtocolStoreProvider protocol={protocol}>
-        <ProtocolView protocolId={data.id}/>
-      </ProtocolStoreProvider>
+      <LocalEdgesNodesProvider>
+        <ProtocolStoreProvider protocol={protocol}>
+          <ProtocolView protocolId={data.id} />
+        </ProtocolStoreProvider>
+      </LocalEdgesNodesProvider>
     </Box>
   );
 }

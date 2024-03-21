@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 import shutil
 import os
 
 from pymysql.err import IntegrityError
+import sqlalchemy.dialects.mysql as mysql
 import sqlalchemy as sa
 
 from . import schemas as sc
@@ -21,21 +22,96 @@ RESOURCES_PATH = "env/"
 initial_node = md.Node(
     id="V1StGXR8_Z5jdHi6B-myT",
     position=md.Position(x=0, y=0),
-    data=md.NodeData(name="Initial Node",
-                     description="Initial Node description")
+    data=md.NodeData(name="Initial Node")
 )
 
+def create_node(session: Session, protocol_id: int, node: md.Node):
+    session.execute(sa.insert(sc.Node).values(
+        protocol_id=protocol_id,
+        **utils.node_to_schema(node)
+    ))
+    session.commit()
 
 def get_protocols(session: Session):
     query = sa.select(sc.Protocol.id, sc.Protocol.name)
     result = session.execute(query)
     return result.mappings()
 
+def delete_edges(session: Session, protocol_id: int, edges_ids: list[str]):
+    query = sa.delete(sc.Edge).where(
+        (sc.Edge.protocol_id == protocol_id) &
+        (sc.Edge.id.in_(edges_ids))
+    )
+    results = session.execute(query)
+    if results.rowcount != len(edges_ids):
+        return False
+    session.commit()
+    return True
+
+def delete_nodes(session: Session, protocol_id: int, nodes_ids: list[str]):
+    # TODO: Check you are not trying to delete the initial node
+
+    query = sa.delete(sc.Node).where(
+        (sc.Node.protocol_id == protocol_id) &
+        (sc.Node.id.in_(nodes_ids))
+    )
+    results = session.execute(query)
+    if results.rowcount != len(nodes_ids):
+        return False
+    session.commit()
+    return True
+
+def upsert_protocol(session: Session, protocol_id: int, protocol: md.ProtocolUpsert):
+    exists_query = sa.select(sc.Protocol.id).where(sc.Protocol.id == protocol_id)
+    exists_result = session.execute(exists_query).first()
+
+    if exists_result is None:
+        # TODO: change to HTTPException
+        raise InvalidProtocolException("The protocol does not exist")
+
+    if protocol.name is not None:
+        if protocol.name.strip() == "":
+            raise InvalidProtocolException("Name can't be empty")
+
+        query = sa.update(sc.Protocol).where(
+            sc.Protocol.id == protocol_id
+        ).values(
+            name=protocol.name
+        )
+        session.execute(query)
+
+    if len(protocol.nodes) > 0:
+        records = [
+            {"protocol_id": protocol_id, **utils.node_to_schema(node)} for node in protocol.nodes
+        ]
+        upsert_query = create_upsert_query(mysql.insert(sc.Node), records)
+        session.execute(upsert_query)
+    
+    if len(protocol.edges) > 0:
+        # TODO: catch integrity error
+        records = [
+            {"protocol_id": protocol_id, **edge.model_dump()} for edge in protocol.edges
+        ]
+        upsert_query = create_upsert_query(mysql.insert(sc.Edge), records)
+        session.execute(upsert_query)
+    
+    session.commit()
 
 def get_nodes(session: Session, protocol_id: int) -> list[md.Node]:
     query = sa.select(sc.Node).where(sc.Node.protocol_id == protocol_id)
     nodes = session.execute(query).all()
     return [utils.schema_to_node(node[0]) for node in nodes]
+
+def delete_node(session: Session, protocol_id: int, node_id: str):
+    result = session.execute(
+        sa.delete(sc.Node)
+        .where(
+            (sc.Node.id == node_id) &
+            (sc.Node.protocol_id == protocol_id)
+        )
+    )
+    session.commit()
+    return result.rowcount != 0
 
 
 def delete_node_resource(
@@ -221,6 +297,13 @@ def create_protocol(session: Session, protocol: md.ProtocolCreate) -> md.Protoco
         name=protocol.name
     )
 
+def create_upsert_query(
+    insert_query: mysql.Insert,
+    records: list[dict[str, Any]],
+):
+    insert_query = insert_query.values(records)
+    update_values  = {inserted_col.name : inserted_col for inserted_col in insert_query.inserted}
+    return insert_query.on_duplicate_key_update(**update_values)
 
 def _insert_nodes_edges(
     session: Session,

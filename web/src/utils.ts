@@ -15,7 +15,11 @@ export async function defaultFetcher<S>(url: string) {
   return JSONfetcher<S>(url);
 }
 
-export async function JSONfetcher<S = null, E = any>(url: string, options?: RequestInit): Promise<S> {
+export function noInitialSpace(value: string) : string{
+  return value.trim() !== "" ? value : "";
+}
+
+export async function JSONfetcher<S = void, E = any>(url: string, options?: RequestInit): Promise<S> {
   const res = await fetch(url, options);
   if (!res.ok) {
     const info = await res.json() as E;

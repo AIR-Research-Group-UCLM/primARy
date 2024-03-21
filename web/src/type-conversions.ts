@@ -1,5 +1,6 @@
-import type { Protocol, Position } from "@/types";
+import type { Protocol, Position, Edge } from "@/types";
 import type { ProtocolData } from "./hooks/store";
+import { FlowchartEdge } from "./ui/protocols/flowchart/edge";
 
 export function protocolToProtocolData(protocol: Protocol): ProtocolData {
   return {
@@ -11,8 +12,8 @@ export function protocolToProtocolData(protocol: Protocol): ProtocolData {
       position: node.position,
       type: "flowchart-node"
     })),
-    edges: protocol.edges.map((edge, index) => ({
-      id: `${index}`,
+    edges: protocol.edges.map((edge) => ({
+      id: edge.id,
       source: edge.source,
       target: edge.target,
       sourceHandle: edge.sourceHandle,
@@ -26,6 +27,17 @@ export function protocolToProtocolData(protocol: Protocol): ProtocolData {
   };
 }
 
+export function flowchartEdgeToEdge(edge: FlowchartEdge): Edge {
+  return {
+    id: edge.id,
+    source: edge.source,
+    target: edge.target,
+    label: edge.data?.label ?? "",
+    sourceHandle: edge.sourceHandle!,
+    targetHandle: edge.targetHandle!,
+  }
+}
+
 export function protocolDataToProtocol(protocolId: number, protocolData: ProtocolData): Protocol {
   return {
     id: protocolId,
@@ -37,6 +49,7 @@ export function protocolDataToProtocol(protocolId: number, protocolData: Protoco
       data: protocolData.nodesData.get(node.id)!
     })),
     edges: protocolData.edges.map((edge) => ({
+      id: edge.id,
       source: edge.source,
       target: edge.target,
       label: edge.data?.label ?? "",

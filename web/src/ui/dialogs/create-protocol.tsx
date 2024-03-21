@@ -6,7 +6,7 @@ import TextField from "@mui/material/TextField";
 import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 
-import { useState } from "react";
+import { useState, KeyboardEvent } from "react";
 
 type Props = {
   isOpen: boolean;
@@ -16,6 +16,14 @@ type Props = {
 
 export default function CreateProtocolDialog({ isOpen, handleClose, onCreateClick }: Props) {
   const [text, setText] = useState<string>("");
+
+  function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    if (text !== "" && e.key === "Enter") {
+      e.preventDefault();
+      onCreateClick?.(text);
+    }
+  }
+
   return (
     <Dialog
       open={isOpen}
@@ -33,6 +41,7 @@ export default function CreateProtocolDialog({ isOpen, handleClose, onCreateClic
         <TextField
           value={text}
           onChange={(e) => setText(e.target.value)}
+          onKeyDown={onKeyDown}
           margin="dense"
           fullWidth
           variant="standard"
