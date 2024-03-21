@@ -19,6 +19,7 @@ import type {
   OnConnectEnd,
   OnNodesChange,
   OnEdgesChange,
+  Connection,
 } from "reactflow";
 
 import type { HandlePosition } from "@/ui/protocols/flowchart/handle";
@@ -41,6 +42,7 @@ type OnNodeClick = (event: MouseEvent, node: FlowchartNode) => void;
 type OnPaneClick = (event: MouseEvent) => void;
 type OnEdgeClick = (event: MouseEvent, edge: FlowchartEdge) => void;
 type OnNodesDelete = (nodes: FlowchartNode[]) => void;
+type IsValidConnection = (connection: Connection) => boolean;
 
 const edgeTypes = {
   "flowchart-edge": RFFlowChartEdge
@@ -113,6 +115,10 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
 
     if (edgesIds.length > 0) {
       deleteEdges({ protocolId, edgesIds })
+        .then(() => setToastMessage({
+          type: "success",
+          text: "Saved"
+        }))
         .catch((error) => {
           setToastMessage({
             type: "error",
@@ -192,6 +198,16 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
       nodeId,
       handleId: handleId as HandlePosition,
     };
+  }, []);
+
+  const isValidConnection: IsValidConnection = useCallback((connection) => {
+    if (connection.target == null || connection.source == null ||
+      connection.sourceHandle == null || connection.targetHandle == null) {
+      return true;
+    }
+    return !edges.some((edge) =>
+      edge.source === connection.target && edge.sourceHandle === connection.targetHandle
+    );
   }, []);
 
   const onConnectEnd: OnConnectEnd = useCallback((event) => {
@@ -277,7 +293,13 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
 
     // TODO: show toast message in case it fails
     deleteNodes({ protocolId, nodesIds })
-      .then(() => removeNodesData(nodesIds))
+      .then(() => {
+        setToastMessage({
+          type: "success",
+          text: "Saved"
+        })
+        removeNodesData(nodesIds)
+      })
       .catch((error) => {
         setToastMessage({
           type: "error",
@@ -336,6 +358,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
       onConnectStart={onConnectStart}
       onConnectEnd={onConnectEnd}
       onNodesDelete={onNodesDelete}
+      isValidConnection={isValidConnection}
       panOnScroll
       selectionOnDrag
       nodeOrigin={[0.5, 0]}
