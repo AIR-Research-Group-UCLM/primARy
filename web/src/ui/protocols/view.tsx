@@ -43,7 +43,7 @@ export default function ProtocolView({ protocolId }: Props) {
   const { localNodes, localEdges } = useLocalEdgesNodes();
 
   const saveEvents = useSaveEvents(onSave, 2000, 10000);
-  const { recordEvent, cancelEvent, flush, isPending } = saveEvents;
+  const { recordEvent, flush, isPending } = saveEvents;
 
   const { isOpen, toastMessage, messageType, setToastMessage } = useToastMessage();
   const router = useRouter();
@@ -104,7 +104,11 @@ export default function ProtocolView({ protocolId }: Props) {
       edges.push(flowchartEdgeToEdge(edge));
     }
 
-    if (name || nodes.length > 0 || edges.length > 0) {
+    if (!name && nodes.length === 0 && edges.length == 0) {
+      return;
+    }
+
+    try {
       await upsertProtocol({
         protocolId, protocol: {
           name, nodes, edges
@@ -112,8 +116,14 @@ export default function ProtocolView({ protocolId }: Props) {
       });
       setToastMessage({
         type: "success",
-        message: "Guardado"
+        message: "Saved"
       });
+    } catch (error) {
+      setToastMessage({
+        type: "error",
+        message: String(error)
+      })
+      throw error;
     }
   }
 
