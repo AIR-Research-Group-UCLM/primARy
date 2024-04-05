@@ -17,13 +17,15 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
 # TODO: pass this data as an env variable
-RESOURCES_PATH = "env/"
+RESOURCES_PATH = "env/nodes"
+DOCS_PATH = "env/docs"
 
 initial_node = md.Node(
     id="V1StGXR8_Z5jdHi6B-myT",
     position=md.Position(x=0, y=0),
     data=md.NodeData(name="Initial Node")
 )
+
 
 def create_node(session: Session, protocol_id: int, node: md.Node):
     session.execute(sa.insert(sc.Node).values(
@@ -32,10 +34,12 @@ def create_node(session: Session, protocol_id: int, node: md.Node):
     ))
     session.commit()
 
+
 def get_protocols(session: Session):
     query = sa.select(sc.Protocol.id, sc.Protocol.name)
     result = session.execute(query)
     return result.mappings()
+
 
 def delete_edges(session: Session, protocol_id: int, edges_ids: list[str]):
     query = sa.delete(sc.Edge).where(
@@ -47,6 +51,7 @@ def delete_edges(session: Session, protocol_id: int, edges_ids: list[str]):
         return False
     session.commit()
     return True
+
 
 def delete_nodes(session: Session, protocol_id: int, nodes_ids: list[str]):
     # TODO: Check you are not trying to delete the initial node
@@ -61,8 +66,10 @@ def delete_nodes(session: Session, protocol_id: int, nodes_ids: list[str]):
     session.commit()
     return True
 
+
 def upsert_protocol(session: Session, protocol_id: int, protocol: md.ProtocolUpsert):
-    exists_query = sa.select(sc.Protocol.id).where(sc.Protocol.id == protocol_id)
+    exists_query = sa.select(sc.Protocol.id).where(
+        sc.Protocol.id == protocol_id)
     exists_result = session.execute(exists_query).first()
 
     if exists_result is None:
@@ -86,7 +93,7 @@ def upsert_protocol(session: Session, protocol_id: int, protocol: md.ProtocolUps
         ]
         upsert_query = create_upsert_query(mysql.insert(sc.Node), records)
         session.execute(upsert_query)
-    
+
     if len(protocol.edges) > 0:
         # TODO: catch integrity error
         records = [
@@ -94,13 +101,15 @@ def upsert_protocol(session: Session, protocol_id: int, protocol: md.ProtocolUps
         ]
         upsert_query = create_upsert_query(mysql.insert(sc.Edge), records)
         session.execute(upsert_query)
-    
+
     session.commit()
+
 
 def get_nodes(session: Session, protocol_id: int) -> list[md.Node]:
     query = sa.select(sc.Node).where(sc.Node.protocol_id == protocol_id)
     nodes = session.execute(query).all()
     return [utils.schema_to_node(node[0]) for node in nodes]
+
 
 def delete_node(session: Session, protocol_id: int, node_id: str):
     result = session.execute(
@@ -133,7 +142,7 @@ def delete_node_resource(
     return result.rowcount != 0
 
 
-def get_node_resources(session: Session, protocol_id: int, node_id: str) -> list[md.NodeResource]:
+def get_node_resources(session: Session, protocol_id: int, node_id: str) -> list[md.File]:
     node_query = sa.select(sc.Node.id).where(
         (sc.Node.protocol_id == protocol_id) & (sc.Node.id == node_id)
     )
@@ -153,7 +162,7 @@ def get_node_resources(session: Session, protocol_id: int, node_id: str) -> list
     result = session.execute(resource_query)
 
     return (
-        md.NodeResource(**row, filename=f"{row['id']}.{row['extension']}") for row in result.mappings()
+        md.File(**row, filename=f"{row['id']}.{row['extension']}") for row in result.mappings()
     )
 
 
@@ -194,12 +203,57 @@ def get_protocol(session: Session, protocol_id: int) -> md.Protocol:
     )
 
 
+def create_docs(
+    session: Session,
+    protocol_id: int,
+    doc_files: list[utils.FileWithExtension]
+):
+    exists_protocol = get_protocol(session, protocol_id) is not None
+    if not exists_protocol:
+        return None
+
+    query = sa.insert(sc.Documents).returning(
+        sc.Documents.id, sc.Documents.extension, sc.Documents.name, sc.Documents.size
+    )
+
+    # TODO: send documents to the llm service. It should return the ids of the documents generated
+    # by the ingestion pipeline
+
+    result = session.execute(
+        query,
+        [
+            {
+                "protocol_id": protocol_id,
+                "id": "una id obtenida del servicio llm",
+                "extension": doc.extension,
+                "name": doc.name,
+                "size": doc.size
+            }
+            for doc in doc_files
+        ]
+    )
+
+    saved_docs = [
+        md.File(**row, filename=f"{row['id']}.{row['extension']}") for row in result.mappings()
+    ]
+
+    # TODO: delete file if the operation of writing fails
+    for node_file, saved_doc in zip(doc_files, saved_docs):
+        path = os.path.join(RESOURCES_PATH, saved_doc.filename)
+        with open(path, "wb") as f:
+            shutil.copyfileobj(node_file.blob, f)
+
+    session.commit()
+
+    return saved_docs
+
+
 def create_node_resources(
     session: Session,
     protocol_id: int,
     node_id: str,
-    node_files: list[utils.NodeFile]
-) -> list[md.NodeResource]:
+    node_files: list[utils.FileWithExtension]
+) -> list[md.File]:
     query = sa.insert(sc.NodeResource).returning(
         sc.NodeResource.id, sc.NodeResource.extension, sc.NodeResource.name, sc.NodeResource.size
     )
@@ -222,7 +276,7 @@ def create_node_resources(
         return None
 
     saved_resources = [
-        md.NodeResource(**row, filename=f"{row['id']}.{row['extension']}") for row in result.mappings()
+        md.File(**row, filename=f"{row['id']}.{row['extension']}") for row in result.mappings()
     ]
 
     for node_file, saved_resource in zip(node_files, saved_resources):
@@ -297,13 +351,16 @@ def create_protocol(session: Session, protocol: md.ProtocolCreate) -> md.Protoco
         name=protocol.name
     )
 
+
 def create_upsert_query(
     insert_query: mysql.Insert,
     records: list[dict[str, Any]],
 ):
     insert_query = insert_query.values(records)
-    update_values  = {inserted_col.name : inserted_col for inserted_col in insert_query.inserted}
+    update_values = {
+        inserted_col.name: inserted_col for inserted_col in insert_query.inserted}
     return insert_query.on_duplicate_key_update(**update_values)
+
 
 def _insert_nodes_edges(
     session: Session,

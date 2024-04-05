@@ -21,7 +21,7 @@ import VisuallyHiddenInput from "@/ui/visually-hidden-input";
 import { useUploadFiles, useChangeResourceName, deleteNodeResource } from "@/mutation";
 
 // TODO: these imports are not necessary if we create a custom hook for the resources
-import type { NodeResource } from "@/types";
+import type { UserFile } from "@/types";
 import useNodeResources from "@/hooks/useNodeResources";
 
 type Props = {
@@ -79,8 +79,8 @@ function ModifyingHeader(
 }
 
 type NormalHeaderProps = {
-  nodeResource: NodeResource;
-  onModifyClick: (nodeResource: NodeResource) => void;
+  nodeResource: UserFile;
+  onModifyClick: (nodeResource: UserFile) => void;
 }
 
 function NormalHeader(
@@ -151,7 +151,7 @@ export default function NodeResourcesDialog(
 
   }
 
-  function onModifyClick(nodeResource: NodeResource) {
+  function onModifyClick(nodeResource: UserFile) {
     setSelectedResource({
       id: nodeResource.id,
       provisionalName: nodeResource.name
@@ -263,7 +263,7 @@ export default function NodeResourcesDialog(
               // TODO: use ENV VAR for this
               onDelete={onDelete}
               id={nodeResource.id}
-              img={`${process.env.API_BASE}/static/${nodeResource.filename}`}
+              img={`${process.env.API_BASE}/static/nodes/${nodeResource.filename}`}
               alt={nodeResource.name}
               header={
                 selectedResource?.id === nodeResource.id ? (

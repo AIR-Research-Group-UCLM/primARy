@@ -28,7 +28,7 @@ class Node(BaseModel):
     data: NodeData
 
 
-class NodeResource(BaseModel):
+class File(BaseModel):
     id: int
     filename: str
     name: str

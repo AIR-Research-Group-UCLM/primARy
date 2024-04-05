@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class NodeFile:
+class FileWithExtension:
     name: str
     extension: str
     size: int
@@ -26,13 +26,17 @@ def split_extension(filename: str):
     return filename[:delimiter_index], filename[delimiter_index + 1:]
 
 
-def file_upload_to_node_file(file: UploadFile):
+def file_upload_to_node_file(file: UploadFile) -> FileWithExtension:
+    # TODO: perform mime sniffing
     name, extension = split_extension(file.filename)
     if extension == "":
         raise InvalidFileException(
             f"{file.filename} does not contain any extension")
+    if name == "":
+        raise InvalidFileException(
+            f"The uploaded file does not have a name")
 
-    return NodeFile(
+    return FileWithExtension(
         name=name,
         extension=extension,
         size=file.size,
