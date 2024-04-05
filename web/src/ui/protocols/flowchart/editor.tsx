@@ -208,7 +208,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
     return !edges.some((edge) =>
       edge.source === connection.target && edge.sourceHandle === connection.targetHandle
     );
-  }, []);
+  }, [edges]);
 
   const onConnectEnd: OnConnectEnd = useCallback((event) => {
     if (connectingNode.current === null || !isEventTargetPane(event.target as Element)) {
@@ -291,7 +291,6 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
       });
     }
 
-    // TODO: show toast message in case it fails
     deleteNodes({ protocolId, nodesIds })
       .then(() => {
         setToastMessage({
