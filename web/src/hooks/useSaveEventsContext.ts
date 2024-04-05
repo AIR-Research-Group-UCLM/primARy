@@ -1,8 +1,7 @@
 import { createContext, useContext } from "react";
 import { type SaveEventsReturns } from "@/hooks/useSaveEvents";
 
-// TODO: Find a way of making the type parameter generic when defining a context
-export const SaveEventsContext = createContext<SaveEventsReturns<void> | null>(null);
+export const SaveEventsContext = createContext<SaveEventsReturns | null>(null);
 
 export default function useSaveEventsContext() {
   const saveEvents = useContext(SaveEventsContext);

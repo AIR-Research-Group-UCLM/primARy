@@ -1,17 +1,28 @@
 import { useState } from "react";
 
 type MessageType = "success" | "error";
+export type Message = {
+  type: MessageType;
+  text: string;
+}
 
-export default function useToastMessage() {
-  const [isOpen, setIsOpen] = useState<boolean>();
+export type ToastMessageReturn = {
+  isOpen: boolean;
+  toastMessage: string;
+  messageType: MessageType,
+  setToastMessage: (message: Message | null) => void;
+}
+
+export default function useToastMessage(): ToastMessageReturn {
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const [messageType, setMessageType] = useState<MessageType>("success");
   const [toastMessage, setToastMessage] = useState<string>("");
 
-  function setMessage(arg: { type: MessageType, message: string } | null) {
-    if (arg !== null) {
+  function setMessage(message: Message | null) {
+    if (message !== null) {
       setIsOpen(true);
-      setToastMessage(arg.message);
-      setMessageType(arg.type);
+      setToastMessage(message.text);
+      setMessageType(message.type);
     } else {
       setIsOpen(false);
     }

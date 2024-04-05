@@ -24,21 +24,21 @@ export type ReturnEventStore = {
   edgeIds: string[];
 }
 
-export type SaveEventsReturns<T = any> = {
+export type SaveEventsReturns = {
   recordEvent: (event: Event) => void;
   cancelEvent: (event: Event) => void;
-  flush: () => Promise<T>;
+  flush: () => Promise<void>;
   isPending: boolean;
 }
 
-export type SaveHandler<T> = (store: ReturnEventStore) => Promise<T>;
+export type SaveHandler = (store: ReturnEventStore) => Promise<void>;
 
 
-export default function useSaveEvents<T>(
-  func: SaveHandler<T>,
+export default function useSaveEvents(
+  func: SaveHandler,
   firstDelay: number,
   secondDelay: number
-): SaveEventsReturns<T> {
+): SaveEventsReturns {
   const eventStore = useRef<EventStore>({
     nameChanged: false,
     nodeIds: new Set<string>(),
@@ -46,7 +46,7 @@ export default function useSaveEvents<T>(
   });
 
   const [isPending, setIsPending] = useState<boolean>(false);
-  const funcRef = useRef<SaveHandler<T>>(func);
+  const funcRef = useRef<SaveHandler>(func);
   const firstTimerId = useRef<ReturnType<typeof setTimeout>>();
   const secondTimerId = useRef<ReturnType<typeof setTimeout>>();
   const secondTimerRunning = useRef<boolean>(false);
@@ -77,19 +77,26 @@ export default function useSaveEvents<T>(
 
   async function flush() {
     clearTimeouts();
-    const result = await funcRef.current({
-      nameChanged: eventStore.current.nameChanged,
-      nodeIds: Array.from(eventStore.current.nodeIds),
-      edgeIds: Array.from(eventStore.current.edgeIds),
-    });
+    try {
+      const result = await funcRef.current({
+        nameChanged: eventStore.current.nameChanged,
+        nodeIds: Array.from(eventStore.current.nodeIds),
+        edgeIds: Array.from(eventStore.current.edgeIds),
+      });
+      eventStore.current = {
+        nameChanged: false,
+        nodeIds: new Set(),
+        edgeIds: new Set(),
+      };
+      return result;
+    } catch (error) {
+      secondTimerRunning.current = true;
+      setIsPending(true);
+      secondTimerId.current = setTimeout(flush, secondDelay);
 
-    eventStore.current = {
-      nameChanged: false,
-      nodeIds: new Set(),
-      edgeIds: new Set(),
-    };
-
-    return result;
+      console.error(error);
+      return Promise.resolve();
+    }
   }
 
   function cancelEvent(event: Event) {

@@ -19,6 +19,7 @@ import type {
   OnConnectEnd,
   OnNodesChange,
   OnEdgesChange,
+  Connection,
 } from "reactflow";
 
 import type { HandlePosition } from "@/ui/protocols/flowchart/handle";
@@ -29,6 +30,7 @@ import "reactflow/dist/style.css";
 import { nanoid } from "nanoid";
 import { deleteEdges, deleteNodes } from "@/mutation";
 import useSaveEventsContext from "@/hooks/useSaveEventsContext";
+import useToastMessageContext from "@/hooks/useToastMessageContext";
 import useLocalEdgesNodes from "@/hooks/useLocalEdgesNodes";
 
 type NodeHandle = {
@@ -40,6 +42,7 @@ type OnNodeClick = (event: MouseEvent, node: FlowchartNode) => void;
 type OnPaneClick = (event: MouseEvent) => void;
 type OnEdgeClick = (event: MouseEvent, edge: FlowchartEdge) => void;
 type OnNodesDelete = (nodes: FlowchartNode[]) => void;
+type IsValidConnection = (connection: Connection) => boolean;
 
 const edgeTypes = {
   "flowchart-edge": RFFlowChartEdge
@@ -72,6 +75,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
   const { localNodes, localEdges } = useLocalEdgesNodes();
 
   const { recordEvent, cancelEvent } = useSaveEventsContext();
+  const setToastMessage = useToastMessageContext();
 
   const connectingNode = useRef<NodeHandle | null>(null);
   const selectedEdgeId = useRef<string | null>(null);
@@ -111,10 +115,19 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
 
     if (edgesIds.length > 0) {
       deleteEdges({ protocolId, edgesIds })
-        .catch(() =>
+        .then(() => setToastMessage({
+          type: "success",
+          text: "Saved"
+        }))
+        .catch((error) => {
+          setToastMessage({
+            type: "error",
+            text: `Could not delete edges: ${error}`
+          })
           useProtocolStore.setState((state) => ({
             edges: [...state.edges, ...edges]
           }))
+        }
         );
     }
   }
@@ -186,6 +199,16 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
       handleId: handleId as HandlePosition,
     };
   }, []);
+
+  const isValidConnection: IsValidConnection = useCallback((connection) => {
+    if (connection.target == null || connection.source == null ||
+      connection.sourceHandle == null || connection.targetHandle == null) {
+      return true;
+    }
+    return !edges.some((edge) =>
+      edge.source === connection.target && edge.sourceHandle === connection.targetHandle
+    );
+  }, [edges]);
 
   const onConnectEnd: OnConnectEnd = useCallback((event) => {
     if (connectingNode.current === null || !isEventTargetPane(event.target as Element)) {
@@ -264,14 +287,23 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
     for (const nodeId of nodesIds) {
       cancelEvent({
         type: "node",
-        id: nodeId 
+        id: nodeId
       });
     }
 
-    // TODO: show toast message in case it fails
     deleteNodes({ protocolId, nodesIds })
-      .then(() => removeNodesData(nodesIds))
-      .catch(() => {
+      .then(() => {
+        setToastMessage({
+          type: "success",
+          text: "Saved"
+        })
+        removeNodesData(nodesIds)
+      })
+      .catch((error) => {
+        setToastMessage({
+          type: "error",
+          text: `Could not delete nodes: ${error}`
+        })
         useProtocolStore.setState((state) => ({
           nodes: [...state.nodes, ...allowedNodes],
           edges: [...state.edges, ...connectedEdges]
@@ -325,6 +357,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: number }) 
       onConnectStart={onConnectStart}
       onConnectEnd={onConnectEnd}
       onNodesDelete={onNodesDelete}
+      isValidConnection={isValidConnection}
       panOnScroll
       selectionOnDrag
       nodeOrigin={[0.5, 0]}
