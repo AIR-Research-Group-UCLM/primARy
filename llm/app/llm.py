@@ -18,10 +18,17 @@ set_global_tokenizer(
     AutoTokenizer.from_pretrained("mistralai/Mistral-7B-Instruct-v0.2").encode
 )
 
+from llama_index.llms.llama_cpp.llama_utils import (
+    messages_to_prompt,
+    completion_to_prompt,
+)
+
+def _mistral_completion_to_prompt(completion: str, system_prompt: str | None=None) -> str:
+    return f"<s>[INST]{completion}[/INST]"
+
 _llm_lock = threading.Lock()
 
-# TODO: adapt chat format
-# TODO: change env var
+# TODO: add env var
 _llm = LlamaCPP(
     model_path="",
     temperature=0.7,
@@ -31,6 +38,7 @@ _llm = LlamaCPP(
         n_gpu_layers=20,
         # max_tokens=None
     ),
+    completion_to_prompt=_mistral_completion_to_prompt
 )
 
 def aquire_llm_lock():
