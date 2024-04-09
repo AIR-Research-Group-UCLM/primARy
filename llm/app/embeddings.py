@@ -1,5 +1,4 @@
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-from llama_index.llms.llama_cpp import LlamaCPP
 
 EMBEDDING_DIMENSION = 1024
 
@@ -10,17 +9,6 @@ EMBEDDING_MODEL_MAX_SEQUENCE_LEN = 512
 
 embedding_model = HuggingFaceEmbedding(
     "BAAI/bge-large-en-v1.5",
+    # TODO: create env var for this
     cache_folder="",
-    # TODO: change this when I solve the problem with the drivers
-    device="cpu"
 )
-
-# llm = LlamaCPP(
-#     model_path="mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf",
-#     temperature=0.7,
-#     context_window=32768,
-#     model_kwargs=dict(
-#         n_gpu_layers=33,
-#         max_tokens=None
-#     ),
-# )

@@ -3,18 +3,19 @@ from llama_index.core import VectorStoreIndex
 
 from qdrant_client import QdrantClient, models
 
-from . import nlp_models
+from . import embeddings
 
 MAIN_COLLECTION_NAME = "main"
 
-qdrant_client = QdrantClient("http://127.0.0.1:6333")
+# TODO: create env var for this
+qdrant_client = QdrantClient()
 vector_store = QdrantVectorStore(
     collection_name=MAIN_COLLECTION_NAME,
     client=qdrant_client,
 )
 vector_index = VectorStoreIndex.from_vector_store(
     vector_store=vector_store,
-    embed_model=nlp_models.embedding_model
+    embed_model=embeddings.embedding_model
 )
 
 
@@ -27,7 +28,7 @@ def _setup_qdrant():
     qdrant_client.create_collection(
         collection_name=MAIN_COLLECTION_NAME,
         vectors_config=models.VectorParams(
-            size=nlp_models.EMBEDDING_DIMENSION,
+            size=embeddings.EMBEDDING_DIMENSION,
             distance=models.Distance.COSINE
         ),
         # TODO: search what these parameters mean
@@ -49,4 +50,5 @@ def _setup_qdrant():
     )
 
 
-_setup_qdrant()
+if __name__ == "__main__":
+    _setup_qdrant()

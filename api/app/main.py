@@ -48,6 +48,7 @@ async def invalid_protocol_exception_handler(request: Request, exc: InvalidProto
     )
 
 
+@app.exception_handler(InvalidFileException)
 async def invalid_file_exception_handler(request: Request, exc: InvalidFileException):
     return JSONResponse(
         status_code=400,
@@ -75,6 +76,7 @@ def get_node_resources(
     return result
 
 
+# TODO: handle possible errors
 @app.post("/protocols/{protocol_id}/upsert")
 def upsert_protocol(
     session: Annotated[Session, Depends(get_session)],
