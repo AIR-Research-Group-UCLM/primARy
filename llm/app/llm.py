@@ -18,35 +18,41 @@ set_global_tokenizer(
     AutoTokenizer.from_pretrained("mistralai/Mistral-7B-Instruct-v0.2").encode
 )
 
-def _mistral_completion_to_prompt(completion: str, system_prompt: str | None=None) -> str:
+
+def _mistral_completion_to_prompt(completion: str, system_prompt: str | None = None) -> str:
     return f"<s>[INST]{completion}[/INST]"
+
 
 _llm_lock = threading.Lock()
 
 # TODO: add env var
 _llm = LlamaCPP(
-    model_path="",
+    model_path="/home/pablo/llms/mistral-7b-instruct-v0.2.Q5_K_M.gguf",
     temperature=0.7,
     # context_window=32768,
     context_window=4096,
     model_kwargs=dict(
-        n_gpu_layers=20,
+        n_gpu_layers=15,
         # max_tokens=None
     ),
     completion_to_prompt=_mistral_completion_to_prompt
 )
 
+
 def aquire_llm_lock():
     _llm_lock.acquire()
 
+
 def release_llm_lock():
     _llm_lock.release()
+
 
 def stream_llm_response(generator: TokenGen) -> Generator[dict[str, str], None, None]:
     try:
         yield from (json.dumps({"text": text}) + "\n" for text in generator)
     finally:
         release_llm_lock()
+
 
 def query(
     prompt: str,

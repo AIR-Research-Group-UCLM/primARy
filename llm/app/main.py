@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 from typing import Annotated, TYPE_CHECKING
-import json
 
-from fastapi import FastAPI, UploadFile, Request, Query, Depends
+from fastapi import FastAPI, UploadFile, Request, Query
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from qdrant_client import models as qdrant_models
@@ -42,25 +41,23 @@ def create_doc(
 ):
     # TODO: find the way of properly documenting the following comment
     # If random_id is set to true, the document id is calculated randomly.
-    # Otherwise, the filename without the extension serves as the id
+    # Otherwise, the filename without the extension serves as the id so the user
+    # is in charge of ensuring that it is unique
 
     files = [utils.file_upload_to_node_file(doc) for doc in docs]
     documents: list[Document] = []
-    return_documents = list[md.Document] = []
 
     # Extract llama index documents and save the id for each document
     for file in files:
-        filename = f"{file.name}.{file.extension}"
-        new_documents = utils.from_file_to_llama_index_document(
+        document = utils.from_file_to_llama_index_document(
             file,
             random_id=random_id,
             metadata={
                 "protocol_id": protocol_id,
-                "filename": f"{file.name}.{file.extension}"
+                "filename": file.filename
             }
         )
-        return_documents.append(md.Document(
-            id=new_documents[0].doc_id, filename=filename))
+        documents.append(document)
 
     for document in documents:
         document.excluded_embed_metadata_keys = ["protocol_id"]
@@ -69,7 +66,7 @@ def create_doc(
     nodes = pipeline.run(documents=documents)
     vector_index.insert_nodes(nodes)
 
-    return return_documents
+    return [md.Document(id=document.doc_id, filename=document.metadata["filename"]) for document in documents]
 
 
 @app.delete("/docs/{protocol_id}/{doc_id}")
@@ -122,6 +119,7 @@ def generate_answer(
         prompt=prompt.prompt,
         protocol_id=protocol_id,
         response_mode=ResponseMode.COMPACT,
-        similarity_top_k=2
+        # response_mode=ResponseMode.COMPACT,
+        similarity_top_k=4
     )
     return StreamingResponse(streaming_response, media_type="application/x-ndjson")

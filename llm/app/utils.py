@@ -10,9 +10,11 @@ if TYPE_CHECKING:
     from fastapi import UploadFile
     from llama_index.core import Document
 
+import copy
 
-# TODO: All of this code should be in its own module because it is exactly the same 
+# TODO: All of this code should be in its own module because it is exactly the same
 # as the one in api
+
 
 @dataclass
 class FileWithExtension:
@@ -20,6 +22,10 @@ class FileWithExtension:
     extension: str
     size: int
     blob: BinaryIO
+
+    @property
+    def filename(self):
+        return f"{self.name}.{self.extension}"
 
 
 def split_extension(filename: str):
@@ -46,22 +52,22 @@ def file_upload_to_node_file(file: UploadFile) -> FileWithExtension:
         blob=file.file
     )
 
+
 def from_file_to_llama_index_document(
     file: FileWithExtension,
-    random_id: bool=False,
-    metadata: dict[str, Any] | None=None
-) -> list[Document]:
-    doc_id = file.name if not random_id else None
-    documents: list[Document] = []
-
+    random_id: bool = False,
+    metadata: dict[str, Any] | None = None
+) -> Document:
     if file.extension == "pdf":
-        documents = preprocessing.pdf_to_llama_index_document(file.blob, doc_id)
+        document = preprocessing.pdf_to_llama_index_document(file.blob)
     elif file.extension == "txt":
-        documents = [preprocessing.flat_to_llama_index_document(file.blob, doc_id)]
+        document = preprocessing.flat_to_llama_index_document(file.blob)
     else:
-        raise InvalidDocumentException(f"File extension {file.extension} not supported")
+        raise InvalidDocumentException(
+            f"File extension {file.extension} not supported")
 
-    for document in documents:
-        document.metadata.update(metadata)
+    if not random_id:
+        document.doc_id = file.name
 
-    return documents
+    document.metadata.update(metadata)
+    return document

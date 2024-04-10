@@ -31,39 +31,23 @@ pipeline = IngestionPipeline(
 
 # TODO: check if there is something more sophisticated to extract the text
 
-def pdf_to_llama_index_document(
-    stream: BinaryIO,
-    doc_id: str | None = None,
-) -> list[Document]:
+
+def pdf_to_llama_index_document(stream: BinaryIO) -> Document:
     pdf = pypdf.PdfReader(stream)
     num_pages = len(pdf.pages)
 
-    documents: list[Document] = []
+    text: list[str] = []
     for page in range(num_pages):
         page_text = pdf.pages[page].extract_text()
-        page_label = pdf.page_labels[page]
-        document = Document(
-            text=page_text,
-            metadata={"page_label": page_label}
-        )
+        text.append(page_text)
 
-        documents.append(document)
-
-    if doc_id is not None:
-        for document in documents:
-            document.doc_id = doc_id
-
-    return documents
+    return Document(text="".join(text))
 
 
-def flat_to_llama_index_document(
-    stream: BinaryIO,
-    doc_id: str | None=None
-) -> Document:
+def flat_to_llama_index_document(stream: BinaryIO) -> Document:
     try:
         text = stream.read().decode()
     except UnicodeDecodeError as exc:
-        raise InvalidDocumentException(f"The txt document is not utf-8 encoded") from exc
-    document = Document(text=text)
-    document.doc_id = doc_id
-    return document
+        raise InvalidDocumentException(
+            f"The txt document is not utf-8 encoded") from exc
+    return Document(text=text)
