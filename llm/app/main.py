@@ -121,6 +121,7 @@ def generate_answer(
     streaming_response = llm.query(
         prompt=prompt.prompt,
         protocol_id=protocol_id,
-        response_mode=ResponseMode.GENERATION
+        response_mode=ResponseMode.COMPACT,
+        similarity_top_k=2
     )
     return StreamingResponse(streaming_response, media_type="application/x-ndjson")

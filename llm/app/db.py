@@ -8,7 +8,7 @@ from . import embeddings
 MAIN_COLLECTION_NAME = "main"
 
 # TODO: create env var for this
-qdrant_client = QdrantClient()
+qdrant_client = QdrantClient("http://localhost:6333")
 vector_store = QdrantVectorStore(
     collection_name=MAIN_COLLECTION_NAME,
     client=qdrant_client,

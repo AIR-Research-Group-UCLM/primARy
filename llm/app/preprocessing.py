@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import BinaryIO, TextIO
+from typing import BinaryIO
 
 from llama_index.core.ingestion import IngestionPipeline
 from llama_index.core.node_parser import SentenceSplitter
@@ -9,6 +9,7 @@ from llama_index.core import Document
 import pypdf
 
 from .embeddings import embedding_model, EMBEDDING_MODEL_MAX_SEQUENCE_LEN
+from .exceptions import InvalidDocumentException
 
 pipeline = IngestionPipeline(
     transformations=[
@@ -56,10 +57,13 @@ def pdf_to_llama_index_document(
 
 
 def flat_to_llama_index_document(
-    stream: TextIO,
+    stream: BinaryIO,
     doc_id: str | None=None
 ) -> Document:
-    text = stream.read()
+    try:
+        text = stream.read().decode()
+    except UnicodeDecodeError as exc:
+        raise InvalidDocumentException(f"The txt document is not utf-8 encoded") from exc
     document = Document(text=text)
     document.doc_id = doc_id
-    return Document
+    return document

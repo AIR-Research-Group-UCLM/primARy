@@ -18,11 +18,6 @@ set_global_tokenizer(
     AutoTokenizer.from_pretrained("mistralai/Mistral-7B-Instruct-v0.2").encode
 )
 
-from llama_index.llms.llama_cpp.llama_utils import (
-    messages_to_prompt,
-    completion_to_prompt,
-)
-
 def _mistral_completion_to_prompt(completion: str, system_prompt: str | None=None) -> str:
     return f"<s>[INST]{completion}[/INST]"
 
