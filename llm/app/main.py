@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated, TYPE_CHECKING
 
-from fastapi import FastAPI, UploadFile, Request, Query
+from fastapi import FastAPI, UploadFile, Request, Form, Query
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from qdrant_client import models as qdrant_models
@@ -33,25 +33,23 @@ async def invalid_file_exception_handler(request: Request, exc: InvalidDocumentE
     )
 
 
-@app.post("/docs/{protocol_id}", response_model=list[md.Document])
+@app.post("/docs/{protocol_id}")
 def create_doc(
     protocol_id: int,
     docs: list[UploadFile],
-    random_id: bool = False
+    docs_ids: Annotated[list[str], Form(default_factory=list)]
 ):
-    # TODO: find the way of properly documenting the following comment
-    # If random_id is set to true, the document id is calculated randomly.
-    # Otherwise, the filename without the extension serves as the id so the user
-    # is in charge of ensuring that it is unique
 
     files = [utils.file_upload_to_node_file(doc) for doc in docs]
+    for file, doc_id in zip(files, docs_ids):
+        file.id = doc_id
+
     documents: list[Document] = []
 
     # Extract llama index documents and save the id for each document
     for file in files:
         document = utils.from_file_to_llama_index_document(
             file,
-            random_id=random_id,
             metadata={
                 "protocol_id": protocol_id,
                 "filename": file.filename

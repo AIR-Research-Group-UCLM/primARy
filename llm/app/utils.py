@@ -22,6 +22,7 @@ class FileWithExtension:
     extension: str
     size: int
     blob: BinaryIO
+    id: str | None = None
 
     @property
     def filename(self):
@@ -55,7 +56,6 @@ def file_upload_to_node_file(file: UploadFile) -> FileWithExtension:
 
 def from_file_to_llama_index_document(
     file: FileWithExtension,
-    random_id: bool = False,
     metadata: dict[str, Any] | None = None
 ) -> Document:
     if file.extension == "pdf":
@@ -66,8 +66,8 @@ def from_file_to_llama_index_document(
         raise InvalidDocumentException(
             f"File extension {file.extension} not supported")
 
-    if not random_id:
-        document.doc_id = file.name
+    if file.id is not None:
+        document.doc_id = file.id
 
     document.metadata.update(metadata)
     return document
