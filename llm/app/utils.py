@@ -21,6 +21,7 @@ class FileWithExtension:
     name: str
     extension: str
     size: int
+    mime: str
     blob: BinaryIO
     id: str | None = None
 
@@ -49,6 +50,7 @@ def file_upload_to_node_file(file: UploadFile) -> FileWithExtension:
     return FileWithExtension(
         name=name,
         extension=extension,
+        mime=file.content_type,
         size=file.size,
         blob=file.file
     )

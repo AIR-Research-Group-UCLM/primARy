@@ -6,12 +6,13 @@ import os
 
 from pymysql.err import IntegrityError
 import sqlalchemy.dialects.mysql as mysql
+import requests
 import sqlalchemy as sa
 
 from . import schemas as sc
 from . import models as md
 from . import utils
-from .exceptions import InvalidProtocolException
+from .exceptions import InvalidProtocolException, LLMServiceException
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
@@ -19,6 +20,7 @@ if TYPE_CHECKING:
 # TODO: pass this data as an env variable
 RESOURCES_PATH = "env/nodes"
 DOCS_PATH = "env/docs"
+LLM_SERVICE = "http://127.0.0.1:8001"
 
 initial_node = md.Node(
     id="V1StGXR8_Z5jdHi6B-myT",
@@ -207,7 +209,7 @@ def create_docs(
     session: Session,
     protocol_id: int,
     doc_files: list[utils.FileWithExtension]
-):
+) -> list[md.File]:
     exists_protocol = get_protocol(session, protocol_id) is not None
     if not exists_protocol:
         return None
@@ -216,15 +218,11 @@ def create_docs(
         sc.Documents.id, sc.Documents.extension, sc.Documents.name, sc.Documents.size
     )
 
-    # TODO: send documents to the llm service. It should return the ids of the documents generated
-    # by the ingestion pipeline
-
     result = session.execute(
         query,
         [
             {
                 "protocol_id": protocol_id,
-                "id": "una id obtenida del servicio llm",
                 "extension": doc.extension,
                 "name": doc.name,
                 "size": doc.size
@@ -237,11 +235,28 @@ def create_docs(
         md.File(**row, filename=f"{row['id']}.{row['extension']}") for row in result.mappings()
     ]
 
-    # TODO: delete file if the operation of writing fails
-    for node_file, saved_doc in zip(doc_files, saved_docs):
-        path = os.path.join(RESOURCES_PATH, saved_doc.filename)
+    # TODO: make the vector database consistent with the mariadb one
+    files = [
+        ("docs", (saved_doc.filename, doc_file.wrapped_blob(), doc_file.mime))
+        for doc_file, saved_doc in zip(doc_files, saved_docs)
+    ]
+
+    response = requests.post(
+        url=f"{LLM_SERVICE}/docs/{protocol_id}",
+        files=files,
+        data={"docs_ids": [saved_doc.id for saved_doc in saved_docs]}
+    )
+    if not response.ok:
+        raise LLMServiceException(
+            f"The LLM service responded with the error code: {response.status_code}"
+        )
+
+    # TODO: delete file if the operation of writing fails and delete it from
+    # the vector database
+    for doc_file, saved_doc in zip(doc_files, saved_docs):
+        path = os.path.join(DOCS_PATH, saved_doc.filename)
         with open(path, "wb") as f:
-            shutil.copyfileobj(node_file.blob, f)
+            shutil.copyfileobj(doc_file.wrapped_blob(), f)
 
     session.commit()
 

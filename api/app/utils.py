@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import io
+
 from typing import BinaryIO, TYPE_CHECKING
 from dataclasses import dataclass
 
@@ -16,7 +18,16 @@ class FileWithExtension:
     name: str
     extension: str
     size: int
+    mime: str
     blob: BinaryIO
+
+    @property
+    def filename(self) -> str:
+        return f"{self.name}.{self.extension}"
+
+    def wrapped_blob(self):
+        """This returns the stream as if it were not consumed. This may be more convenient than calling seek"""
+        return io.BytesIO(self.blob)
 
 
 def split_extension(filename: str):
@@ -40,7 +51,8 @@ def file_upload_to_node_file(file: UploadFile) -> FileWithExtension:
         name=name,
         extension=extension,
         size=file.size,
-        blob=file.file
+        blob=file.file,
+        mime=file.content_type
     )
 
 

@@ -6,3 +6,7 @@ class InvalidProtocolException(Exception):
 
 class InvalidFileException(Exception):
     """Raised when an uploaded file is rejected"""
+
+
+class LLMServiceException(Exception):
+    """Raised when something wrong happens while interacting with the LLM service"""

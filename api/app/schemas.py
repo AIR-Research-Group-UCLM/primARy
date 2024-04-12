@@ -61,7 +61,7 @@ class Edge(Base):
 class Documents(Base):
     __tablename__ = "documents"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     protocol_id: Mapped[int] = mapped_column(
         sa.ForeignKey("protocols.id", ondelete="CASCADE"), primary_key=True
     )

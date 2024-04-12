@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from . import models as md
 from .db import SessionLocal
-from .exceptions import InvalidProtocolException, InvalidFileException
+from .exceptions import InvalidProtocolException, InvalidFileException, LLMServiceException
 
 from . import utils
 from . import crud
@@ -44,6 +44,14 @@ def get_session() -> Session:
 async def invalid_protocol_exception_handler(request: Request, exc: InvalidProtocolException):
     return JSONResponse(
         status_code=409,
+        content={"detail": str(exc)}
+    )
+
+
+@app.exception_handler(LLMServiceException)
+async def invalid_protocol_exception_handler(request: Request, exc: InvalidProtocolException):
+    return JSONResponse(
+        status_code=400,
         content={"detail": str(exc)}
     )
 
@@ -199,7 +207,7 @@ def create_node_resource(
     return result
 
 
-@app.post("/protocols/{protocol_id}/docs")
+@app.post("/protocols/{protocol_id}/docs", response_model=list[md.File])
 def upload_protocol_doc(
     session: Annotated[Session, Depends(get_session)],
     files: list[UploadFile],
@@ -211,6 +219,11 @@ def upload_protocol_doc(
     result = crud.create_docs(
         session, protocol_id, node_files
     )
+
+    if result is None:
+        raise HTTPException(status_code=404, detail="Protocol not found")
+
+    return result
 
 
 @app.get("/protocols", response_model=list[md.ProtocolSummary])
