@@ -1,7 +1,5 @@
 import threading
 
-from typing import Generator
-
 import json
 
 from llama_index.core import set_global_tokenizer
@@ -9,10 +7,12 @@ from llama_index.llms.llama_cpp import LlamaCPP
 from llama_index.core.response_synthesizers import ResponseMode
 from llama_index.core.vector_stores import MetadataFilters, ExactMatchFilter
 from llama_index.core.types import TokenGen
+from llama_index.core.base.llms.types import CompletionResponseGen
 
 from transformers import AutoTokenizer
 
 from .db import vector_index
+from .exceptions import LLMNotAvailableException
 
 set_global_tokenizer(
     AutoTokenizer.from_pretrained("mistralai/Mistral-7B-Instruct-v0.2").encode
@@ -39,19 +39,37 @@ _llm = LlamaCPP(
 )
 
 
-def aquire_llm_lock():
-    _llm_lock.acquire()
+def aquire_llm_lock(timeout: int = 2):
+    if not _llm_lock.acquire(timeout=timeout):
+        raise LLMNotAvailableException
 
 
 def release_llm_lock():
     _llm_lock.release()
 
 
-def stream_llm_response(generator: TokenGen) -> Generator[dict[str, str], None, None]:
+def stream_llm_response(generator: TokenGen) -> TokenGen:
     try:
         yield from (json.dumps({"text": text}) + "\n" for text in generator)
     finally:
         release_llm_lock()
+
+
+def to_token_gen(generator: CompletionResponseGen) -> TokenGen:
+    yield from (completion_response.delta for completion_response in generator)
+
+
+def complete(prompt: str):
+    """Follows an instruction given by prompt. """
+    aquire_llm_lock()
+    try:
+        response = _llm.stream_complete(prompt)
+        return stream_llm_response(
+            to_token_gen(response)
+        )
+    except Exception as exc:
+        release_llm_lock()
+        raise exc
 
 
 def query(
