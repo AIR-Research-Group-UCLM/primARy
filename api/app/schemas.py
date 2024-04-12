@@ -51,9 +51,23 @@ class Edge(Base):
     target_handle: Mapped[str] = mapped_column(sa.String(255))
 
     __table_args__ = (
-        sa.ForeignKeyConstraint([protocol_id, source], [Node.protocol_id, Node.id], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint([protocol_id, target], [Node.protocol_id, Node.id], ondelete="CASCADE")
+        sa.ForeignKeyConstraint([protocol_id, source], [
+                                Node.protocol_id, Node.id], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint([protocol_id, target], [
+                                Node.protocol_id, Node.id], ondelete="CASCADE")
     )
+
+
+class Documents(Base):
+    __tablename__ = "documents"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    protocol_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("protocols.id", ondelete="CASCADE"), primary_key=True
+    )
+    name: Mapped[str] = mapped_column(sa.String(15))
+    extension: Mapped[str] = mapped_column(sa.String(15))
+    size: Mapped[int] = mapped_column()
 
 
 class NodeResource(Base):
@@ -67,7 +81,8 @@ class NodeResource(Base):
     size: Mapped[int] = mapped_column()
 
     __table_args__ = (
-        sa.ForeignKeyConstraint([protocol_id, node_id], [Node.protocol_id, Node.id], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint([protocol_id, node_id], [
+                                Node.protocol_id, Node.id], ondelete="CASCADE"),
     )
 
 

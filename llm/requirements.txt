@@ -1,0 +1,20 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy
+cryptography
+python-multipart
+
+llama-index-embeddings-huggingface
+llama-index-llms-llama-cpp
+llama-index-vector-stores-qdrant
+
+# Use the following for running the inference on CPU
+# CMAKE_ARGS="-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS"
+
+# If you have an NVIDIA and you have the nvidia cuda toolkit installed, use the following
+# to run the inference on the GPU
+
+# CMAKE_ARGS="-DLLAMA_CUDA=on"
+# For more backends, look at https://github.com/abetlen/llama-cpp-python?tab=readme-ov-file#supported-backends
+llama-cpp-python
+pypdf
