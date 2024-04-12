@@ -10,7 +10,7 @@ from qdrant_client import models as qdrant_models
 from llama_index.core.response_synthesizers import ResponseMode
 
 from .db import vector_index, qdrant_client, MAIN_COLLECTION_NAME
-from .exceptions import InvalidDocumentException
+from .exceptions import InvalidDocumentException, LLMNotAvailableException
 from .preprocessing import pipeline
 from . import llm
 from . import utils
@@ -28,8 +28,17 @@ app = FastAPI(
 @app.exception_handler(InvalidDocumentException)
 async def invalid_file_exception_handler(request: Request, exc: InvalidDocumentException):
     return JSONResponse(
-        status_code=400,
+        status_code=404,
         content={"detail": str(exc)}
+    )
+
+
+@app.exception_handler(LLMNotAvailableException)
+async def invalid_file_exception_handler(request: Request, exc: LLMNotAvailableException):
+    return JSONResponse(
+        status_code=400,
+        content={
+            "detail": "The LLM is in the process of generating text and is not available"}
     )
 
 

@@ -1,7 +1,5 @@
 import threading
 
-from typing import Generator
-
 import json
 
 from llama_index.core import set_global_tokenizer
@@ -14,6 +12,7 @@ from llama_index.core.base.llms.types import CompletionResponseGen
 from transformers import AutoTokenizer
 
 from .db import vector_index
+from .exceptions import LLMNotAvailableException
 
 set_global_tokenizer(
     AutoTokenizer.from_pretrained("mistralai/Mistral-7B-Instruct-v0.2").encode
@@ -40,8 +39,9 @@ _llm = LlamaCPP(
 )
 
 
-def aquire_llm_lock(timeout: int = -1):
-    _llm_lock.acquire(timeout)
+def aquire_llm_lock(timeout: int = 2):
+    if not _llm_lock.acquire(timeout=timeout):
+        raise LLMNotAvailableException
 
 
 def release_llm_lock():
