@@ -110,14 +110,16 @@ def delete_all_docs(protocol_id: int):
 
 @app.post("/llm/generate")
 def generate_answer(
-    protocol_id: Annotated[int, Query(alias="protocol")],
-    prompt: md.Prompt
+    prompt: md.Prompt,
+    protocol_id: Annotated[int | None, Query(alias="protocol")] = None,
 ):
-    streaming_response = llm.query(
-        prompt=prompt.prompt,
-        protocol_id=protocol_id,
-        response_mode=ResponseMode.COMPACT,
-        # response_mode=ResponseMode.COMPACT,
-        similarity_top_k=4
-    )
+    if protocol_id is not None:
+        streaming_response = llm.query(
+            prompt=prompt.prompt,
+            protocol_id=protocol_id,
+            response_mode=ResponseMode.COMPACT,
+            similarity_top_k=4
+        )
+    else:
+        streaming_response = llm.complete(prompt.prompt)
     return StreamingResponse(streaming_response, media_type="application/x-ndjson")
