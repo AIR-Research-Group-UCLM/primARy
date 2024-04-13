@@ -48,3 +48,7 @@ export type UserFile = {
    name: string;
    size: number;
 }
+
+export type LLMResponse = {
+    text: string;
+}

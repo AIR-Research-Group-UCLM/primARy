@@ -15,11 +15,10 @@ export async function defaultFetcher<S>(url: string) {
   return JSONfetcher<S>(url);
 }
 
-export function noInitialSpace(value: string) : string{
+export function noInitialSpace(value: string): string {
   return value.trim() !== "" ? value : "";
 }
-
-export async function JSONfetcher<S = void, E = any>(url: string, options?: RequestInit): Promise<S> {
+export async function fetcher<E = any>(url: string, options?: RequestInit): Promise<Response> {
   const res = await fetch(url, options);
   if (!res.ok) {
     const info = await res.json() as E;
@@ -29,5 +28,10 @@ export async function JSONfetcher<S = void, E = any>(url: string, options?: Requ
       res.status
     )
   }
+  return res;
+}
+
+export async function JSONfetcher<S = void, E = any>(url: string, options?: RequestInit): Promise<S> {
+  const res = await fetcher<E>(url, options);
   return res.json();
 }

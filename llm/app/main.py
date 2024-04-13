@@ -4,6 +4,7 @@ from typing import Annotated, TYPE_CHECKING
 
 from fastapi import FastAPI, UploadFile, Request, Form, Query
 from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from qdrant_client import models as qdrant_models
 
@@ -24,6 +25,13 @@ app = FastAPI(
     description="LLM which answers questions using the information uploaded by the user"
 )
 
+# This is a temporal solution. This API should not be contacted directly
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.exception_handler(InvalidDocumentException)
 async def invalid_file_exception_handler(request: Request, exc: InvalidDocumentException):

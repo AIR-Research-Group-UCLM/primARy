@@ -4,18 +4,41 @@ import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { noInitialSpace } from "@/utils";
+import { generateLLMResponse } from "@/mutation";
 
 import { useState, KeyboardEvent } from "react";
 
-export default function Page({ searchParams }: { searchParams: { protocol: string } }) {
+export default function Page({ searchParams }: { searchParams: { protocol?: number } }) {
   const [messages, setMessages] = useState<string[]>([]);
   const [prompt, setPrompt] = useState<string>("");
 
-  function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
-    if (prompt !== "" && e.key === "Enter") {
-      setMessages([...messages, prompt]);
-      setPrompt("");
+  async function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    if (prompt === "" || e.key !== "Enter") {
+      return;
     }
+
+    setMessages(["", prompt, ...messages]);
+    setPrompt("");
+
+    const stream = await generateLLMResponse({ prompt, protocolId: searchParams.protocol });
+    const reader = stream.getReader();
+    let text = "";
+
+    while (true) {
+      const { done, value: response } = await reader.read();
+      if (done) {
+        break;
+      }
+
+      if (text === "") {
+        text += response.text.trim();
+      } else {
+        text += response.text;
+      }
+
+      setMessages((messages) => [text + "▐", ...messages.slice(1)]);
+    }
+    setMessages((messages) => [text, ...messages.slice(1)]);
   }
 
   return (
@@ -33,7 +56,7 @@ export default function Page({ searchParams }: { searchParams: { protocol: strin
         flex: "1",
         borderRadius: "10px",
         background: "#ECEFF1",
-        flexDirection: "column",
+        flexDirection: "column-reverse",
         overflow: "auto",
       }}>
         {messages.map((message, index) => (
@@ -41,7 +64,7 @@ export default function Page({ searchParams }: { searchParams: { protocol: strin
             key={index}
             sx={{
               padding: "15px 10px 15px 10px",
-              background: index % 2 === 0 ? "#ECEFF1" : "#CFD8DC",
+              background: index % 2 === 1 ? "#edf8fc" : "#CFD8DC",
             }}>
             <Box sx={{
               display: "flex",
@@ -53,13 +76,14 @@ export default function Page({ searchParams }: { searchParams: { protocol: strin
                   fontSize: "20px"
                 }}
               >
-                {index % 2 === 0 ? "You:" : "LLM:"}
+                {index % 2 === 1 ? "You:" : "LLM:"}
               </Typography>
               <Typography
                 paragraph
                 sx={{
                   fontSize: "20px",
-                  margin: 0
+                  margin: 0,
+                  whiteSpace: "pre-wrap"
                 }}>
                 {message}
               </Typography>

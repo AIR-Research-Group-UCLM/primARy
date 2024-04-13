@@ -1,9 +1,35 @@
-import type { UserFile, ProtocolSummary, Node, ProtocolUpsert } from "@/types";
+import type { UserFile, ProtocolSummary, Node, ProtocolUpsert, LLMResponse } from "@/types";
 import type { ProtocolData } from "@/hooks/store";
 
 import { protocolDataToProtocol } from "@/type-conversions";
 import useMutate from "./hooks/useMutate";
-import { JSONfetcher } from "@/utils";
+import { JSONfetcher, fetcher } from "@/utils";
+
+import { splitStream, parseJSON } from "@/stream-transformers";
+
+export async function generateLLMResponse({ prompt, protocolId }: { prompt: string, protocolId?: number }): Promise<ReadableStream<LLMResponse>> {
+  const queryParams = protocolId !== undefined ? `?protocol=${protocolId}` : "";
+
+  // TODO: this will work with process.env.API_BASE because it will reference a 
+  // reverse proxy which will deliver the request to the llm service
+  const response = await fetcher(`http://127.0.0.1:8001/llm/generate${queryParams}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ prompt })
+  });
+
+  const stream = response.body?.pipeThrough(new TextDecoderStream())
+    .pipeThrough(splitStream("\n"))
+    .pipeThrough(parseJSON<LLMResponse>());
+
+  if (stream == null) {
+    throw new Error("The body is empty");
+  }
+
+  return stream;
+}
 
 async function createProtocol({ name }: { name: string }): Promise<ProtocolSummary> {
   return JSONfetcher(`${process.env.API_BASE}/protocols`, {
@@ -77,7 +103,7 @@ export async function deleteNodes(
 }
 
 export async function upsertProtocol(
-  {protocolId, protocol} : {protocolId: number; protocol: ProtocolUpsert}
+  { protocolId, protocol }: { protocolId: number; protocol: ProtocolUpsert }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/upsert`, {
     method: "POST",
