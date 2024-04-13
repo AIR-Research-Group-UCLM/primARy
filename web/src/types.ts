@@ -42,7 +42,7 @@ export type ProtocolSummary = {
     name: string;
 }
 
-export type NodeResource = {
+export type UserFile = {
    id: number; 
    filename: string;
    name: string;

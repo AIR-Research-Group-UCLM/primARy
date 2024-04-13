@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import io
+
 from typing import BinaryIO, TYPE_CHECKING
 from dataclasses import dataclass
 
@@ -12,11 +14,20 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class NodeFile:
+class FileWithExtension:
     name: str
     extension: str
     size: int
+    mime: str
     blob: BinaryIO
+
+    @property
+    def filename(self) -> str:
+        return f"{self.name}.{self.extension}"
+
+    def wrapped_blob(self):
+        """This returns the stream as if it were not consumed. This may be more convenient than calling seek"""
+        return io.BytesIO(self.blob)
 
 
 def split_extension(filename: str):
@@ -26,17 +37,22 @@ def split_extension(filename: str):
     return filename[:delimiter_index], filename[delimiter_index + 1:]
 
 
-def file_upload_to_node_file(file: UploadFile):
+def file_upload_to_node_file(file: UploadFile) -> FileWithExtension:
+    # TODO: perform mime sniffing
     name, extension = split_extension(file.filename)
     if extension == "":
         raise InvalidFileException(
             f"{file.filename} does not contain any extension")
+    if name == "":
+        raise InvalidFileException(
+            f"The uploaded file does not have a name")
 
-    return NodeFile(
+    return FileWithExtension(
         name=name,
         extension=extension,
         size=file.size,
-        blob=file.file
+        blob=file.file,
+        mime=file.content_type
     )
 
 

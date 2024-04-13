@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from . import models as md
 from .db import SessionLocal
-from .exceptions import InvalidProtocolException
+from .exceptions import InvalidProtocolException, InvalidFileException, LLMServiceException
 
 from . import utils
 from . import crud
@@ -30,7 +30,8 @@ app.add_middleware(
 )
 
 # TODO: delete this. This is only for testing purposes
-app.mount("/static", StaticFiles(directory="env"), name="static")
+app.mount("/static/nodes", StaticFiles(directory="env/nodes"), name="nodes")
+app.mount("/static/docs", StaticFiles(directory="env/docs"), name="docs")
 
 
 def get_session() -> Session:
@@ -47,12 +48,28 @@ async def invalid_protocol_exception_handler(request: Request, exc: InvalidProto
     )
 
 
+@app.exception_handler(LLMServiceException)
+async def invalid_protocol_exception_handler(request: Request, exc: InvalidProtocolException):
+    return JSONResponse(
+        status_code=400,
+        content={"detail": str(exc)}
+    )
+
+
+@app.exception_handler(InvalidFileException)
+async def invalid_file_exception_handler(request: Request, exc: InvalidFileException):
+    return JSONResponse(
+        status_code=400,
+        content={"detail": str(exc)}
+    )
+
+
 @app.get("/protocols/{protocol_id}/nodes")
 def get_nodes(session: Annotated[Session, Depends(get_session)], protocol_id: int):
     return crud.get_nodes(session, protocol_id)
 
 
-@app.get("/protocols/{protocol_id}/nodes/{node_id}/resources", response_model=list[md.NodeResource])
+@app.get("/protocols/{protocol_id}/nodes/{node_id}/resources", response_model=list[md.File])
 def get_node_resources(
     session: Annotated[Session, Depends(get_session)],
     protocol_id: int,
@@ -66,6 +83,8 @@ def get_node_resources(
         )
     return result
 
+
+# TODO: handle possible errors
 @app.post("/protocols/{protocol_id}/upsert")
 def upsert_protocol(
     session: Annotated[Session, Depends(get_session)],
@@ -75,6 +94,8 @@ def upsert_protocol(
     result = crud.upsert_protocol(session, protocol_id, protocol)
 
 # TODO: decide if PUT or UPDATE fit better
+
+
 @app.patch("/protocols/{protocol_id}/nodes/{node_id}/resources/{resource_id}")
 def change_name_resource_name(
     session: Annotated[Session, Depends(get_session)],
@@ -106,6 +127,8 @@ def delete_node(
         )
 
 # This is an atomic operation. Either all of them fail or all of them succeed
+
+
 @app.delete("/protocols/{protocol_id}/nodes")
 def delete_nodes(
     session: Annotated[Session, Depends(get_session)],
@@ -120,6 +143,8 @@ def delete_nodes(
         )
 
 # This is an atomic operation. Either all of them fail or all of them succeed
+
+
 @app.delete("/protocols/{protocol_id}/edges")
 def delete_edges(
     session: Annotated[Session, Depends(get_session)],
@@ -132,6 +157,7 @@ def delete_edges(
             status_code=404,
             detail=f"Some edges ids do not exist"
         )
+
 
 @app.post("/protocols/{protocol_id}/nodes")
 def create_node(
@@ -166,10 +192,9 @@ def create_node_resource(
     files: list[UploadFile],
     protocol_id: int,
     node_id: str
-) -> list[md.NodeResource]:
+) -> list[md.File]:
 
     # TODO: check actual content (mime sniffing, what the unix command file does)
-    # TODO: check filename is nonempty
     node_files = [utils.file_upload_to_node_file(file) for file in files]
 
     result = crud.create_node_resources(
@@ -179,6 +204,25 @@ def create_node_resource(
             status_code=404,
             detail=f"Node {node_id} not found protocol {protocol_id}"
         )
+    return result
+
+
+@app.post("/protocols/{protocol_id}/docs", response_model=list[md.File])
+def upload_protocol_doc(
+    session: Annotated[Session, Depends(get_session)],
+    files: list[UploadFile],
+    protocol_id: int
+):
+    # TODO: check actual content (mime sniffing, what the unix command file does)
+    node_files = [utils.file_upload_to_node_file(file) for file in files]
+
+    result = crud.create_docs(
+        session, protocol_id, node_files
+    )
+
+    if result is None:
+        raise HTTPException(status_code=404, detail="Protocol not found")
+
     return result
 
 

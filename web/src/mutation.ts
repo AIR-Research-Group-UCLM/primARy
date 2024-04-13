@@ -1,4 +1,4 @@
-import type { NodeResource, ProtocolSummary, Node, ProtocolUpsert } from "@/types";
+import type { UserFile, ProtocolSummary, Node, ProtocolUpsert } from "@/types";
 import type { ProtocolData } from "@/hooks/store";
 
 import { protocolDataToProtocol } from "@/type-conversions";
@@ -46,7 +46,7 @@ async function updateProtocol(
 async function uploadFiles(
   { protocolId, nodeId, formData }: { protocolId: number; nodeId: string; formData: FormData }
 ) {
-  return JSONfetcher<NodeResource[]>(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}/resources`, {
+  return JSONfetcher<UserFile[]>(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}/resources`, {
     method: "POST",
     body: formData
   })
