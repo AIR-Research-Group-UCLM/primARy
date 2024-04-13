@@ -13,6 +13,8 @@ import MenuItem from '@mui/material/MenuItem';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 
+
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { useState } from "react";
@@ -28,12 +30,13 @@ type Props = {
 export default function ProtocolCard({ protocol, onDeleteClick }: Props) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMoreMenuOpen = anchorEl !== null;
+  const router = useRouter();
 
-  function handleMoreButtonClick(event: React.MouseEvent<HTMLElement>) {
+  function onMoreButtonClick(event: React.MouseEvent<HTMLElement>) {
     setAnchorEl(event.currentTarget);
   }
 
-  function handleMoreButtonClose() {
+  function onMoreButtonClose() {
     setAnchorEl(null);
   }
 
@@ -42,7 +45,7 @@ export default function ProtocolCard({ protocol, onDeleteClick }: Props) {
       <Menu
         anchorEl={anchorEl}
         open={isMoreMenuOpen}
-        onClose={handleMoreButtonClose}
+        onClose={onMoreButtonClose}
       >
         <MenuItem>
           <ListItemIcon>
@@ -50,7 +53,7 @@ export default function ProtocolCard({ protocol, onDeleteClick }: Props) {
           </ListItemIcon>
           Documents
         </MenuItem>
-        <MenuItem>
+        <MenuItem onClick={() => router.push(`/llm?protocol=${protocol.id}`)}>
           <ListItemIcon>
             <SmartToyIcon />
           </ListItemIcon>
@@ -72,7 +75,7 @@ export default function ProtocolCard({ protocol, onDeleteClick }: Props) {
         }}>
           <IconButton
             size="small"
-            onClick={handleMoreButtonClick}
+            onClick={onMoreButtonClick}
           >
             <MoreVertIcon />
           </IconButton>
