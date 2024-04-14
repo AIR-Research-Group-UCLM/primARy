@@ -33,7 +33,7 @@ _llm = LlamaCPP(
     context_window=4096,
     model_kwargs=dict(
         n_gpu_layers=15,
-        # max_tokens=None
+        max_tokens=30
     ),
     completion_to_prompt=_mistral_completion_to_prompt
 )

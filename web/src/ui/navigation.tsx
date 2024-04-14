@@ -20,8 +20,8 @@ interface Link {
 
 const links = [
   { name: "Protocols", href: "/protocols" },
-  { name: "Model training", href: "/training" },
-  { name: 'Settings', href: '/settings' },
+  { name: "LLM", href: "/llm" },
+  { name: "Settings", href: "/settings" },
 ];
 
 function getRootPath(pathname: string) {
