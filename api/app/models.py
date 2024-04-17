@@ -68,5 +68,5 @@ class ProtocolUpsert(BaseModel):
     nodes: list[Node] = []
     edges: list[Edge] = []
 
-class PatchNodeResource(BaseModel):
+class PatchFile(BaseModel):
     name: str = Field(min_length=1)

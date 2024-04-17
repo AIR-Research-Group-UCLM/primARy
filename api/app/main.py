@@ -93,7 +93,23 @@ def upsert_protocol(
 ):
     result = crud.upsert_protocol(session, protocol_id, protocol)
 
-# TODO: decide if PUT or UPDATE fit better
+
+@app.patch("/protocols/{protocol_id}/docs/{doc_id}")
+def change_doc_name(
+    session: Annotated[Session, Depends(get_session)],
+    protocol_id: int,
+    doc_id: str,
+    patch: md.PatchFile
+):
+    success = crud.change_doc_name(
+        session, protocol_id, doc_id, patch
+    )
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Dococument with id'{
+                doc_id}' not found in protocol {protocol_id}"
+        )
 
 
 @app.patch("/protocols/{protocol_id}/nodes/{node_id}/resources/{resource_id}")
@@ -102,9 +118,9 @@ def change_name_resource_name(
     protocol_id: int,
     node_id: str,
     resource_id: int,
-    patch: md.PatchNodeResource
+    patch: md.PatchFile
 ):
-    success = crud.change_name_resource_name(
+    success = crud.change_resource_name(
         session, protocol_id, node_id, resource_id, patch)
     if not success:
         raise HTTPException(
@@ -242,7 +258,7 @@ def get_docs(
 
 
 @app.delete("/protocols/{protocol_id}/docs/{doc_id}")
-def delete_docs(
+def delete_doc(
     session: Annotated[Session, Depends(get_session)],
     protocol_id: int,
     doc_id: str

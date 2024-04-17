@@ -148,7 +148,7 @@ def delete_doc(
     session: Session,
     protocol_id: int,
     doc_id: int
-):
+) -> bool:
     result = session.execute(
         sa.delete(sc.Documents)
         .where(
@@ -207,13 +207,31 @@ def get_node_resources(session: Session, protocol_id: int, node_id: str) -> list
         md.File(**row, filename=f"{row['id']}.{row['extension']}") for row in result.mappings()
     )
 
+def change_doc_name(
+    session: Session,
+    protocol_id: int,
+    doc_id: str,
+    patch: md.PatchFile
+) -> bool:
+    update_doc = (
+        sa.update(sc.Documents)
+        .where(
+            (sc.Documents.id == doc_id) &
+            (sc.Documents.protocol_id == protocol_id)
+        ).values(
+            name=patch.name
+        )
+    )
+    rowcount = session.execute(update_doc).rowcount
+    session.commit()
+    return rowcount != 0
 
-def change_name_resource_name(
+def change_resource_name(
     session: Session,
     protocol_id: int,
     node_id: str,
     resource_id: str,
-    patch: md.PatchNodeResource
+    patch: md.PatchFile
 ) -> bool:
     update_node_resource = (
         sa.update(sc.NodeResource)
