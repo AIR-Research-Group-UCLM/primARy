@@ -16,7 +16,7 @@ import CloseIcon from '@mui/icons-material/Close';
 
 import { KeyboardEvent, useState } from "react";
 
-import NodeResourcesCard from "@/ui/protocols/node-resources-card";
+import FileCard from "@/ui/protocols/node-resources-card";
 import VisuallyHiddenInput from "@/ui/visually-hidden-input";
 import { useUploadFiles, useChangeResourceName, deleteNodeResource } from "@/mutation";
 
@@ -108,7 +108,7 @@ function NormalHeader(
   );
 }
 
-type SelectedResource = {
+type SelectedFile = {
   id: number;
   provisionalName: string;
 }
@@ -120,7 +120,7 @@ export default function NodeResourcesDialog(
   const { nodeResources, mutate } = useNodeResources(protocolId, nodeId);
   const { triggerUploadFiles, isUploadingFiles } = useUploadFiles();
   const { triggerChangeResourceName, isChangingResourceName } = useChangeResourceName();
-  const [selectedResource, setSelectedResource] = useState<SelectedResource | null>(null);
+  const [selectedResource, setSelectedResource] = useState<SelectedFile | null>(null);
 
   async function onDelete(resourceId: number) {
     await deleteNodeResource({
@@ -258,7 +258,7 @@ export default function NodeResourcesDialog(
           gap={10}
         >
           {nodeResources.map((nodeResource) =>
-            <NodeResourcesCard
+            <FileCard
               key={nodeResource.id}
               // TODO: use ENV VAR for this
               onDelete={onDelete}

@@ -139,9 +139,49 @@ def delete_node_resource(
             (sc.NodeResource.node_id == node_id)
         )
     )
-    # TODO: delete files from filesystem
+    # TODO: delete file from filesystem
     session.commit()
     return result.rowcount != 0
+
+
+def delete_doc(
+    session: Session,
+    protocol_id: int,
+    doc_id: int
+):
+    result = session.execute(
+        sa.delete(sc.Documents)
+        .where(
+            (sc.Documents.protocol_id == protocol_id) &
+            (sc.Documents.id == doc_id)
+        )
+    )
+    # TODO: delete file from filesystem
+    # TODO: ensure consitency between this db and the vector database
+    # TODO: add timeout
+    requests.delete(f"{LLM_SERVICE}/docs/{protocol_id}/{doc_id}")
+    session.commit()
+
+    return result.rowcount != 0
+
+
+def get_docs(session: Session, protocol_id: str) -> list[md.File]:
+    protocol_query = sa.select(sc.Protocol.id).where(
+        sc.Protocol.id == protocol_id)
+    result = session.execute(protocol_query).first()
+    if result is None:
+        return None
+
+    doc_query = (
+        sa.select(
+            sc.Documents.id, sc.Documents.name, sc.Documents.extension, sc.Documents.size
+        ).where(sc.Protocol.id == protocol_id)
+    )
+    result = session.execute(doc_query)
+
+    return (
+        md.File(**row, filename=f"{row['id']}.{row['extension']}") for row in result.mappings()
+    )
 
 
 def get_node_resources(session: Session, protocol_id: int, node_id: str) -> list[md.File]:
@@ -248,7 +288,8 @@ def create_docs(
     )
     if not response.ok:
         raise LLMServiceException(
-            f"The LLM service responded with the error code: {response.status_code}"
+            f"The LLM service responded with the error code: {
+                response.status_code}"
         )
 
     # TODO: delete file if the operation of writing fails and delete it from

@@ -182,7 +182,8 @@ def delete_node_resources(
     if not success:
         raise HTTPException(
             status_code=404,
-            detail=f"Node resource '{resource_id}' not found"
+            detail=f"Node resource '{
+                resource_id}' not found in protocol '{protocol_id}'"
         )
 
 
@@ -224,6 +225,37 @@ def upload_protocol_doc(
         raise HTTPException(status_code=404, detail="Protocol not found")
 
     return result
+
+
+@app.get("/protocols/{protocol_id}/docs", response_model=list[md.File])
+def get_docs(
+    session: Annotated[Session, Depends(get_session)],
+    protocol_id: int
+):
+    result = crud.get_docs(session, protocol_id)
+    if not result:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Protocol id '{protocol_id}' not found"
+        )
+    return result
+
+
+@app.delete("/protocols/{protocol_id}/docs/{doc_id}")
+def delete_docs(
+    session: Annotated[Session, Depends(get_session)],
+    protocol_id: int,
+    doc_id: str
+):
+    success = crud.delete_doc(
+        session, protocol_id, doc_id
+    )
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Document with id '{
+                doc_id}' not found in protocol '{protocol_id}'"
+        )
 
 
 @app.get("/protocols", response_model=list[md.ProtocolSummary])

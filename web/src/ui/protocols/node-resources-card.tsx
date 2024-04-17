@@ -13,7 +13,7 @@ type Props = {
   header: ReactNode
 }
 
-export default function NodeResourcesCard(
+export default function FileCard(
   { id, img, alt, header, onDelete }: Props
 ) {
   return (
