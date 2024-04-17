@@ -2,7 +2,7 @@ import type { UserFile, ProtocolSummary, Node, ProtocolUpsert, LLMResponse } fro
 import type { ProtocolData } from "@/hooks/store";
 
 import { protocolDataToProtocol } from "@/type-conversions";
-import useMutate from "./hooks/useMutate";
+import useMutate, { UseMutate } from "./hooks/useMutate";
 import { JSONfetcher, fetcher } from "@/utils";
 
 import { splitStream, parseJSON } from "@/stream-transformers";
@@ -144,42 +144,22 @@ export async function deleteNode(
   })
 }
 
-export function useUploadFiles() {
-  const { trigger, isMutating } = useMutate(uploadFiles);
-  return {
-    triggerUploadFiles: trigger,
-    isUploadingFiles: isMutating
-  }
+export function useUploadFiles(): UseMutate<UserFile[]> {
+  return useMutate(uploadFiles);
 }
 
-export function useChangeResourceName() {
-  const { trigger, isMutating } = useMutate(changeResourceName);
-  return {
-    triggerChangeResourceName: trigger,
-    isChangingResourceName: isMutating
-  }
+export function useChangeResourceName(): UseMutate<void> {
+  return useMutate(changeResourceName);
 }
 
-export function useCreateProtocol() {
-  const { trigger, isMutating } = useMutate(createProtocol);
-  return {
-    triggerCreateProtocol: trigger,
-    isCreatingProtocol: isMutating
-  }
+export function useCreateProtocol(): UseMutate<ProtocolSummary> {
+  return useMutate(createProtocol);
 }
 
-export function useDeleteProtocol() {
-  const { trigger, isMutating } = useMutate(deleteProtocol);
-  return {
-    triggerDeleteProtocol: trigger,
-    isDeletingProtocol: isMutating
-  }
+export function useDeleteProtocol(): UseMutate<void> {
+  return useMutate(deleteProtocol);
 }
 
-export function useUpdateProtocol() {
-  const { trigger, isMutating } = useMutate(updateProtocol);
-  return {
-    triggerUpdateProtocol: trigger,
-    isUpdatingProtocol: isMutating
-  }
+export function useUpdateProtocol(): UseMutate<void> {
+  return useMutate(updateProtocol);
 }

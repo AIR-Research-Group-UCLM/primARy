@@ -9,12 +9,13 @@ type Props = {
   id: number;
   img: string;
   alt?: string;
-  onDelete: (resourceId: number) => void;
+  onDelete: (fileId: number) => void;
+  onImgClick?: (fileId: number) => void;
   header: ReactNode
 }
 
 export default function FileCard(
-  { id, img, alt, header, onDelete }: Props
+  { id, img, alt, header, onDelete, onImgClick }: Props
 ) {
   return (
     <ImageListItem
@@ -37,8 +38,10 @@ export default function FileCard(
       }} />
       <img
         src={img}
+        onClick={() => onImgClick?.(id)}
         style={{
-          borderRadius: "10px"
+          borderRadius: "10px",
+          cursor: onImgClick === undefined ? "auto": "pointer"
         }}
         alt={alt}
         loading="lazy"

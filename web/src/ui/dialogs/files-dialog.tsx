@@ -23,12 +23,39 @@ import { useUploadFiles, useChangeResourceName, deleteNodeResource } from "@/mut
 // TODO: these imports are not necessary if we create a custom hook for the resources
 import type { UserFile } from "@/types";
 import useNodeResources from "@/hooks/useNodeResources";
+import { KeyedMutator } from "swr";
+
+type MutateFiles = {
+  uploadFiles: {
+    triggerUpload: (formaData: FormData) => Promise<UserFile[]>;
+    isUploading: boolean;
+  }
+  changeName: {
+    triggerChangeName: (fileId: string, name: string) => Promise<void>;
+    isChangingName: boolean;
+  }
+  deleteFile: {
+    triggerDeleteFile: (fileId: string) => Promise<void>;
+    isDeletingFile: boolean;
+  }
+}
+
+type GetFiles = {
+  files: UserFile[];
+  mutate: KeyedMutator<UserFile[]>;
+  isLoading: boolean;
+  error: any;
+}
 
 type Props = {
   isOpen: boolean;
-  protocolId: number;
-  nodeId: string;
   handleClose?: () => void;
+
+  getFiles: () => GetFiles;
+  mutateFiles: MutateFiles;
+  dialogTitle: string;
+  acceptMime: string;
+
 }
 
 type ModifyingHeaderProps = {
@@ -113,21 +140,25 @@ type SelectedFile = {
   provisionalName: string;
 }
 
-export default function NodeResourcesDialog(
-  { isOpen, protocolId, nodeId, handleClose }: Props
+export default function FilesDialog(
+  { isOpen, handleClose, getFiles, mutateFiles, dialogTitle, acceptMime }: Props
 ) {
 
-  const { files, mutate } = useNodeResources(protocolId, nodeId);
-  const { trigger: triggerUploadFiles, isMutating: isUploadingFiles } = useUploadFiles();
-  const { trigger: triggerChangeResourceName, isMutating: isChangingResourceName } = useChangeResourceName();
+  const { files, mutate, isLoading, error } = getFiles()
+  const { triggerUpload } = mutateFiles.uploadFiles;
+  const { triggerChangeName } = mutateFiles.changeName;
+  const { triggerDeleteFile } = mutateFiles.deleteFile;
   const [selectedFile, setSelectedResource] = useState<SelectedFile | null>(null);
 
-  async function onDelete(resourceId: number) {
-    await deleteNodeResource({
-      protocolId, nodeId, resourceId
-    })
 
-    const remainingFiles = files.filter((nodeResource) => nodeResource.id !== resourceId);
+  function fileImg(file: UserFile) {
+    return `${process.env.API_BASE}/static/nodes/${file.filename}`
+  }
+
+  async function onDelete(fileId: number) {
+    await triggerDeleteFile(fileId);
+
+    const remainingFiles = files.filter((file) => file.id !== fileId);
     mutate(remainingFiles, {
       revalidate: false
     })
@@ -142,9 +173,9 @@ export default function NodeResourcesDialog(
       formData.append("files", file);
     }
 
-    mutate(triggerUploadFiles({ protocolId, nodeId, formData }), {
-      populateCache: (newResources, currentResources) => (
-        currentResources === undefined ? newResources : [...currentResources, ...newResources]
+    mutate(triggerUpload(formData), {
+      populateCache: (newFiles, currentFiles) => (
+        currentFiles === undefined ? newFiles : [...currentFiles, ...newFiles]
       ),
       revalidate: false
     });
@@ -174,16 +205,12 @@ export default function NodeResourcesDialog(
       return;
     }
 
-    await triggerChangeResourceName(
-      {
-        protocolId,
-        nodeId,
-        resourceId: selectedFile.id,
-        name: selectedFile.provisionalName
-      }
+    await triggerChangeName(
+        selectedFile.id,
+        selectedFile.provisionalName
     );
 
-    const newFiles = files.map((file) => {
+    const newResources = files.map((file) => {
       if (file.id !== selectedFile.id) {
         return file;
       }
@@ -193,7 +220,7 @@ export default function NodeResourcesDialog(
       }
     });
 
-    mutate(newFiles, {
+    mutate(newResources, {
       revalidate: false
     })
 
@@ -212,7 +239,7 @@ export default function NodeResourcesDialog(
       onClose={handleClose}
     >
       <DialogTitle>
-        Node Resources
+        {dialogTitle}
       </DialogTitle>
       <IconButton
         size="large"
@@ -242,7 +269,7 @@ export default function NodeResourcesDialog(
             Upload
             <VisuallyHiddenInput
               type="file"
-              accept="image/*"
+              accept={acceptMime}
               multiple
               onChange={(e) => onFilesUpload(Array.from(e.target.files || []))}
             />
@@ -263,7 +290,7 @@ export default function NodeResourcesDialog(
               // TODO: use ENV VAR for this
               onDelete={onDelete}
               id={file.id}
-              img={`${process.env.API_BASE}/static/nodes/${file.filename}`}
+              img={fileImg(file)}
               alt={file.name}
               header={
                 selectedFile?.id === file.id ? (

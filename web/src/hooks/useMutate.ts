@@ -1,6 +1,11 @@
 import { useState } from "react";
 
-export default function useMutate<T, A>(mutator: (args: A) => Promise<T>) {
+export type UseMutate<R> = {
+  trigger: (args: any) => Promise<R>;
+  isMutating: boolean;
+}
+
+export default function useMutate<R, A>(mutator: (args: A) => Promise<R>): UseMutate<R> {
   const [isMutating, setIsMutating] = useState<boolean>(false);
 
   async function trigger(args: A) {
