@@ -10,5 +10,5 @@ EMBEDDING_MODEL_MAX_SEQUENCE_LEN = 512
 embedding_model = HuggingFaceEmbedding(
     "BAAI/bge-large-en-v1.5",
     # TODO: create env var for this
-    cache_folder="",
+    cache_folder="/home/pablo/llms/embedding_models",
 )

@@ -15,7 +15,7 @@ import useSaveEventsContext from "@/hooks/useSaveEventsContext";
 import useLocalEdgesNodes from "@/hooks/useLocalEdgesNodes";
 
 type Props = {
-  protocolId: number;
+  protocolId: string;
   selectedNodeId: string
 }
 

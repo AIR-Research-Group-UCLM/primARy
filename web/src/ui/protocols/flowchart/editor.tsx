@@ -56,7 +56,7 @@ function isEventTargetPane(target: Element): boolean {
   return target.classList.contains("react-flow__pane");
 }
 
-export default function FlowChartEditor({ protocolId }: { protocolId: number }) {
+export default function FlowChartEditor({ protocolId }: { protocolId: string }) {
   const nodes = useProtocolStore((state) => state.nodes);
   const edges = useProtocolStore((state) => state.edges);
   const selectedNodeId = useProtocolStore((state) => state.selectedNodeId);

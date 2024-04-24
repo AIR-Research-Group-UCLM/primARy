@@ -32,6 +32,7 @@ app.add_middleware(
 # TODO: delete this. This is only for testing purposes
 app.mount("/static/nodes", StaticFiles(directory="env/nodes"), name="nodes")
 app.mount("/static/docs", StaticFiles(directory="env/docs"), name="docs")
+app.mount("/static/logos", StaticFiles(directory="env/logos"), name="logos")
 
 
 def get_session() -> Session:
@@ -93,7 +94,23 @@ def upsert_protocol(
 ):
     result = crud.upsert_protocol(session, protocol_id, protocol)
 
-# TODO: decide if PUT or UPDATE fit better
+
+@app.patch("/protocols/{protocol_id}/docs/{doc_id}")
+def change_doc_name(
+    session: Annotated[Session, Depends(get_session)],
+    protocol_id: int,
+    doc_id: str,
+    patch: md.PatchFile
+):
+    success = crud.change_doc_name(
+        session, protocol_id, doc_id, patch
+    )
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Dococument with id'{
+                doc_id}' not found in protocol {protocol_id}"
+        )
 
 
 @app.patch("/protocols/{protocol_id}/nodes/{node_id}/resources/{resource_id}")
@@ -102,9 +119,9 @@ def change_name_resource_name(
     protocol_id: int,
     node_id: str,
     resource_id: int,
-    patch: md.PatchNodeResource
+    patch: md.PatchFile
 ):
-    success = crud.change_name_resource_name(
+    success = crud.change_resource_name(
         session, protocol_id, node_id, resource_id, patch)
     if not success:
         raise HTTPException(
@@ -182,7 +199,8 @@ def delete_node_resources(
     if not success:
         raise HTTPException(
             status_code=404,
-            detail=f"Node resource '{resource_id}' not found"
+            detail=f"Node resource '{
+                resource_id}' not found in protocol '{protocol_id}'"
         )
 
 
@@ -224,6 +242,37 @@ def upload_protocol_doc(
         raise HTTPException(status_code=404, detail="Protocol not found")
 
     return result
+
+
+@app.get("/protocols/{protocol_id}/docs", response_model=list[md.File])
+def get_docs(
+    session: Annotated[Session, Depends(get_session)],
+    protocol_id: int
+):
+    result = crud.get_docs(session, protocol_id)
+    if not result:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Protocol id '{protocol_id}' not found"
+        )
+    return result
+
+
+@app.delete("/protocols/{protocol_id}/docs/{doc_id}")
+def delete_doc(
+    session: Annotated[Session, Depends(get_session)],
+    protocol_id: int,
+    doc_id: str
+):
+    success = crud.delete_doc(
+        session, protocol_id, doc_id
+    )
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Document with id '{
+                doc_id}' not found in protocol '{protocol_id}'"
+        )
 
 
 @app.get("/protocols", response_model=list[md.ProtocolSummary])

@@ -2,7 +2,7 @@ import type { UserFile, ProtocolSummary, Node, ProtocolUpsert, LLMResponse } fro
 import type { ProtocolData } from "@/hooks/store";
 
 import { protocolDataToProtocol } from "@/type-conversions";
-import useMutate from "./hooks/useMutate";
+import useMutate, { UseMutate } from "./hooks/useMutate";
 import { JSONfetcher, fetcher } from "@/utils";
 
 import { splitStream, parseJSON } from "@/stream-transformers";
@@ -12,7 +12,7 @@ export async function generateLLMResponse({ prompt, protocolId }: { prompt: stri
 
   // TODO: this will work with process.env.API_BASE because it will reference a 
   // reverse proxy which will deliver the request to the llm service
-  const response = await fetcher(`http://127.0.0.1:8001/llm/generate${queryParams}`, {
+  const response = await fetcher(`http://192.168.0.61:8001/llm/generate${queryParams}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -54,11 +54,11 @@ export async function createNode({ protocolId, node }: { protocolId: number, nod
       "Content-Type": "application/json"
     },
     body: JSON.stringify(node)
-  })
+  });
 }
 
 async function updateProtocol(
-  { protocolId, protocolData }: { protocolId: number; protocolData: ProtocolData }
+  { protocolId, protocolData }: { protocolId: string; protocolData: ProtocolData }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}`, {
     method: "PUT",
@@ -69,17 +69,47 @@ async function updateProtocol(
   });
 }
 
-async function uploadFiles(
+async function uploadDocs(
+  { protocolId, formData }: { protocolId: string; formData: FormData }
+) {
+  return JSONfetcher<UserFile[]>(`${process.env.API_BASE}/protocols/${protocolId}/docs`, {
+    method: "POST",
+    body: formData
+  });
+}
+
+async function changeDocName(
+  { protocolId, docId, name }: { protocolId: string; docId: string; name: string }
+) {
+  return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/docs/${docId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ name })
+  });
+}
+
+async function deleteDoc(
+  { protocolId, docId }: { protocolId: string; docId: string }
+) {
+  return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/docs/${docId}`, {
+    method: "DELETE"
+  });
+}
+
+async function uploadNodeResources(
   { protocolId, nodeId, formData }: { protocolId: number; nodeId: string; formData: FormData }
 ) {
+  console.log(formData);
   return JSONfetcher<UserFile[]>(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}/resources`, {
     method: "POST",
     body: formData
-  })
+  });
 }
 
 async function changeResourceName(
-  { protocolId, nodeId, resourceId, name }: { protocolId: number; nodeId: string; resourceId: number; name: string }
+  { protocolId, nodeId, resourceId, name }: { protocolId: string; nodeId: string; resourceId: string; name: string }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}/resources/${resourceId}`, {
     method: "PATCH",
@@ -87,11 +117,11 @@ async function changeResourceName(
       "Content-Type": "application/json"
     },
     body: JSON.stringify({ name })
-  })
+  });
 }
 
 export async function deleteNodes(
-  { protocolId, nodesIds }: { protocolId: number, nodesIds: string[] }
+  { protocolId, nodesIds }: { protocolId: string, nodesIds: string[] }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/nodes`, {
     method: "DELETE",
@@ -103,7 +133,7 @@ export async function deleteNodes(
 }
 
 export async function upsertProtocol(
-  { protocolId, protocol }: { protocolId: number; protocol: ProtocolUpsert }
+  { protocolId, protocol }: { protocolId: string; protocol: ProtocolUpsert }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/upsert`, {
     method: "POST",
@@ -115,7 +145,7 @@ export async function upsertProtocol(
 }
 
 export async function deleteEdges(
-  { protocolId, edgesIds }: { protocolId: number; edgesIds: string[] }
+  { protocolId, edgesIds }: { protocolId: string; edgesIds: string[] }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/edges`, {
     method: "DELETE",
@@ -127,7 +157,7 @@ export async function deleteEdges(
 }
 
 export async function deleteNodeResource(
-  { protocolId, nodeId, resourceId }: { protocolId: number; nodeId: string; resourceId: number }
+  { protocolId, nodeId, resourceId }: { protocolId: number; nodeId: string; resourceId: string }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}/resources/${resourceId}`, {
     method: "DELETE"
@@ -144,42 +174,38 @@ export async function deleteNode(
   })
 }
 
-export function useUploadFiles() {
-  const { trigger, isMutating } = useMutate(uploadFiles);
-  return {
-    triggerUploadFiles: trigger,
-    isUploadingFiles: isMutating
-  }
+export function useDeleteResourceNode(): UseMutate<void> {
+  return useMutate(deleteNodeResource);
 }
 
-export function useChangeResourceName() {
-  const { trigger, isMutating } = useMutate(changeResourceName);
-  return {
-    triggerChangeResourceName: trigger,
-    isChangingResourceName: isMutating
-  }
+export function useUploadNodeResources(): UseMutate<UserFile[]> {
+  return useMutate(uploadNodeResources);
 }
 
-export function useCreateProtocol() {
-  const { trigger, isMutating } = useMutate(createProtocol);
-  return {
-    triggerCreateProtocol: trigger,
-    isCreatingProtocol: isMutating
-  }
+export function useChangeResourceName(): UseMutate<void> {
+  return useMutate(changeResourceName);
 }
 
-export function useDeleteProtocol() {
-  const { trigger, isMutating } = useMutate(deleteProtocol);
-  return {
-    triggerDeleteProtocol: trigger,
-    isDeletingProtocol: isMutating
-  }
+export function useDeleteDoc(): UseMutate<void> {
+  return useMutate(deleteDoc);
 }
 
-export function useUpdateProtocol() {
-  const { trigger, isMutating } = useMutate(updateProtocol);
-  return {
-    triggerUpdateProtocol: trigger,
-    isUpdatingProtocol: isMutating
-  }
+export function useUploadDocs(): UseMutate<UserFile[]> {
+  return useMutate(uploadDocs);
+}
+
+export function useChangeDocName(): UseMutate<void> {
+  return useMutate(changeDocName);
+}
+
+export function useCreateProtocol(): UseMutate<ProtocolSummary> {
+  return useMutate(createProtocol);
+}
+
+export function useDeleteProtocol(): UseMutate<void> {
+  return useMutate(deleteProtocol);
+}
+
+export function useUpdateProtocol(): UseMutate<void> {
+  return useMutate(updateProtocol);
 }

@@ -33,7 +33,7 @@ import { useEffect } from "react";
 import useToastMessageContext from "@/hooks/useToastMessageContext";
 
 type Props = {
-  protocolId: number;
+  protocolId: string;
 }
 
 export default function ProtocolView({ protocolId }: Props) {

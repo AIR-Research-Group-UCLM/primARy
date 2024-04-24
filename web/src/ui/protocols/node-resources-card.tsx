@@ -6,15 +6,16 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { ReactNode } from "react";
 
 type Props = {
-  id: number;
+  id: string;
   img: string;
   alt?: string;
-  onDelete: (resourceId: number) => void;
+  onDelete: (fileId: string) => void;
+  onImgClick?: (fileId: string) => void;
   header: ReactNode
 }
 
-export default function NodeResourcesCard(
-  { id, img, alt, header, onDelete }: Props
+export default function FileCard(
+  { id, img, alt, header, onDelete, onImgClick }: Props
 ) {
   return (
     <ImageListItem
@@ -37,8 +38,10 @@ export default function NodeResourcesCard(
       }} />
       <img
         src={img}
+        onClick={() => onImgClick?.(id)}
         style={{
-          borderRadius: "10px"
+          borderRadius: "10px",
+          cursor: onImgClick === undefined ? "auto": "pointer"
         }}
         alt={alt}
         loading="lazy"
