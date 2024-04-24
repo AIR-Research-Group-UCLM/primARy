@@ -159,7 +159,12 @@ def delete_doc(
     # TODO: delete file from filesystem
     # TODO: ensure consitency between this db and the vector database
     # TODO: add timeout
-    requests.delete(f"{LLM_SERVICE}/docs/{protocol_id}/{doc_id}")
+    response = requests.delete(f"{LLM_SERVICE}/docs/{protocol_id}/{doc_id}")
+    if not response.ok:
+        raise LLMServiceException(
+            f"The LLM service responded with the error code: {
+                response.status_code}"
+        )
     session.commit()
 
     return result.rowcount != 0
@@ -175,7 +180,7 @@ def get_docs(session: Session, protocol_id: str) -> list[md.File]:
     doc_query = (
         sa.select(
             sc.Documents.id, sc.Documents.name, sc.Documents.extension, sc.Documents.size
-        ).where(sc.Protocol.id == protocol_id)
+        ).where(sc.Documents.protocol_id == protocol_id)
     )
     result = session.execute(doc_query)
 

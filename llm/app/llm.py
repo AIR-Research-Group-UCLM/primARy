@@ -27,7 +27,7 @@ _llm_lock = threading.Lock()
 
 # TODO: add env var
 _llm = LlamaCPP(
-    model_path="",
+    model_path="/home/pablo/llms/mistral-7b-instruct-v0.2.Q5_K_M.gguf",
     temperature=0.7,
     # context_window=32768,
     context_window=4096,

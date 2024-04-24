@@ -32,6 +32,7 @@ app.add_middleware(
 # TODO: delete this. This is only for testing purposes
 app.mount("/static/nodes", StaticFiles(directory="env/nodes"), name="nodes")
 app.mount("/static/docs", StaticFiles(directory="env/docs"), name="docs")
+app.mount("/static/logos", StaticFiles(directory="env/logos"), name="logos")
 
 
 def get_session() -> Session:

@@ -18,6 +18,8 @@ export async function defaultFetcher<S>(url: string) {
 export function noInitialSpace(value: string): string {
   return value.trim() !== "" ? value : "";
 }
+
+// TODO: do not retray on 404 errors
 export async function fetcher<E = any>(url: string, options?: RequestInit): Promise<Response> {
   const res = await fetch(url, options);
   if (!res.ok) {

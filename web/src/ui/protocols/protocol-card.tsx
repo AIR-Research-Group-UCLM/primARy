@@ -20,6 +20,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import type { ProtocolSummary } from "@/types";
+import DocsDialog from "../dialogs/protocol-docs";
 
 type Props = {
   protocol: ProtocolSummary;
@@ -28,7 +29,9 @@ type Props = {
 
 
 export default function ProtocolCard({ protocol, onDeleteClick }: Props) {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [docDialogOpen, setDocDialogOpen] = useState<boolean>(false);
+
   const isMoreMenuOpen = anchorEl !== null;
   const router = useRouter();
 
@@ -36,7 +39,7 @@ export default function ProtocolCard({ protocol, onDeleteClick }: Props) {
     setAnchorEl(event.currentTarget);
   }
 
-  function onMoreButtonClose() {
+  function onListingClose() {
     setAnchorEl(null);
   }
 
@@ -45,9 +48,12 @@ export default function ProtocolCard({ protocol, onDeleteClick }: Props) {
       <Menu
         anchorEl={anchorEl}
         open={isMoreMenuOpen}
-        onClose={onMoreButtonClose}
+        onClose={onListingClose}
       >
-        <MenuItem>
+        <MenuItem onClick={() => {
+          setDocDialogOpen(true);
+          onListingClose();
+        }}>
           <ListItemIcon>
             <ArticleIcon />
           </ListItemIcon>
@@ -129,6 +135,11 @@ export default function ProtocolCard({ protocol, onDeleteClick }: Props) {
           </Button>
         </Box>
       </Paper>
+      <DocsDialog 
+        isOpen={docDialogOpen}
+        protocolId={protocol.id}
+        handleClose={() => setDocDialogOpen(false)}
+      />
     </>
   );
 }

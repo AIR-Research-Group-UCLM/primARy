@@ -1,28 +1,8 @@
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import Button from "@mui/material/Button";
-import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
-import ImageList from "@mui/material/ImageList";
-import Typography from "@mui/material/Typography";
-import SaveIcon from '@mui/icons-material/SaveAlt';
-import EditIcon from '@mui/icons-material/Edit';
-
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-
-import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
-
-import { KeyboardEvent, useState } from "react";
-
-import FileCard from "@/ui/protocols/node-resources-card";
-import VisuallyHiddenInput from "@/ui/visually-hidden-input";
-import { useUploadFiles, useChangeResourceName, deleteNodeResource } from "@/mutation";
-
-// TODO: these imports are not necessary if we create a custom hook for the resources
-import type { UserFile } from "@/types";
+import { useUploadNodeResources, useChangeResourceName, useDeleteResourceNode } from "@/mutation";
 import useNodeResources from "@/hooks/useNodeResources";
+import type { UserFile } from "@/types";
+
+import FilesDialog from "@/ui/dialogs/files-dialog";
 
 type Props = {
   isOpen: boolean;
@@ -31,260 +11,60 @@ type Props = {
   handleClose?: () => void;
 }
 
-type ModifyingHeaderProps = {
-  name: string;
-  onNameChange: (name: string) => void;
-  onSave: () => void;
-  onCancel: () => void;
-}
-
-function ModifyingHeader(
-  { name, onNameChange, onSave, onCancel }: ModifyingHeaderProps
-) {
-
-  function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      onSave();
-    } else if (e.key === "Escape") {
-      onCancel();
-    }
-  }
-
-  return (
-    <>
-      <TextField
-        margin="dense"
-        error={name === ""}
-        fullWidth
-        value={name}
-        inputProps={{
-          style: {
-            textAlign: "center"
-          }
-        }}
-        onKeyDown={onKeyDown}
-        onChange={(e) => onNameChange(e.target.value)}
-        maxRows={2}
-        multiline
-        variant="standard"
-      />
-      <IconButton
-        disabled={name === ""}
-        onClick={() => onSave()}>
-        <SaveIcon />
-      </IconButton>
-    </>
-  );
-}
-
-type NormalHeaderProps = {
-  file: UserFile;
-  onModifyClick: (nodeResource: UserFile) => void;
-}
-
-function NormalHeader(
-  { file, onModifyClick }: NormalHeaderProps
-) {
-  return (
-    <>
-      <Typography
-        variant="h6"
-        component="div"
-        sx={{
-          marginBottom: "5px",
-          maxHeight: "90px",
-          display: "flex",
-          justifyContent: "center",
-          overflowY: "auto",
-          flex: "1"
-        }}>
-        {file.name}
-      </Typography>
-      <IconButton onClick={() => onModifyClick(file)}>
-        <EditIcon />
-      </IconButton>
-    </>
-  );
-}
-
-type SelectedFile = {
-  id: number;
-  provisionalName: string;
-}
-
 export default function NodeResourcesDialog(
   { isOpen, protocolId, nodeId, handleClose }: Props
 ) {
 
-  const { files, mutate } = useNodeResources(protocolId, nodeId);
-  const { trigger: triggerUploadFiles, isMutating: isUploadingFiles } = useUploadFiles();
-  const { trigger: triggerChangeResourceName, isMutating: isChangingResourceName } = useChangeResourceName();
-  const [selectedFile, setSelectedResource] = useState<SelectedFile | null>(null);
-
-  async function onDelete(resourceId: number) {
-    await deleteNodeResource({
-      protocolId, nodeId, resourceId
-    })
-
-    const remainingFiles = files.filter((nodeResource) => nodeResource.id !== resourceId);
-    mutate(remainingFiles, {
-      revalidate: false
-    })
-  }
-
-  async function onFilesUpload(files: File[]) {
-    if (files.length === 0) {
-      return;
+  function getFiles() {
+    const { nodeResources, isLoading, mutate, error } = useNodeResources(protocolId, nodeId);
+    return {
+      files: nodeResources,
+      isLoading,
+      mutate,
+      error
     }
-    const formData = new FormData();
-    for (const file of files) {
-      formData.append("files", file);
+  }
+
+  function useUploadFiles() {
+    const { trigger, isMutating } = useUploadNodeResources();
+    return {
+      triggerUpload: (formData: FormData) => trigger({ protocolId, nodeId, formData }),
+      isUploading: isMutating
     }
-
-    mutate(triggerUploadFiles({ protocolId, nodeId, formData }), {
-      populateCache: (newResources, currentResources) => (
-        currentResources === undefined ? newResources : [...currentResources, ...newResources]
-      ),
-      revalidate: false
-    });
-
   }
 
-  function onModifyClick(nodeResource: UserFile) {
-    setSelectedResource({
-      id: nodeResource.id,
-      provisionalName: nodeResource.name
-    });
-  }
-
-  function onNameChange(name: string) {
-    if (selectedFile === null) {
-      return;
+  function useChangeName() {
+    const { trigger, isMutating } = useChangeResourceName();
+    return {
+      triggerChangeName: (fileId: string, name: string) => trigger({ protocolId, nodeId, resourceId: fileId, name }),
+      isChangingName: isMutating
     }
-
-    setSelectedResource({
-      ...selectedFile,
-      provisionalName: name
-    });
   }
 
-  async function onSave() {
-    if (selectedFile === null || selectedFile.provisionalName === "") {
-      return;
+  function useDeleteFile() {
+    const { trigger, isMutating } = useDeleteResourceNode();
+    return {
+      triggerDeleteFile: (fileId: string) => trigger({protocolId, nodeId, resourceId: fileId}),
+      isDeletingFile: isMutating
     }
-
-    await triggerChangeResourceName(
-      {
-        protocolId,
-        nodeId,
-        resourceId: selectedFile.id,
-        name: selectedFile.provisionalName
-      }
-    );
-
-    const newFiles = files.map((file) => {
-      if (file.id !== selectedFile.id) {
-        return file;
-      }
-      return {
-        ...file,
-        name: selectedFile.provisionalName
-      }
-    });
-
-    mutate(newFiles, {
-      revalidate: false
-    })
-
-    setSelectedResource(null);
   }
 
-  function onCancel() {
-    setSelectedResource(null);
+  function fileImg(file: UserFile) {
+    return `${process.env.API_BASE}/static/nodes/${file.filename}`;
   }
+
 
   return (
-    <Dialog
-      open={isOpen}
-      fullWidth
-      maxWidth="md"
-      onClose={handleClose}
-    >
-      <DialogTitle>
-        Node Resources
-      </DialogTitle>
-      <IconButton
-        size="large"
-        onClick={handleClose}
-        sx={{
-          position: 'absolute',
-          right: 8,
-          top: 8
-        }}>
-        <CloseIcon />
-      </IconButton>
-      <DialogContent dividers>
-        <Box sx={{
-          display: "flex",
-          justifyContent: "center",
-          marginRight: "20px"
-        }}>
-          <Button
-            component="label"
-            variant="contained"
-            size="large"
-            startIcon={<CloudUploadIcon />}
-            sx={{
-              borderRadius: "30px"
-            }}
-          >
-            Upload
-            <VisuallyHiddenInput
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => onFilesUpload(Array.from(e.target.files || []))}
-            />
-          </Button>
-        </Box>
-        <ImageList
-          sx={{
-            width: "100%",
-            height: "100%",
-            padding: "0 20px"
-          }}
-          cols={3}
-          gap={10}
-        >
-          {files.map((file) =>
-            <FileCard
-              key={file.id}
-              // TODO: use ENV VAR for this
-              onDelete={onDelete}
-              id={file.id}
-              img={`${process.env.API_BASE}/static/nodes/${file.filename}`}
-              alt={file.name}
-              header={
-                selectedFile?.id === file.id ? (
-                  <ModifyingHeader
-                    name={selectedFile.provisionalName}
-                    onNameChange={onNameChange}
-                    onSave={onSave}
-                    onCancel={onCancel}
-                  />
-                ) : (
-                  <NormalHeader
-                    file={file}
-                    onModifyClick={onModifyClick}
-                  />
-                )
-              }
-            />
-          )
-          }
-        </ImageList>
-      </DialogContent>
-    </Dialog>
+    <FilesDialog
+      isOpen={isOpen}
+      handleClose={handleClose}
+      useGetFiles={getFiles}
+      mutateFiles={{
+        useUploadFiles, useChangeName, useDeleteFile
+      }}
+      dialogTitle="Node resources"
+      acceptMime="image/*"
+      fileImg={fileImg}
+    />
   );
 }

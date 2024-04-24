@@ -22,8 +22,8 @@ import { useCreateProtocol, useDeleteProtocol } from "@/mutation";
 export default function Page() {
   const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
   const [protocolForDelete, setProtocolForDelete] = useState<ProtocolSummary | null>(null);
-  const { triggerCreateProtocol, isCreatingProtocol } = useCreateProtocol();
-  const { triggerDeleteProtocol, isDeletingProtocol } = useDeleteProtocol();
+  const { trigger: triggerCreateProtocol, isMutating: isCreatingProtocol } = useCreateProtocol();
+  const { trigger: triggerDeleteProtocol, isMutating: isDeletingProtocol } = useDeleteProtocol();
   const { protocols, isLoading, mutate } = useProtocols();
   const router = useRouter();
 

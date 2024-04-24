@@ -24,7 +24,7 @@ export type Edge = {
 }
 
 export type Protocol = {
-    id: number;
+    id: string;
     initialNodeId: string;
     name: string;
     nodes: Node[];
@@ -43,10 +43,10 @@ export type ProtocolSummary = {
 }
 
 export type UserFile = {
-   id: number; 
-   filename: string;
-   name: string;
-   size: number;
+    id: string;
+    filename: string;
+    name: string;
+    size: number;
 }
 
 export type LLMResponse = {

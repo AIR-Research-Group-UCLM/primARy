@@ -6,11 +6,11 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { ReactNode } from "react";
 
 type Props = {
-  id: number;
+  id: string;
   img: string;
   alt?: string;
-  onDelete: (fileId: number) => void;
-  onImgClick?: (fileId: number) => void;
+  onDelete: (fileId: string) => void;
+  onImgClick?: (fileId: string) => void;
   header: ReactNode
 }
 

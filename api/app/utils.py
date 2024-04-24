@@ -26,8 +26,9 @@ class FileWithExtension:
         return f"{self.name}.{self.extension}"
 
     def wrapped_blob(self):
-        """This returns the stream as if it were not consumed. This may be more convenient than calling seek"""
-        return io.BytesIO(self.blob)
+        """This sets the stream offset to 0 (the beginning) and returns it"""
+        self.blob.seek(0)
+        return self.blob
 
 
 def split_extension(filename: str):

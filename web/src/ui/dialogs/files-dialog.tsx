@@ -18,23 +18,20 @@ import { KeyboardEvent, useState } from "react";
 
 import FileCard from "@/ui/protocols/node-resources-card";
 import VisuallyHiddenInput from "@/ui/visually-hidden-input";
-import { useUploadFiles, useChangeResourceName, deleteNodeResource } from "@/mutation";
 
-// TODO: these imports are not necessary if we create a custom hook for the resources
 import type { UserFile } from "@/types";
-import useNodeResources from "@/hooks/useNodeResources";
 import { KeyedMutator } from "swr";
 
 type MutateFiles = {
-  uploadFiles: {
+  useUploadFiles: () => {
     triggerUpload: (formaData: FormData) => Promise<UserFile[]>;
     isUploading: boolean;
   }
-  changeName: {
+  useChangeName: () => {
     triggerChangeName: (fileId: string, name: string) => Promise<void>;
     isChangingName: boolean;
   }
-  deleteFile: {
+  useDeleteFile: () => {
     triggerDeleteFile: (fileId: string) => Promise<void>;
     isDeletingFile: boolean;
   }
@@ -51,11 +48,11 @@ type Props = {
   isOpen: boolean;
   handleClose?: () => void;
 
-  getFiles: () => GetFiles;
+  useGetFiles: () => GetFiles;
   mutateFiles: MutateFiles;
   dialogTitle: string;
   acceptMime: string;
-
+  fileImg: (file: UserFile) => string;
 }
 
 type ModifyingHeaderProps = {
@@ -136,26 +133,24 @@ function NormalHeader(
 }
 
 type SelectedFile = {
-  id: number;
+  id: string;
   provisionalName: string;
 }
 
 export default function FilesDialog(
-  { isOpen, handleClose, getFiles, mutateFiles, dialogTitle, acceptMime }: Props
+  { isOpen, handleClose, useGetFiles, mutateFiles, dialogTitle, acceptMime, fileImg }: Props
 ) {
 
-  const { files, mutate, isLoading, error } = getFiles()
-  const { triggerUpload } = mutateFiles.uploadFiles;
-  const { triggerChangeName } = mutateFiles.changeName;
-  const { triggerDeleteFile } = mutateFiles.deleteFile;
+  const { files, mutate, isLoading, error } = useGetFiles()
+  const { useUploadFiles, useChangeName, useDeleteFile } = mutateFiles;
+
+  const { triggerUpload } = useUploadFiles();
+  const { triggerChangeName } = useChangeName();
+  const { triggerDeleteFile } = useDeleteFile();
   const [selectedFile, setSelectedResource] = useState<SelectedFile | null>(null);
 
 
-  function fileImg(file: UserFile) {
-    return `${process.env.API_BASE}/static/nodes/${file.filename}`
-  }
-
-  async function onDelete(fileId: number) {
+  async function onDelete(fileId: string) {
     await triggerDeleteFile(fileId);
 
     const remainingFiles = files.filter((file) => file.id !== fileId);
@@ -206,8 +201,8 @@ export default function FilesDialog(
     }
 
     await triggerChangeName(
-        selectedFile.id,
-        selectedFile.provisionalName
+      selectedFile.id,
+      selectedFile.provisionalName
     );
 
     const newResources = files.map((file) => {
