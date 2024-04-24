@@ -33,6 +33,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.exception_handler(InvalidDocumentException)
 async def invalid_file_exception_handler(request: Request, exc: InvalidDocumentException):
     return JSONResponse(

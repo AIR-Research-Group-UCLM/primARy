@@ -4,18 +4,18 @@ import Divider from "@mui/material/Divider";
 import Button from "@mui/material/Button";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { ReactNode } from "react";
+import { UserFile } from "@/types";
 
 type Props = {
-  id: string;
+  file: UserFile;
   img: string;
-  alt?: string;
-  onDelete: (fileId: string) => void;
-  onImgClick?: (fileId: string) => void;
-  header: ReactNode
+  onDelete: (file: UserFile) => void;
+  onImgClick?: (file: UserFile) => void;
+  header: ReactNode;
 }
 
 export default function FileCard(
-  { id, img, alt, header, onDelete, onImgClick }: Props
+  { file, img, header, onDelete, onImgClick }: Props
 ) {
   return (
     <ImageListItem
@@ -38,12 +38,12 @@ export default function FileCard(
       }} />
       <img
         src={img}
-        onClick={() => onImgClick?.(id)}
+        onClick={() => onImgClick?.(file)}
         style={{
           borderRadius: "10px",
           cursor: onImgClick === undefined ? "auto": "pointer"
         }}
-        alt={alt}
+        alt={file.name}
         loading="lazy"
       />
       <Divider sx={{
@@ -56,7 +56,7 @@ export default function FileCard(
       }}>
         <Button
           size="small"
-          onClick={() => onDelete(id)}
+          onClick={() => onDelete(file)}
           variant="outlined"
           startIcon={<DeleteIcon />}
         >

@@ -49,6 +49,10 @@ export default function NodeResourcesDialog(
     return `${process.env.API_BASE}/static/nodes/${file.filename}`;
   }
 
+  function onImgClick(file: UserFile) {
+    window.open(fileImg(file), "_blank");
+  }
+
 
   return (
     <FilesDialog
@@ -61,6 +65,7 @@ export default function NodeResourcesDialog(
       dialogTitle="Node resources"
       acceptMime="image/*"
       fileImg={fileImg}
+      onImgClick={onImgClick}
     />
   );
 }

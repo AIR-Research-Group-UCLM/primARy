@@ -8,6 +8,7 @@ import ImageList from "@mui/material/ImageList";
 import Typography from "@mui/material/Typography";
 import SaveIcon from '@mui/icons-material/SaveAlt';
 import EditIcon from '@mui/icons-material/Edit';
+import CircularProgress from "@mui/material/CircularProgress";
 
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
@@ -16,11 +17,12 @@ import CloseIcon from '@mui/icons-material/Close';
 
 import { KeyboardEvent, useState } from "react";
 
-import FileCard from "@/ui/protocols/node-resources-card";
+import FileCard from "@/ui/protocols/file-card";
 import VisuallyHiddenInput from "@/ui/visually-hidden-input";
 
 import type { UserFile } from "@/types";
 import { KeyedMutator } from "swr";
+import ConfirmDialog from "@/ui/dialogs/confirm";
 
 type MutateFiles = {
   useUploadFiles: () => {
@@ -53,6 +55,7 @@ type Props = {
   dialogTitle: string;
   acceptMime: string;
   fileImg: (file: UserFile) => string;
+  onImgClick?: (file: UserFile) => void;
 }
 
 type ModifyingHeaderProps = {
@@ -115,11 +118,11 @@ function NormalHeader(
       <Typography
         variant="h6"
         component="div"
+        align="center"
         sx={{
           marginBottom: "5px",
+          maxWidth: "150px",
           maxHeight: "90px",
-          display: "flex",
-          justifyContent: "center",
           overflowY: "auto",
           flex: "1"
         }}>
@@ -138,25 +141,40 @@ type SelectedFile = {
 }
 
 export default function FilesDialog(
-  { isOpen, handleClose, filesRequest, mutateFiles, dialogTitle, acceptMime, fileImg }: Props
+  { isOpen, handleClose, filesRequest, mutateFiles, dialogTitle, acceptMime, fileImg, onImgClick }: Props
 ) {
 
   const { files, mutate, isLoading, error } = filesRequest;
   const { useUploadFiles, useChangeName, useDeleteFile } = mutateFiles;
 
-  const { triggerUpload } = useUploadFiles();
+  const { triggerUpload, isUploading } = useUploadFiles();
   const { triggerChangeName } = useChangeName();
   const { triggerDeleteFile } = useDeleteFile();
-  const [selectedFile, setSelectedResource] = useState<SelectedFile | null>(null);
+  const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null);
 
+  const [confirmDeleteFile, setConfirmDeleteFile] = useState<UserFile | null>(null);
 
-  async function onDelete(fileId: string) {
-    await triggerDeleteFile(fileId);
+  function onConfirmDialogClose() {
+    setConfirmDeleteFile(null);
+  }
 
-    const remainingFiles = files.filter((file) => file.id !== fileId);
+  async function onConfirmDelete() {
+    if (confirmDeleteFile === null) {
+      return;
+    }
+
+    setConfirmDeleteFile(null);
+    await triggerDeleteFile(confirmDeleteFile.id);
+
+    const remainingFiles = files.filter((remainingFile) => remainingFile.id !== confirmDeleteFile.id);
     mutate(remainingFiles, {
       revalidate: false
     })
+  }
+
+
+  async function onDelete(file: UserFile) {
+    setConfirmDeleteFile(file);
   }
 
   async function onFilesUpload(files: File[]) {
@@ -178,7 +196,7 @@ export default function FilesDialog(
   }
 
   function onModifyClick(nodeResource: UserFile) {
-    setSelectedResource({
+    setSelectedFile({
       id: nodeResource.id,
       provisionalName: nodeResource.name
     });
@@ -189,7 +207,7 @@ export default function FilesDialog(
       return;
     }
 
-    setSelectedResource({
+    setSelectedFile({
       ...selectedFile,
       provisionalName: name
     });
@@ -219,94 +237,117 @@ export default function FilesDialog(
       revalidate: false
     })
 
-    setSelectedResource(null);
+    setSelectedFile(null);
   }
 
   function onCancel() {
-    setSelectedResource(null);
+    setSelectedFile(null);
   }
 
   return (
-    <Dialog
-      open={isOpen}
-      fullWidth
-      maxWidth="md"
-      onClose={handleClose}
-    >
-      <DialogTitle>
-        {dialogTitle}
-      </DialogTitle>
-      <IconButton
-        size="large"
-        onClick={handleClose}
-        sx={{
-          position: 'absolute',
-          right: 8,
-          top: 8
-        }}>
-        <CloseIcon />
-      </IconButton>
-      <DialogContent dividers>
-        <Box sx={{
-          display: "flex",
-          justifyContent: "center",
-          marginRight: "20px"
-        }}>
-          <Button
-            component="label"
-            variant="contained"
-            size="large"
-            startIcon={<CloudUploadIcon />}
-            sx={{
-              borderRadius: "30px"
-            }}
-          >
-            Upload
-            <VisuallyHiddenInput
-              type="file"
-              accept={acceptMime}
-              multiple
-              onChange={(e) => onFilesUpload(Array.from(e.target.files || []))}
-            />
-          </Button>
-        </Box>
-        <ImageList
+    <>
+      <ConfirmDialog
+        isOpen={confirmDeleteFile !== null}
+        title="Confirm file deletion"
+        contentText={`Are you sure you want to delete the file '${confirmDeleteFile?.name}'?`}
+        action="Delete"
+        onActionClick={onConfirmDelete}
+        onCancelClick={onConfirmDialogClose}
+      />
+      <Dialog
+        open={isOpen && confirmDeleteFile === null}
+        fullWidth
+        maxWidth="md"
+        onClose={handleClose}
+      >
+        <DialogTitle>
+          {dialogTitle}
+        </DialogTitle>
+        <IconButton
+          size="large"
+          onClick={handleClose}
           sx={{
-            width: "100%",
-            height: "100%",
-            padding: "0 20px"
-          }}
-          cols={3}
-          gap={10}
-        >
-          {files.map((file) =>
-            <FileCard
-              key={file.id}
-              // TODO: use ENV VAR for this
-              onDelete={onDelete}
-              id={file.id}
-              img={fileImg(file)}
-              alt={file.name}
-              header={
-                selectedFile?.id === file.id ? (
-                  <ModifyingHeader
-                    name={selectedFile.provisionalName}
-                    onNameChange={onNameChange}
-                    onSave={onSave}
-                    onCancel={onCancel}
-                  />
-                ) : (
-                  <NormalHeader
-                    file={file}
-                    onModifyClick={onModifyClick}
-                  />
-                )
+            position: 'absolute',
+            right: 8,
+            top: 8
+          }}>
+          <CloseIcon />
+        </IconButton>
+        <DialogContent dividers>
+          <Box sx={{
+            display: "flex",
+            justifyContent: "center",
+            marginRight: "20px"
+          }}>
+            <Button
+              component="label"
+              variant="contained"
+              disabled={isUploading}
+              size="large"
+              startIcon={<CloudUploadIcon />}
+              sx={{
+                borderRadius: "30px"
+              }}
+            >
+              Upload
+              <VisuallyHiddenInput
+                type="file"
+                accept={acceptMime}
+                multiple
+                onChange={(e) => onFilesUpload(Array.from(e.target.files || []))}
+              />
+            </Button>
+          </Box>
+          {isUploading ?
+            <Box sx={{
+              width: "100%",
+              marginTop: "10px",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}>
+              <CircularProgress size={200} />
+            </Box>
+            :
+            <ImageList
+              sx={{
+                width: "100%",
+                height: "100%",
+                padding: "0 20px"
+              }}
+              cols={3}
+              gap={10}
+            >
+              {files.map((file) =>
+                <FileCard
+                  key={file.id}
+                  // TODO: use ENV VAR for this
+                  file={file}
+                  onDelete={onDelete}
+                  img={fileImg(file)}
+                  onImgClick={onImgClick}
+                  header={
+                    selectedFile?.id === file.id ? (
+                      <ModifyingHeader
+                        name={selectedFile.provisionalName}
+                        onNameChange={onNameChange}
+                        onSave={onSave}
+                        onCancel={onCancel}
+                      />
+                    ) : (
+                      <NormalHeader
+                        file={file}
+                        onModifyClick={onModifyClick}
+                      />
+                    )
+                  }
+                />
+              )
               }
-            />
-          )
-          }
-        </ImageList>
-      </DialogContent>
-    </Dialog>
+            </ImageList>}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

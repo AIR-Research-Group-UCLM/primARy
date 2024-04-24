@@ -48,6 +48,10 @@ export default function DocsDialog(
     return `${process.env.API_BASE}/static/logos/${logoFile}`;
   }
 
+  function onImgClick(file: UserFile) {
+    window.open(`${process.env.API_BASE}/static/docs/${file.filename}`, "_blank");;
+  }
+
 
   return (
     <FilesDialog
@@ -59,6 +63,7 @@ export default function DocsDialog(
       }}
       dialogTitle="Protocol's documents"
       acceptMime="text/plain, application/pdf"
+      onImgClick={onImgClick}
       fileImg={fileImg}
     />
   );

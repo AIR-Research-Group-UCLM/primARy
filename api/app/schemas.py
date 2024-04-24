@@ -65,8 +65,8 @@ class Documents(Base):
     protocol_id: Mapped[int] = mapped_column(
         sa.ForeignKey("protocols.id", ondelete="CASCADE"), primary_key=True
     )
-    name: Mapped[str] = mapped_column(sa.String(15))
-    extension: Mapped[str] = mapped_column(sa.String(15))
+    name: Mapped[str] = mapped_column(sa.String(255))
+    extension: Mapped[str] = mapped_column(sa.String(255))
     size: Mapped[int] = mapped_column()
 
 
