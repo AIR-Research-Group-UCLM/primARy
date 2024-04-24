@@ -6,7 +6,7 @@ import FilesDialog from "@/ui/dialogs/files-dialog";
 
 type Props = {
   isOpen: boolean;
-  protocolId: number;
+  protocolId: string;
   nodeId: string;
   handleClose?: () => void;
 }
@@ -15,14 +15,10 @@ export default function NodeResourcesDialog(
   { isOpen, protocolId, nodeId, handleClose }: Props
 ) {
 
-  function getFiles() {
-    const { nodeResources, isLoading, mutate, error } = useNodeResources(protocolId, nodeId);
-    return {
-      files: nodeResources,
-      isLoading,
-      mutate,
-      error
-    }
+  const resourceRequest = useNodeResources(protocolId, nodeId);
+  const filesRequest = {
+    ...resourceRequest,
+    files: resourceRequest.nodeResources
   }
 
   function useUploadFiles() {
@@ -58,7 +54,7 @@ export default function NodeResourcesDialog(
     <FilesDialog
       isOpen={isOpen}
       handleClose={handleClose}
-      useGetFiles={getFiles}
+      filesRequest={filesRequest}
       mutateFiles={{
         useUploadFiles, useChangeName, useDeleteFile
       }}

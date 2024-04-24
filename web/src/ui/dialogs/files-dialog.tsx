@@ -37,7 +37,7 @@ type MutateFiles = {
   }
 }
 
-type GetFiles = {
+type FilesRequest = {
   files: UserFile[];
   mutate: KeyedMutator<UserFile[]>;
   isLoading: boolean;
@@ -48,7 +48,7 @@ type Props = {
   isOpen: boolean;
   handleClose?: () => void;
 
-  useGetFiles: () => GetFiles;
+  filesRequest: FilesRequest;
   mutateFiles: MutateFiles;
   dialogTitle: string;
   acceptMime: string;
@@ -138,10 +138,10 @@ type SelectedFile = {
 }
 
 export default function FilesDialog(
-  { isOpen, handleClose, useGetFiles, mutateFiles, dialogTitle, acceptMime, fileImg }: Props
+  { isOpen, handleClose, filesRequest, mutateFiles, dialogTitle, acceptMime, fileImg }: Props
 ) {
 
-  const { files, mutate, isLoading, error } = useGetFiles()
+  const { files, mutate, isLoading, error } = filesRequest;
   const { useUploadFiles, useChangeName, useDeleteFile } = mutateFiles;
 
   const { triggerUpload } = useUploadFiles();

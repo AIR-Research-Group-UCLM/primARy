@@ -13,15 +13,10 @@ type Props = {
 export default function DocsDialog(
   { isOpen, protocolId, handleClose }: Props
 ) {
-
-  function getFiles() {
-    const { docs, isLoading, mutate, error } = useDocs(protocolId);
-    return {
-      files: docs,
-      isLoading,
-      mutate,
-      error
-    }
+  const docsRequest = useDocs(protocolId);
+  const filesRequest = {
+    ...docsRequest,
+    files: docsRequest.docs,
   }
 
   function useUploadFiles() {
@@ -58,7 +53,7 @@ export default function DocsDialog(
     <FilesDialog
       isOpen={isOpen}
       handleClose={handleClose}
-      useGetFiles={getFiles}
+      filesRequest={filesRequest}
       mutateFiles={{
         useUploadFiles, useChangeName, useDeleteFile
       }}

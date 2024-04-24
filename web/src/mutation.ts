@@ -58,7 +58,7 @@ export async function createNode({ protocolId, node }: { protocolId: number, nod
 }
 
 async function updateProtocol(
-  { protocolId, protocolData }: { protocolId: number; protocolData: ProtocolData }
+  { protocolId, protocolData }: { protocolId: string; protocolData: ProtocolData }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}`, {
     method: "PUT",
@@ -70,7 +70,7 @@ async function updateProtocol(
 }
 
 async function uploadDocs(
-  { protocolId, formData }: { protocolId: number; formData: FormData }
+  { protocolId, formData }: { protocolId: string; formData: FormData }
 ) {
   return JSONfetcher<UserFile[]>(`${process.env.API_BASE}/protocols/${protocolId}/docs`, {
     method: "POST",
@@ -79,7 +79,7 @@ async function uploadDocs(
 }
 
 async function changeDocName(
-  { protocolId, docId, name }: { protocolId: number; docId: string; name: string }
+  { protocolId, docId, name }: { protocolId: string; docId: string; name: string }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/docs/${docId}`, {
     method: "PATCH",
@@ -91,7 +91,7 @@ async function changeDocName(
 }
 
 async function deleteDoc(
-  { protocolId, docId }: { protocolId: number; docId: string }
+  { protocolId, docId }: { protocolId: string; docId: string }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/docs/${docId}`, {
     method: "DELETE"
@@ -109,7 +109,7 @@ async function uploadNodeResources(
 }
 
 async function changeResourceName(
-  { protocolId, nodeId, resourceId, name }: { protocolId: number; nodeId: string; resourceId: string; name: string }
+  { protocolId, nodeId, resourceId, name }: { protocolId: string; nodeId: string; resourceId: string; name: string }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}/resources/${resourceId}`, {
     method: "PATCH",
@@ -121,7 +121,7 @@ async function changeResourceName(
 }
 
 export async function deleteNodes(
-  { protocolId, nodesIds }: { protocolId: number, nodesIds: string[] }
+  { protocolId, nodesIds }: { protocolId: string, nodesIds: string[] }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/nodes`, {
     method: "DELETE",
@@ -133,7 +133,7 @@ export async function deleteNodes(
 }
 
 export async function upsertProtocol(
-  { protocolId, protocol }: { protocolId: number; protocol: ProtocolUpsert }
+  { protocolId, protocol }: { protocolId: string; protocol: ProtocolUpsert }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/upsert`, {
     method: "POST",
@@ -145,7 +145,7 @@ export async function upsertProtocol(
 }
 
 export async function deleteEdges(
-  { protocolId, edgesIds }: { protocolId: number; edgesIds: string[] }
+  { protocolId, edgesIds }: { protocolId: string; edgesIds: string[] }
 ) {
   return JSONfetcher(`${process.env.API_BASE}/protocols/${protocolId}/edges`, {
     method: "DELETE",

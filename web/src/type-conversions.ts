@@ -38,7 +38,7 @@ export function flowchartEdgeToEdge(edge: FlowchartEdge): Edge {
   }
 }
 
-export function protocolDataToProtocol(protocolId: number, protocolData: ProtocolData): Protocol {
+export function protocolDataToProtocol(protocolId: string, protocolData: ProtocolData): Protocol {
   return {
     id: protocolId,
     initialNodeId: protocolData.initialNodeId,
