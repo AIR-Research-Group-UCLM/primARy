@@ -4,7 +4,7 @@ import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
-import ListItemIcon  from "@mui/material/ListItemIcon";
+import ListItemIcon from "@mui/material/ListItemIcon";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ArticleIcon from '@mui/icons-material/Article';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
@@ -20,7 +20,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import type { ProtocolSummary } from "@/types";
-import DocsDialog from "../dialogs/protocol-docs";
+import DocsDialog from "@/ui/dialogs/protocol-docs";
 
 type Props = {
   protocol: ProtocolSummary;
@@ -135,11 +135,11 @@ export default function ProtocolCard({ protocol, onDeleteClick }: Props) {
           </Button>
         </Box>
       </Paper>
-      <DocsDialog 
+      {docDialogOpen && <DocsDialog
         isOpen={docDialogOpen}
         protocolId={protocol.id}
         handleClose={() => setDocDialogOpen(false)}
-      />
+      />}
     </>
   );
 }

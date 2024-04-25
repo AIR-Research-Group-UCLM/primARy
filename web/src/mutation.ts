@@ -12,7 +12,7 @@ export async function generateLLMResponse({ prompt, protocolId }: { prompt: stri
 
   // TODO: this will work with process.env.API_BASE because it will reference a 
   // reverse proxy which will deliver the request to the llm service
-  const response = await fetcher(`http://192.168.0.61:8001/llm/generate${queryParams}`, {
+  const response = await fetcher(`http://127.0.0.1:8001/llm/generate${queryParams}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
