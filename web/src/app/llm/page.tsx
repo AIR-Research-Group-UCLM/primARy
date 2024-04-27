@@ -12,9 +12,21 @@ import { UnsuccessfulResponse } from "@/utils";
 import { CircularProgress } from "@mui/material";
 import useToastMessageContext from "@/hooks/useToastMessageContext";
 
+type Role = "You" | "LLM";
+
 type MessageAreaProps = {
-  role: "You" | "LLM";
+  role: Role;
   children: React.ReactNode;
+}
+
+type QAMessage = {
+  role: Role;
+  content: string;
+}
+
+const initialLLMMessage: QAMessage = {
+  role: "LLM",
+  content: ""
 }
 
 function MessageArea({ role, children }: MessageAreaProps) {
@@ -51,7 +63,7 @@ function MessageArea({ role, children }: MessageAreaProps) {
 }
 
 export default function Page({ searchParams }: { searchParams: { protocol?: number } }) {
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<QAMessage[]>([]);
   const [prompt, setPrompt] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const { trigger: triggerGenerateResponse, isMutating: isProcessingPrompt } = useGenerateLLMResponse();
@@ -60,7 +72,7 @@ export default function Page({ searchParams }: { searchParams: { protocol?: numb
 
   async function writeLLMResponse(reader: ReadableStreamDefaultReader<LLMResponse>) {
     setIsGenerating(true);
-    setMessages(["", prompt, ...messages]);
+    setMessages((messages) => [initialLLMMessage, ...messages]);
 
     let text = "";
 
@@ -76,9 +88,17 @@ export default function Page({ searchParams }: { searchParams: { protocol?: numb
         text += response.text;
       }
 
-      setMessages((messages) => [text + "▐", ...messages.slice(1)]);
+      const partialMessage: QAMessage = {
+        role: "LLM",
+        content: text + "▐"
+      }
+      setMessages((messages) => [partialMessage, ...messages.slice(1)]);
     }
-    setMessages((messages) => [text, ...messages.slice(1)]);
+    const definitiveMessage: QAMessage = {
+      role: "LLM",
+      content: text
+    }
+    setMessages((messages) => [definitiveMessage, ...messages.slice(1)]);
 
   }
 
@@ -88,6 +108,11 @@ export default function Page({ searchParams }: { searchParams: { protocol?: numb
     }
 
     setPrompt("");
+    const userMessage: QAMessage = {
+      role: "You",
+      content: prompt
+    }
+    setMessages([userMessage, ...messages]);
 
     try {
       const stream = await triggerGenerateResponse({ prompt, protocolId: searchParams.protocol });
@@ -137,13 +162,13 @@ export default function Page({ searchParams }: { searchParams: { protocol?: numb
               alignItems: "center",
               justifyContent: "center",
             }}>
-              <CircularProgress size={50} />
+              <CircularProgress size={25} />
             </Box>
           </MessageArea>}
 
-        {messages.map((message, index) => (
-            <MessageArea role={index % 2 === 1 ? "You" : "LLM"}>
-              {message}
+        {messages.map((message) => (
+            <MessageArea role={message.role} >
+              {message.content}
             </MessageArea>
           ))}
       </Box>
