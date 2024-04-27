@@ -45,7 +45,7 @@ async def invalid_file_exception_handler(request: Request, exc: InvalidDocumentE
 @app.exception_handler(LLMNotAvailableException)
 async def invalid_file_exception_handler(request: Request, exc: LLMNotAvailableException):
     return JSONResponse(
-        status_code=400,
+        status_code=503,
         content={
             "detail": "The LLM is in the process of generating text and is not available"}
     )

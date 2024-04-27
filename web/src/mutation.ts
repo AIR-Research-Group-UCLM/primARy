@@ -206,6 +206,10 @@ export function useDeleteProtocol(): UseMutate<void> {
   return useMutate(deleteProtocol);
 }
 
+export function useGenerateLLMResponse(): UseMutate<ReadableStream<LLMResponse>> {
+  return useMutate(generateLLMResponse);
+}
+
 export function useUpdateProtocol(): UseMutate<void> {
   return useMutate(updateProtocol);
 }

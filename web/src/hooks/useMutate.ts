@@ -10,9 +10,12 @@ export default function useMutate<R, A>(mutator: (args: A) => Promise<R>): UseMu
 
   async function trigger(args: A) {
     setIsMutating(true);
-    const result = await mutator(args);
-    setIsMutating(false);
-    return result;
+    try {
+      const result = await mutator(args);
+      return result;
+    } finally {
+      setIsMutating(false);
+    }
   }
 
   return {
