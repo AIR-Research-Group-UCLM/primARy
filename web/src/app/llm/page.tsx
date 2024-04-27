@@ -4,24 +4,64 @@ import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { noInitialSpace } from "@/utils";
-import { generateLLMResponse } from "@/mutation";
+import { useGenerateLLMResponse } from "@/mutation";
 
 import { useState, KeyboardEvent } from "react";
+import { LLMResponse } from "@/types";
+import { UnsuccessfulResponse } from "@/utils";
+import { CircularProgress } from "@mui/material";
+import useToastMessageContext from "@/hooks/useToastMessageContext";
+
+type MessageAreaProps = {
+  role: "You" | "LLM";
+  children: React.ReactNode;
+}
+
+function MessageArea({ role, children }: MessageAreaProps) {
+  return (
+    <Box
+      sx={{
+        padding: "15px 10px",
+        background: role == "You" ? "#edf8fc" : "#CFD8DC",
+      }}>
+      <Box sx={{
+        display: "flex",
+        gap: "15px"
+      }}>
+        <Typography
+          component="div"
+          sx={{
+            fontSize: "20px"
+          }}
+        >
+          {role}
+        </Typography>
+        <Typography
+          paragraph
+          sx={{
+            fontSize: "20px",
+            flex: 1,
+            margin: 0,
+            whiteSpace: "pre-wrap"
+          }}>
+          {children}
+        </Typography>
+      </Box>
+    </Box>);
+}
 
 export default function Page({ searchParams }: { searchParams: { protocol?: number } }) {
   const [messages, setMessages] = useState<string[]>([]);
   const [prompt, setPrompt] = useState<string>("");
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const { trigger: triggerGenerateResponse, isMutating: isProcessingPrompt } = useGenerateLLMResponse();
 
-  async function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
-    if (prompt === "" || e.key !== "Enter") {
-      return;
-    }
+  const setToastMessage = useToastMessageContext();
 
+  async function writeLLMResponse(reader: ReadableStreamDefaultReader<LLMResponse>) {
+    setIsGenerating(true);
     setMessages(["", prompt, ...messages]);
-    setPrompt("");
 
-    const stream = await generateLLMResponse({ prompt, protocolId: searchParams.protocol });
-    const reader = stream.getReader();
     let text = "";
 
     while (true) {
@@ -39,6 +79,36 @@ export default function Page({ searchParams }: { searchParams: { protocol?: numb
       setMessages((messages) => [text + "▐", ...messages.slice(1)]);
     }
     setMessages((messages) => [text, ...messages.slice(1)]);
+
+  }
+
+  async function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    if (prompt === "" || e.key !== "Enter") {
+      return;
+    }
+
+    setPrompt("");
+
+    try {
+      const stream = await triggerGenerateResponse({ prompt, protocolId: searchParams.protocol });
+      const reader = stream.getReader();
+      await writeLLMResponse(reader);
+    } catch (e) {
+      if (!(e instanceof UnsuccessfulResponse)) {
+        setToastMessage({
+          type: "error",
+          text: String(e)
+        })
+        return;
+      }
+      const error = e as UnsuccessfulResponse;
+      setToastMessage({
+        type: "error",
+        text: error.status === 503 ? "The LLM is not available right now" : error.message
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   }
 
   return (
@@ -59,40 +129,28 @@ export default function Page({ searchParams }: { searchParams: { protocol?: numb
         flexDirection: "column-reverse",
         overflow: "auto",
       }}>
-        {messages.map((message, index) => (
-          <Box
-            key={index}
-            sx={{
-              padding: "15px 10px 15px 10px",
-              background: index % 2 === 1 ? "#edf8fc" : "#CFD8DC",
-            }}>
+
+        {isProcessingPrompt &&
+          <MessageArea role="LLM">
             <Box sx={{
               display: "flex",
-              gap: "15px"
+              alignItems: "center",
+              justifyContent: "center",
             }}>
-              <Typography
-                component="div"
-                sx={{
-                  fontSize: "20px"
-                }}
-              >
-                {index % 2 === 1 ? "You:" : "LLM:"}
-              </Typography>
-              <Typography
-                paragraph
-                sx={{
-                  fontSize: "20px",
-                  margin: 0,
-                  whiteSpace: "pre-wrap"
-                }}>
-                {message}
-              </Typography>
+              <CircularProgress size={50} />
             </Box>
-          </Box>
-        ))}
+          </MessageArea>}
+
+        {messages.map((message, index) => (
+            <MessageArea role={index % 2 === 1 ? "You" : "LLM"}>
+              {message}
+            </MessageArea>
+          ))}
       </Box>
       <TextField
         fullWidth
+        inputRef={(input) => input && input.focus()}
+        disabled={isGenerating}
         label="Prompt"
         value={prompt}
         onKeyDown={onKeyDown}

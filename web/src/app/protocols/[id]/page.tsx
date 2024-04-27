@@ -35,9 +35,7 @@ export default function Page({ params }: { params: { id: string } }) {
     }}>
       <LocalEdgesNodesProvider>
         <ProtocolStoreProvider protocol={protocol}>
-          <ToastMessageProvider>
-            <ProtocolView protocolId={data.id} />
-          </ToastMessageProvider>
+          <ProtocolView protocolId={data.id} />
         </ProtocolStoreProvider>
       </LocalEdgesNodesProvider>
     </Box>
