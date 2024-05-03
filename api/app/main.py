@@ -35,9 +35,9 @@ app.mount("/static/docs", StaticFiles(directory="env/docs"), name="docs")
 app.mount("/static/logos", StaticFiles(directory="env/logos"), name="logos")
 
 
-def get_session() -> Session:
+def get_session():
     with SessionLocal() as session:
-        return session
+        yield session
 
 
 # TODO: handle InvalidFileException
