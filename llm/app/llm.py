@@ -9,14 +9,8 @@ from llama_index.core.vector_stores import MetadataFilters, ExactMatchFilter
 from llama_index.core.types import TokenGen
 from llama_index.core.base.llms.types import CompletionResponseGen
 
-from transformers import AutoTokenizer
-
 from .db import vector_index
 from .exceptions import LLMNotAvailableException
-
-set_global_tokenizer(
-    AutoTokenizer.from_pretrained("mistralai/Mistral-7B-Instruct-v0.2").encode
-)
 
 
 def _mistral_completion_to_prompt(completion: str, system_prompt: str | None = None) -> str:
@@ -36,6 +30,10 @@ _llm = LlamaCPP(
         max_tokens=30
     ),
     completion_to_prompt=_mistral_completion_to_prompt
+)
+
+set_global_tokenizer(
+    lambda text: _llm._model.tokenize(text.encode())
 )
 
 
