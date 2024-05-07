@@ -63,7 +63,7 @@ export default function NodeResourcesDialog(
         useUploadFiles, useChangeName, useDeleteFile
       }}
       dialogTitle="Node resources"
-      acceptMime="image/*"
+      acceptMime="image/*,video/*"
       fileImg={fileImg}
       onImgClick={onImgClick}
     />
