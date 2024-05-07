@@ -1,24 +1,9 @@
-from llama_index.vector_stores.qdrant import QdrantVectorStore
-from llama_index.core import VectorStoreIndex
-
+import app.config as config
 from qdrant_client import QdrantClient, models
 
-from . import embeddings
-from . import config
-
-
 qdrant_client = QdrantClient(config.QDRANT_HOST)
-vector_store = QdrantVectorStore(
-    collection_name=config.MAIN_COLLECTION_NAME,
-    client=qdrant_client,
-)
-vector_index = VectorStoreIndex.from_vector_store(
-    vector_store=vector_store,
-    embed_model=embeddings.embedding_model
-)
 
-
-def _setup_qdrant():
+def setup_qdrant():
     """This function must be run just one time. Since we are always going to filter
     by the protocol id, this function adjust the indexes of the main collection
     so that a global search is not performed, improving the performance
@@ -27,7 +12,7 @@ def _setup_qdrant():
     qdrant_client.create_collection(
         collection_name=config.MAIN_COLLECTION_NAME,
         vectors_config=models.VectorParams(
-            size=embeddings.EMBEDDING_DIMENSION,
+            size=config.EMBEDDING_DIMENSION,
             distance=models.Distance.COSINE
         ),
         # TODO: search what these parameters mean
@@ -44,10 +29,10 @@ def _setup_qdrant():
     )
 
     qdrant_client.update_collection(
-        collection_name="main",
+        collection_name=config.MAIN_COLLECTION_NAME,
         hnsw_config=models.HnswConfigDiff(payload_m=16, m=0),
     )
 
-
 if __name__ == "__main__":
-    _setup_qdrant()
+    if not qdrant_client.collection_exists(config.MAIN_COLLECTION_NAME):
+        setup_qdrant()

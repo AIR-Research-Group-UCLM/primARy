@@ -8,13 +8,14 @@ from llama_index.core import Document
 
 import pypdf
 
-from .embeddings import embedding_model, EMBEDDING_MODEL_MAX_SEQUENCE_LEN
+from . import config
+from .embeddings import embedding_model
 from .exceptions import InvalidDocumentException
 
 pipeline = IngestionPipeline(
     transformations=[
         SentenceSplitter(
-            chunk_size=EMBEDDING_MODEL_MAX_SEQUENCE_LEN,
+            chunk_size=config.EMBEDDING_MODEL_MAX_SEQUENCE_LEN,
             chunk_overlap=100
         ),
         embedding_model

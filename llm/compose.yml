@@ -1,0 +1,24 @@
+name: llm-service
+
+services:
+  api:
+    build:
+      context: .
+    depends_on:
+      - qdrant
+    environment:
+      - CONTEXT_WINDOW=8192
+      - N_GPU_LAYERS=20
+    ports:
+      - 8000:80
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant
+    volumes:
+      - qdrantdb:/qdrant/storage
+    restart: unless-stopped
+
+volumes:
+  qdrantdb:
+    name: "llm-service-qdrantdb"
