@@ -11,6 +11,13 @@ services:
       - N_GPU_LAYERS=20
     ports:
       - 8000:80
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     restart: unless-stopped
 
   qdrant:

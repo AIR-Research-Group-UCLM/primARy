@@ -16,7 +16,6 @@ RUN apt-get update \
     && apt-get install -y python3.10 python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-
 RUN ln -sf /usr/bin/python3.10 /usr/bin/python \
     && ln -sf /usr/bin/python3.10 /usr/bin/python3 \
     && ln -sf /usr/bin/pip3 /usr/bin/pip
@@ -26,15 +25,10 @@ COPY --from=models /bge-large-en-v1.5/ /models/bge-large-en-v1.5/
 
 WORKDIR /code
 
-# NOTE: change wheel version if you change the CUDA version
-RUN pip install --no-cache-dir --upgrade \
-    setuptools \
-    llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/c124
-
-COPY ./requirements.txt ./setup_qdrant.py ./docker-entrypoint.sh ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY ./requirements.txt ./setup_qdrant.py ./run-service.sh ./
+RUN CMAKE_ARGS="-DLLAMA_CUDA=on" pip install --no-cache-dir -r requirements.txt
 
 COPY ./app ./app
-ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["./run-service.sh"]
 
 EXPOSE 80
