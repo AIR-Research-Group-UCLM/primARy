@@ -10,8 +10,6 @@ if TYPE_CHECKING:
     from fastapi import UploadFile
     from llama_index.core import Document
 
-import copy
-
 # TODO: All of this code should be in its own module because it is exactly the same
 # as the one in api
 

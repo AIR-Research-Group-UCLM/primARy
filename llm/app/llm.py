@@ -9,9 +9,9 @@ from llama_index.core.vector_stores import MetadataFilters, ExactMatchFilter
 from llama_index.core.types import TokenGen
 from llama_index.core.base.llms.types import CompletionResponseGen
 
+from .import config
 from .db import vector_index
 from .exceptions import LLMNotAvailableException
-
 
 def _mistral_completion_to_prompt(completion: str, system_prompt: str | None = None) -> str:
     return f"<s>[INST]{completion}[/INST]"
@@ -19,21 +19,19 @@ def _mistral_completion_to_prompt(completion: str, system_prompt: str | None = N
 
 _llm_lock = threading.Lock()
 
-# TODO: add env var
 _llm = LlamaCPP(
-    model_path="/home/pablo/llms/mistral-7b-instruct-v0.2.Q5_K_M.gguf",
+    model_path=config.MODEL_PATH,
     temperature=0.7,
-    # context_window=32768,
-    context_window=4096,
+    context_window=config.CONTEXT_WINDOW,
     model_kwargs=dict(
-        n_gpu_layers=15,
-        max_tokens=30
+        n_gpu_layers=config.N_GPU_LAYERS,
+        # max_tokens=30
     ),
     completion_to_prompt=_mistral_completion_to_prompt
 )
 
 set_global_tokenizer(
-    lambda text: _llm._model.tokenize(text.encode())
+   lambda text: _llm._model.tokenize(text.encode())
 )
 
 

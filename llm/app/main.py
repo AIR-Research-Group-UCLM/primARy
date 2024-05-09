@@ -10,9 +10,10 @@ from qdrant_client import models as qdrant_models
 
 from llama_index.core.response_synthesizers import ResponseMode
 
-from .db import vector_index, qdrant_client, MAIN_COLLECTION_NAME
+from .db import vector_index, qdrant_client
 from .exceptions import InvalidDocumentException, LLMNotAvailableException
 from .preprocessing import pipeline
+from . import config
 from . import llm
 from . import utils
 from . import models as md
@@ -28,7 +29,7 @@ app = FastAPI(
 # This is a temporal solution. This API should not be contacted directly
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -91,7 +92,7 @@ def delete_doc(
     doc_id: str
 ):
     qdrant_client.delete(
-        collection_name=MAIN_COLLECTION_NAME,
+        collection_name=config.MAIN_COLLECTION_NAME,
         points_selector=qdrant_models.FilterSelector(
             filter=qdrant_models.Filter(
                 must=[
@@ -112,7 +113,7 @@ def delete_doc(
 @app.delete("/docs/{protocol_id}")
 def delete_all_docs(protocol_id: int):
     qdrant_client.delete(
-        collection_name=MAIN_COLLECTION_NAME,
+        collection_name=config.MAIN_COLLECTION_NAME,
         points_selector=qdrant_models.FilterSelector(
             filter=qdrant_models.Filter(
                 must=[
