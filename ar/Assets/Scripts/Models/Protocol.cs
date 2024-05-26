@@ -6,6 +6,7 @@ public class Protocol
 {
     public string id;
     public string name;
+    public string initialNodeId;
     public List<Node> nodes;
     public List<Edge> edges;
 

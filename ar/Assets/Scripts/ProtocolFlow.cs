@@ -7,14 +7,12 @@ public class ProtocolFlow
 {
     private Dictionary<string, Node> _nodes;
     private Dictionary<string, List<Edge>> _edges;
-    private string _currentNodeId;
+    private Stack<ProtocolStep> _previousSteps = new();
 
-    public ProtocolStep InitialStep { get; private set; }
+    public ProtocolStep CurrentStep { get; private set; }
 
     public ProtocolFlow(Protocol protocol)
     {
-        // TODO: this should be obtained from the protocol. Update this when the API changes
-        string initialNodeId = "0";
         _nodes = protocol.nodes.ToDictionary((node) => node.id);
 
         _edges = protocol.edges
@@ -27,32 +25,42 @@ public class ProtocolFlow
             _edges.TryAdd(node.id, empty);
         }
 
-        InitialStep = ConvertNodeToStep(initialNodeId);
-        _currentNodeId = initialNodeId;
+        CurrentStep = ConvertNodeToStep(protocol.initialNodeId);
+    }
+
+    public bool IsCurrentStepFirst() 
+    {
+        return _previousSteps.Count == 0;
+    }
+
+    public ProtocolStep BackToPreviousStep()
+    {
+        CurrentStep = !IsCurrentStepFirst() ? _previousSteps.Pop() : CurrentStep;
+        return CurrentStep;
     }
 
     // Return the next step for the protocol when the given answer has been 'option'.
-    public ProtocolStep GetNextStep(string optionLabel = "")
+    public ProtocolStep GoToStep(string optionLabel = "")
     {
-        var currentEdges = _edges[_currentNodeId];
+        var currentEdges = _edges[CurrentStep.Id];
         var chosenEdge = currentEdges.Find((edge) => edge.label == optionLabel);
 
         if (chosenEdge == null)
         {
             throw new InvalidOptionException(
-                $"'{optionLabel}' is not a valid option for the step '{_nodes[_currentNodeId].data.name}'"
+                $"'{optionLabel}' is not a valid option for the step '{_nodes[CurrentStep.Id].data.name}'"
             );
         }
 
-        _currentNodeId = chosenEdge.target;
-        UnityEngine.Debug.Log($"Se ha elegido: {_currentNodeId}");
-        return ConvertNodeToStep(chosenEdge.target);
+        _previousSteps.Push(CurrentStep);
+        CurrentStep = ConvertNodeToStep(chosenEdge.target);
+        return CurrentStep;
     }
 
     private ProtocolStep ConvertNodeToStep(string nodeId)
     {
         var nodeData = _nodes[nodeId].data;
         var options = _edges[nodeId].Select((edge) => edge.label).ToList();
-        return new ProtocolStep(nodeData.name, nodeData.description, options);
+        return new ProtocolStep(nodeId, nodeData.name, nodeData.description, options);
     }
 }
