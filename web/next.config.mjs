@@ -2,6 +2,9 @@
 const nextConfig = {
     compiler: {
         styledComponents: true
+    },
+    env: {
+        API_BASE: process.env.API_BASE
     }
 };
 

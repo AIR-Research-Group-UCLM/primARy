@@ -1,0 +1,76 @@
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import TextField from "@mui/material/TextField";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
+
+import { useState, KeyboardEvent } from "react";
+
+type Props = {
+  isOpen: boolean;
+  handleClose?: () => void;
+  onCreateClick?: (name: string) => void;
+};
+
+export default function CreateProtocolDialog({ isOpen, handleClose, onCreateClick }: Props) {
+  const [text, setText] = useState<string>("");
+
+  function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    if (text !== "" && e.key === "Enter") {
+      e.preventDefault();
+      onCreateClick?.(text);
+    }
+  }
+
+  return (
+    <Dialog
+      open={isOpen}
+      fullWidth
+      maxWidth="md"
+      onClose={handleClose}
+    >
+      <DialogTitle>
+        Create Protocol
+      </DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          {"Type the new protocol's name"}
+        </DialogContentText>
+        <TextField
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={onKeyDown}
+          margin="dense"
+          fullWidth
+          variant="standard"
+          label="Protocol's name"
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button
+          onClick={handleClose}
+          variant="outlined"
+          size="medium"
+          sx={{
+            borderRadius: "30px"
+          }}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={() => onCreateClick?.(text)}
+          variant="contained"
+          size="medium"
+          disabled={text.trim().length == 0}
+          sx={{
+            borderRadius: "30px"
+          }}
+        >
+          Create
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}

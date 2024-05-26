@@ -27,7 +27,7 @@ const positions = [
 
 export type FlowchartNode = Node<RFNodeData>;
 
-function selectColor(selected: boolean, selectedModification: boolean) {
+function selectBorderColor(selected: boolean, selectedModification: boolean) {
   if (selectedModification) {
     return selectedModificationColor;
   }
@@ -39,9 +39,26 @@ function selectColor(selected: boolean, selectedModification: boolean) {
   return "black";
 }
 
+function selectBackgroundColor(isInitial: boolean, isComplete: boolean) {
+  if (isInitial) {
+    return "#b6ccfe";
+  }
+  if (!isComplete) {
+    return "#ffc2c2";
+  }
+
+  return "#f8f9fa";
+}
 
 export default function RFFlowchartNode({ id, data, selected }: NodeProps<RFNodeData>) {
-  const name = useProtocolStore((state) => state.nodesData.get(id)!.name);
+  const isInitial = useProtocolStore((state) => state.initialNodeId === id);
+  const name = useProtocolStore((state) => state.nodesData.get(id)?.name);
+
+  if (name === undefined) {
+    return null
+  }
+
+  const isComplete = name !== "";
 
   return (
     <>
@@ -60,15 +77,16 @@ export default function RFFlowchartNode({ id, data, selected }: NodeProps<RFNode
       <div style={{
         padding: "10px 20px",
         background: "#ffffff",
-        border: `solid 2.5px ${selectColor(selected, data.isSelectedModification)}`,
+        border: `solid 2.5px ${selectBorderColor(selected, data.isSelectedModification)}`,
         borderRadius: 10,
+        backgroundColor: selectBackgroundColor(isInitial, isComplete),
         display: "flex"
       }}>
         <Typography
           variant="h6"
           component="div"
           sx={{
-            color: name ? "black" : "#e31227"
+            color: !isComplete ? "#e31227" : "black"
           }}
         >
           {name || "Unnamed Node"}

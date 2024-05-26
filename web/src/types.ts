@@ -24,10 +24,31 @@ export type Edge = {
 }
 
 export type Protocol = {
-    id: number;
+    id: string;
+    initialNodeId: string;
     name: string;
     nodes: Node[];
     edges: Edge[];
 }
 
+export type ProtocolUpsert = {
+    name?: string;
+    nodes?: Node[];
+    edges?: Edge[];
+}
 
+export type ProtocolSummary = {
+    id: number;
+    name: string;
+}
+
+export type UserFile = {
+    id: string;
+    filename: string;
+    name: string;
+    size: number;
+}
+
+export type LLMResponse = {
+    text: string;
+}

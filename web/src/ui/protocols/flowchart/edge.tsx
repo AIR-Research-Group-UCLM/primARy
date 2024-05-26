@@ -9,10 +9,17 @@ import useProtocolStore from "@/hooks/store";
 
 import type { EdgeProps } from "reactflow";
 import { useState } from "react";
+import { noInitialSpace } from "@/utils";
+import useSaveEventsContext from "@/hooks/useSaveEventsContext";
 
 export type FlowchartEdgeData = {
   label: string;
   doubleClickSelected: boolean;
+}
+
+export const defaultEdgeData: FlowchartEdgeData = {
+  label: "",
+  doubleClickSelected: false
 }
 
 
@@ -44,6 +51,7 @@ type EdgeTextFieldProps = {
 
 function EdgeTextField({ edgeId, label, labelX, labelY, isError, onFocusChange }: EdgeTextFieldProps) {
   const changeEdgeData = useProtocolStore((state) => state.changeEdgeData);
+  const { recordEvent } = useSaveEventsContext();
 
   return (
     <TextField
@@ -55,7 +63,13 @@ function EdgeTextField({ edgeId, label, labelX, labelY, isError, onFocusChange }
         },
       }}
       value={label}
-      onChange={(e) => changeEdgeData(edgeId, { label: e.target.value })}
+      onChange={(e) => {
+        changeEdgeData(edgeId, { label: noInitialSpace(e.target.value) })
+        recordEvent({
+          type: "edge",
+          id: edgeId
+        })
+      }}
       onFocus={onFocusChange}
       onBlur={onFocusChange}
       variant="outlined"
@@ -65,16 +79,13 @@ function EdgeTextField({ edgeId, label, labelX, labelY, isError, onFocusChange }
         position: "absolute",
         transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
         pointerEvents: "all",
-        textAlign: "center",
         background: "#ffffff",
-        width: "75px",
-        borderColor: "green"
+        maxWidth: "100px",
       }} />
   );
 }
 
 export default function RFFlowChartEdge({ id, data, markerEnd, source, selected, ...props }: EdgeProps<FlowchartEdgeData>) {
-  // TODO: If visual logic were not coupled to domain logic, we could save some rerenders
   const edges = useProtocolStore((state) => state.edges);
   const [focused, setFocused] = useState(false);
 

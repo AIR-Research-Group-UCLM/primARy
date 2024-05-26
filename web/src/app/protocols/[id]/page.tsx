@@ -1,41 +1,43 @@
-import { ProtocolData } from "@/hooks/store";
-import ProtocolStoreProvider from "@/ui/protocols/store-provider";
+"use client";
+
+import Box from "@mui/material/Box";
+
+import ProtocolStoreProvider from "@/providers/store-provider";
 import ProtocolView from "@/ui/protocols/view";
-import { defaultEdgeData } from "@/ui/protocols/defaults";
+
+import LoadingSpinner from "@/ui/loading-spinner";
 
 import type { Protocol } from "@/types";
+import useSWR from "swr";
+import { defaultFetcher } from "@/utils";
 
-export default async function Page({ params }: { params: { id: string } }) {
-  // TODO: add error handling
-  const request = await fetch(`${process.env.API_BASE}/protocols/${params.id}`, { cache: "no-store" });
-  const data: Protocol = await request.json();
+import { protocolToProtocolData } from "@/type-conversions";
+import LocalEdgesNodesProvider from "@/providers/local-edges-nodes";
+import ToastMessageProvider from "@/providers/toast";
 
-  const protocol: ProtocolData = {
-    id: data.id,
-    name: data.name,
-    nodes: data.nodes.map((node) => ({
-      id: node.id,
-      data: { isSelectedModification: false },
-      position: node.position,
-      type: "flowchart-node"
-    })),
-    edges: data.edges.map((edge) => ({
-      id: edge.id,
-      source: edge.source,
-      target: edge.target,
-      sourceHandle: edge.sourceHandle,
-      targetHandle: edge.targetHandle,
-      data: {
-        ...defaultEdgeData,
-        label: edge.label,
-      }
-    })),
-    nodesData: new Map(data.nodes.map((node) => [node.id, node.data]))
-  };
+export default function Page({ params }: { params: { id: string } }) {
+  const { data, isLoading } = useSWR<Protocol>(
+    `${process.env.API_BASE}/protocols/${params.id}`, defaultFetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false
+  }
+  );
+
+  if (!data || isLoading) {
+    return <LoadingSpinner />
+  }
+
+  const protocol = protocolToProtocolData(data)
 
   return (
-    <ProtocolStoreProvider protocol={protocol}>
-      <ProtocolView />
-    </ProtocolStoreProvider>
+    <Box sx={{
+      height: "91%"
+    }}>
+      <LocalEdgesNodesProvider>
+        <ProtocolStoreProvider protocol={protocol}>
+          <ProtocolView protocolId={data.id} />
+        </ProtocolStoreProvider>
+      </LocalEdgesNodesProvider>
+    </Box>
   );
 }
