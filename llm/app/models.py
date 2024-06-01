@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel as PydanticBaseModel, ConfigDict
 from pydantic import alias_generators
+from enum import Enum
 
 
 class BaseModel(PydanticBaseModel):
@@ -10,6 +11,10 @@ class BaseModel(PydanticBaseModel):
         populate_by_name=True,
         from_attributes=True
     )
+
+class GenerationMode(Enum):
+    CONCATENATE = "concatenate"
+    MULTISTEP = "multistep"
 
 class Document(BaseModel):
     id: str

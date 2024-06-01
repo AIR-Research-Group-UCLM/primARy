@@ -19,9 +19,9 @@ interface Link {
 }
 
 const links = [
+  { name: "Welcome", href: "/" },
   { name: "Protocols", href: "/protocols" },
   { name: "LLM", href: "/llm" },
-  { name: "Settings", href: "/settings" },
 ];
 
 function getRootPath(pathname: string) {
@@ -40,7 +40,7 @@ function UpperBar({ drawerWidth }: { drawerWidth: number }) {
       position="fixed"
       sx={{ width: `calc(100% - ${drawerWidth}px)`, ml: `${drawerWidth}px` }}
     >
-      <Toolbar>
+      <Toolbar variant="dense">
         <Typography variant="h6" noWrap component="div">
           {title}
         </Typography>
@@ -65,7 +65,7 @@ function SideBar({ drawerWidth }: { drawerWidth: number }) {
       variant="permanent"
       anchor="left"
     >
-      <Toolbar disableGutters sx={{
+      <Toolbar disableGutters variant="dense" sx={{
         px: 3
       }}>
         <Typography sx={{
@@ -81,7 +81,7 @@ function SideBar({ drawerWidth }: { drawerWidth: number }) {
         {
           links.map((link) =>
             <ListItem key={link.name} sx={{
-              padding: 0
+              padding: "0 5px"
             }}>
               <ListItemButton disableGutters component={Link} href={link.href} sx={{
                 width: "100%",
@@ -105,7 +105,6 @@ function SideBar({ drawerWidth }: { drawerWidth: number }) {
 
 export function Navigation({ drawerWidth }: { drawerWidth: number }
 ) {
-
   return (
     <>
       <UpperBar drawerWidth={drawerWidth} />

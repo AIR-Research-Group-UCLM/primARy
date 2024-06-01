@@ -38,7 +38,7 @@ export type ProtocolUpsert = {
 }
 
 export type ProtocolSummary = {
-    id: number;
+    id: string;
     name: string;
 }
 
@@ -52,3 +52,5 @@ export type UserFile = {
 export type LLMResponse = {
     text: string;
 }
+
+export type GenerationMode = "multistep" | "concatenate";

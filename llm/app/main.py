@@ -131,13 +131,20 @@ def delete_all_docs(protocol_id: int):
 def generate_answer(
     prompt: md.Prompt,
     protocol_id: Annotated[int | None, Query(alias="protocol")] = None,
+    generation_mode: Annotated[md.GenerationMode, Query(alias="mode")]=md.GenerationMode.MULTISTEP,
+    similarity_top_k: Annotated[int, Query(alias="topk")]=4
 ):
+    if generation_mode == md.GenerationMode.MULTISTEP:
+        response_mode = ResponseMode.COMPACT
+    else:
+        response_mode = ResponseMode.SIMPLE_SUMMARIZE
+
     if protocol_id is not None:
         streaming_response = llm.query(
             prompt=prompt.prompt,
             protocol_id=protocol_id,
-            response_mode=ResponseMode.COMPACT,
-            similarity_top_k=4
+            response_mode=response_mode,
+            similarity_top_k=similarity_top_k
         )
     else:
         streaming_response = llm.complete(prompt.prompt)
