@@ -51,7 +51,7 @@ export default function ProtocolView({ protocolId }: Props) {
 
   useEffect(() => () => {
     flush();
-  }, []);
+  }, [flush]);
 
   async function onSave(events: ReturnEventStore) {
     const currentState = useProtocolStore.getState();
@@ -179,7 +179,7 @@ export default function ProtocolView({ protocolId }: Props) {
           height: "100%"
         }}>
           <Paper elevation={5} sx={{
-            flex: "2 0",
+            flex: "2",
             border: "solid 1px"
           }}>
             <ReactFlowProvider>
@@ -194,18 +194,14 @@ export default function ProtocolView({ protocolId }: Props) {
             />
           }
         </Box>
-        <Paper
-          elevation={5}
+        <Box
           sx={{
             display: "flex",
-            border: "solid 1px",
             alignContent: "center",
             justifyContent: "center",
-            padding: "10px",
-            marginTop: "20px"
+            marginTop: "15px"
           }}
         >
-          {false && <LinearProgress />}
           <Box sx={{
             display: "flex",
             flex: "1",
@@ -244,7 +240,7 @@ export default function ProtocolView({ protocolId }: Props) {
               Save
             </Button>
           </Box>
-        </Paper>
+        </Box>
       </Box>
     </ SaveEventsContext.Provider>
   )
