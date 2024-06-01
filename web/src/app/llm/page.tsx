@@ -113,7 +113,7 @@ export default function Page({ searchParams }: { searchParams: { protocol?: stri
         abortController.abort();
       }
     };
-  }, []);
+  }, [searchParams.protocol]);
 
   const setToastMessage = useToastMessageContext();
 
@@ -240,8 +240,8 @@ export default function Page({ searchParams }: { searchParams: { protocol?: stri
             </Box>
           </MessageArea>}
 
-        {messages.map((message) => (
-          <MessageArea role={message.role} >
+        {messages.map((message, index) => (
+          <MessageArea key={index} role={message.role} >
             {message.content}
           </MessageArea>
         ))}
