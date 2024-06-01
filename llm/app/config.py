@@ -17,3 +17,5 @@ N_GPU_LAYERS = int(os.getenv("N_GPU_LAYERS", "20"))
 # by python-llama-cpp). This number includes the prompt. When it is a negative number, it will generate
 # tokens until the number of generated token plus the input tokens (the prompt) exceeds the context window.
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", "-1"))
+
+DEFAULT_TOP_K = int(os.getenv("DEFAULT_TOP_K", "6"))

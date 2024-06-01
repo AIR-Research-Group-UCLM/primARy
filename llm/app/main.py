@@ -132,7 +132,7 @@ def generate_answer(
     prompt: md.Prompt,
     protocol_id: Annotated[int | None, Query(alias="protocol")] = None,
     generation_mode: Annotated[md.GenerationMode, Query(alias="mode")]=md.GenerationMode.MULTISTEP,
-    similarity_top_k: Annotated[int, Query(alias="topk")]=4
+    similarity_top_k: Annotated[int | None, Query(alias="topk")]=None
 ):
     if generation_mode == md.GenerationMode.MULTISTEP:
         response_mode = ResponseMode.COMPACT
@@ -144,7 +144,7 @@ def generate_answer(
             prompt=prompt.prompt,
             protocol_id=protocol_id,
             response_mode=response_mode,
-            similarity_top_k=similarity_top_k
+            similarity_top_k=similarity_top_k if similarity_top_k is not None else config.DEFAULT_TOP_K
         )
     else:
         streaming_response = llm.complete(prompt.prompt)
