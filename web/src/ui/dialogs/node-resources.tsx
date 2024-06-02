@@ -46,7 +46,7 @@ export default function NodeResourcesDialog(
   }
 
   function fileImg(file: UserFile) {
-    return `${process.env.API_BASE}/static/nodes/${file.filename}`;
+    return `${process.env.STATIC_BASE}/nodes/${file.filename}`;
   }
 
   function onImgClick(file: UserFile) {

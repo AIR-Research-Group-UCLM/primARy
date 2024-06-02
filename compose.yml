@@ -8,7 +8,6 @@ services:
       - mariadb
     environment:
       - LLM_SERVICE_HOST=http://host.docker.internal:8001
-      # - DEV=1
     ports:
       - 127.0.0.1:8000:80
     volumes:
@@ -23,9 +22,11 @@ services:
       args:
         - API_BASE=${API_BASE}
         - LLM_BASE=${LLM_BASE:-${API_BASE}}
+        - STATIC_BASE=${STATIC_BASE:-${API_BASE}/static}
     environment:
         - API_BASE=${API_BASE}
         - LLM_BASE=${LLM_BASE:-${API_BASE}}
+        - STATIC_BASE=${STATIC_BASE:-${API_BASE}/static}
     ports:
       - 127.0.0.1:3000:3000
     depends_on:
