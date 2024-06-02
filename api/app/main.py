@@ -15,24 +15,23 @@ from .exceptions import InvalidProtocolException, InvalidFileException, LLMServi
 
 from . import utils
 from . import crud
+from . import config
 
 app = FastAPI(
     title="primARy",
     description="Services to assist healthcare professionals"
 )
 
-# This is a temporal solution
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+if config.IS_DEV:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
-# TODO: delete this. This is only for testing purposes
-app.mount("/static/nodes", StaticFiles(directory="env/nodes"), name="nodes")
-app.mount("/static/docs", StaticFiles(directory="env/docs"), name="docs")
-app.mount("/static/logos", StaticFiles(directory="env/logos"), name="logos")
+    app.mount("/static/nodes", StaticFiles(directory=config.RESOURCES_PATH), name="nodes")
+    app.mount("/static/docs", StaticFiles(directory=config.DOCS_PATH), name="docs")
 
 
 def get_session():
@@ -108,8 +107,7 @@ def change_doc_name(
     if not success:
         raise HTTPException(
             status_code=404,
-            detail=f"Dococument with id'{
-                doc_id}' not found in protocol {protocol_id}"
+            detail=f"Document with id '{doc_id}' not found in protocol {protocol_id}"
         )
 
 
@@ -199,8 +197,7 @@ def delete_node_resources(
     if not success:
         raise HTTPException(
             status_code=404,
-            detail=f"Node resource '{
-                resource_id}' not found in protocol '{protocol_id}'"
+            detail=f"Node resource '{resource_id}' not found in protocol '{protocol_id}'"
         )
 
 
@@ -270,8 +267,7 @@ def delete_doc(
     if not success:
         raise HTTPException(
             status_code=404,
-            detail=f"Document with id '{
-                doc_id}' not found in protocol '{protocol_id}'"
+            detail=f"Document with id '{doc_id}' not found in protocol '{protocol_id}'"
         )
 
 

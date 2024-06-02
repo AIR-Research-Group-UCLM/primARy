@@ -26,7 +26,7 @@ COPY --from=models /bge-large-en-v1.5/ /models/bge-large-en-v1.5/
 WORKDIR /code
 
 COPY ./requirements.txt ./setup_qdrant.py ./run-service.sh ./
-RUN CMAKE_ARGS="-DLLAMA_CUDA=on" pip install --no-cache-dir -r requirements.txt
+RUN CMAKE_ARGS="-DLLAMA_CUDA=on" pip install --no-cache-dir --upgrade -r requirements.txt
 
 COPY ./app ./app
 CMD ["./run-service.sh"]
