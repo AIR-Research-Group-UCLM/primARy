@@ -5,14 +5,10 @@ import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import Snackbar from "@mui/material/Snackbar";
-import LinearProgress from "@mui/material/LinearProgress";
-import Alert from "@mui/material/Alert";
 import SaveAltIcon from '@mui/icons-material/SaveAlt';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import useProtocolStore from "@/hooks/store";
-import useToastMessage from "@/hooks/useToastMessage";
 import FlowChartEditor from "@/ui/protocols/flowchart/editor";
 import NodeEditor from "@/ui/protocols/node-editor";
 
@@ -51,7 +47,8 @@ export default function ProtocolView({ protocolId }: Props) {
 
   useEffect(() => () => {
     flush();
-  }, [flush]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function onSave(events: ReturnEventStore) {
     const currentState = useProtocolStore.getState();
