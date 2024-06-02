@@ -22,10 +22,10 @@ services:
       context: ./web
       args:
         - API_BASE=${API_BASE}
-        - LLM_BASE=${LLM_BASE:-API_BASE}
+        - LLM_BASE=${LLM_BASE:-${API_BASE}}
     environment:
         - API_BASE=${API_BASE}
-        - LLM_BASE=${LLM_BASE:-API_BASE}
+        - LLM_BASE=${LLM_BASE:-${API_BASE}}
     ports:
       - 127.0.0.1:3000:3000
     depends_on:
