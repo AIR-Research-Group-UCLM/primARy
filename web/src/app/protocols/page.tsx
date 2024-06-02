@@ -35,7 +35,7 @@ export default function Page() {
     router.push(`/protocols/${protocol.id}`);
   }
 
-  async function onDeleteProtocol(protocolId: number) {
+  async function onDeleteProtocol(protocolId: string) {
     setProtocolForDelete(null);
     await triggerDeleteProtocol({ protocolId });
     const remainingProtocols = protocols.filter((protocol) => protocol.id !== protocolId);

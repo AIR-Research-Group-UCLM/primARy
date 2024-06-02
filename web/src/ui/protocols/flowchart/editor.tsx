@@ -148,6 +148,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
 
     applyNodeChanges(allowedChanges);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, initialNodeId]);
 
   const onEdgesChange: OnEdgesChange = useCallback((changes) => {
@@ -176,6 +177,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
     }
     applyEdgeChanges(allowedChanges);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, edges]);
 
   const onConnect: OnConnect = useCallback((connection) => {
@@ -187,6 +189,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
       type: "edge",
       id: edgeId
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addEdgeFromConnection]);
 
   const onConnectStart: OnConnectStart = useCallback((_, { nodeId, handleId }) => {
@@ -254,6 +257,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
       type: "edge",
       id: newEdge.id
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screenToFlowPosition]);
 
   const onNodeClick: OnNodeClick = useCallback((_, node) => {
@@ -262,6 +266,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
       changeNode(node.id, { data: { isSelectedModification: true } });
       setSelectedNodeId(node.id);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNodeId]);
 
   const onNodesDelete: OnNodesDelete = useCallback((nodes) => {
@@ -311,12 +316,13 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
       }
       );
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNodeId, edges]);
 
   const onNodeDoubleClick: OnNodeClick = useCallback((_, node) => {
     changeNode(node.id, { data: { isSelectedModification: true } });
     setSelectedNodeId(node.id);
-  }, []);
+  }, [setSelectedNodeId, changeNode]);
 
   const onEdgeDoubleClick: OnEdgeClick = useCallback((_, edge) => {
     if (selectedEdgeId.current !== null) {
@@ -324,7 +330,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
     }
     selectedEdgeId.current = edge.id;
     changeEdgeData(edge.id, { doubleClickSelected: true });
-  }, []);
+  }, [changeEdgeData]);
 
   const onPaneClick: OnPaneClick = useCallback((e) => {
     if (!isEventTargetPane(e.target as Element)) {
@@ -345,7 +351,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
       connectingNode.current = null;
     }
 
-  }, [selectedNodeId]);
+  }, [changeEdgeData, selectedNodeId, setSelectedNodeId, changeNode]);
 
   return (
     <ReactFlow

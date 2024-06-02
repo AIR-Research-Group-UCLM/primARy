@@ -6,7 +6,7 @@ import FilesDialog from "@/ui/dialogs/files-dialog";
 
 type Props = {
   isOpen: boolean;
-  protocolId: number;
+  protocolId: string;
   handleClose?: () => void;
 }
 

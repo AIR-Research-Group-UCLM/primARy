@@ -10,17 +10,13 @@ import requests
 import sqlalchemy as sa
 
 from . import schemas as sc
+from . import config
 from . import models as md
 from . import utils
 from .exceptions import InvalidProtocolException, LLMServiceException
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
-
-# TODO: pass this data as an env variable
-RESOURCES_PATH = "env/nodes"
-DOCS_PATH = "env/docs"
-LLM_SERVICE = "http://127.0.0.1:8001"
 
 initial_node = md.Node(
     id="V1StGXR8_Z5jdHi6B-myT",
@@ -159,11 +155,10 @@ def delete_doc(
     # TODO: delete file from filesystem
     # TODO: ensure consitency between this db and the vector database
     # TODO: add timeout
-    response = requests.delete(f"{LLM_SERVICE}/docs/{protocol_id}/{doc_id}")
+    response = requests.delete(f"{config.LLM_SERVICE_HOST}/docs/{protocol_id}/{doc_id}")
     if not response.ok:
         raise LLMServiceException(
-            f"The LLM service responded with the error code: {
-                response.status_code}"
+            f"The LLM service responded with the error code: {response.status_code}"
         )
     session.commit()
 
@@ -305,20 +300,19 @@ def create_docs(
     ]
 
     response = requests.post(
-        url=f"{LLM_SERVICE}/docs/{protocol_id}",
+        url=f"{config.LLM_SERVICE_HOST}/docs/{protocol_id}",
         files=files,
         data={"docs_ids": [saved_doc.id for saved_doc in saved_docs]}
     )
     if not response.ok:
         raise LLMServiceException(
-            f"The LLM service responded with the error code: {
-                response.status_code}"
+            f"The LLM service responded with the error code: {response.status_code}"
         )
 
     # TODO: delete file if the operation of writing fails and delete it from
     # the vector database
     for doc_file, saved_doc in zip(doc_files, saved_docs):
-        path = os.path.join(DOCS_PATH, saved_doc.filename)
+        path = os.path.join(config.DOCS_PATH, saved_doc.filename)
         with open(path, "wb") as f:
             shutil.copyfileobj(doc_file.wrapped_blob(), f)
 
@@ -359,7 +353,7 @@ def create_node_resources(
     ]
 
     for node_file, saved_resource in zip(node_files, saved_resources):
-        path = os.path.join(RESOURCES_PATH, saved_resource.filename)
+        path = os.path.join(config.RESOURCES_PATH, saved_resource.filename)
         with open(path, "wb") as f:
             shutil.copyfileobj(node_file.blob, f)
 
