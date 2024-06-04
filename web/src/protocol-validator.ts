@@ -13,17 +13,17 @@ type UndefinedNodeResult = {
 type RepeatedOptionResult = {
   type: "RepeatedOption";
   info: {
-    nodeName: string;
+    nodeId: string;
     repeatedOptions: {
       option: string;
-      count: number;
+      edgeIds: string[];
     }[];
   }[]
 }
 
 type BlankOptionResult = {
   type: "BlankOption";
-  nodeNames: string[];
+  nodeIds: string[];
 }
 
 export function checkUndefinedNodes(nodesData: NodeData[]): UndefinedNodeResult {
@@ -39,39 +39,39 @@ export function checkUndefinedNodes(nodesData: NodeData[]): UndefinedNodeResult 
   }
 }
 
-export function checkBlankOptions(nodesData: Map<string, NodeData>, edges: Edge[]): BlankOptionResult {
+export function checkBlankOptions(edges: Edge[]): BlankOptionResult {
   const nodeEdges = Array.from(
     Map.groupBy(edges, (edge) => edge.source),
     ([nodeId, edges]) =>
     ({
-      nodeName: nodesData.get(nodeId)!.name,
+      nodeId,
       options: edges.map((edge) => edge.label.trim())
     })
   );
 
-  const nodeNames = nodeEdges.filter(({ options }) =>
+  const nodeIds = nodeEdges.filter(({ options }) =>
     options.length > 1 && options.some((option) => option === "")
-  ).map(({ nodeName }) => nodeName);
+  ).map(({ nodeId }) => nodeId);
 
   return {
     type: "BlankOption",
-    nodeNames
+    nodeIds
   }
 }
 
-export function checkRepeatedAnswer(nodesData: Map<string, NodeData>, edges: Edge[]): RepeatedOptionResult {
+export function checkRepeatedOptions(edges: Edge[]): RepeatedOptionResult {
   const nodeEdges = Array.from(
     Map.groupBy(edges, (edge) => edge.source),
     ([nodeId, edges]) =>
     ({
-      nodeName: nodesData.get(nodeId)!.name,
-      options: edges.map((edge) => edge.label.trim())
+      nodeId,
+      edges
     })
   );
 
-  const info = nodeEdges.map(({ nodeName, options }) => ({
-    nodeName,
-    repeatedOptions: countRepeatedOptions(nodeName, options)
+  const info = nodeEdges.map(({ nodeId, edges }) => ({
+    nodeId,
+    repeatedOptions: countRepeatedOptions(edges)
   })).filter(({ repeatedOptions }) => repeatedOptions.length !== 0);
 
   return {
@@ -83,8 +83,8 @@ export function checkRepeatedAnswer(nodesData: Map<string, NodeData>, edges: Edg
 export function applyAllValidators(nodesData: Map<string, NodeData>, edges: Edge[]): ValidatorResult[] {
   return [
     checkUndefinedNodes(Array.from(nodesData.values())),
-    checkRepeatedAnswer(nodesData, edges),
-    checkBlankOptions(nodesData, edges)
+    checkRepeatedOptions(edges),
+    checkBlankOptions(edges)
   ].filter(isValidationError);
 }
 
@@ -97,21 +97,28 @@ function isValidationError(validatorResult: ValidatorResult) {
       return validatorResult.info.length > 0;
     }
     case "BlankOption": {
-      return validatorResult.nodeNames.length > 0
+      return validatorResult.nodeIds.length > 0
     }
   }
 }
 
-function countRepeatedOptions(nodeName: string, options: string[]) {
-  const optionCount = new Map<string, number>();
-  for (const option of options) {
-    const count = optionCount.get(option);
-    optionCount.set(option, count === undefined ? 1 : count + 1);
+function countRepeatedOptions(edges: Edge[]) {
+  const optionEdgeIds = new Map<string, string[]>();
+  for (const edge of edges) {
+    if (edge.label === "") {
+      continue;
+    }
+
+    const edgeIds = optionEdgeIds.get(edge.label);
+    if (edgeIds === undefined) {
+      optionEdgeIds.set(edge.label, [edge.id])
+    } else {
+      edgeIds.push(edge.id);
+    }
   }
 
-  const repeatedOptions = Array.from(optionCount)
-    .filter(([option, count]) => option !== "" && count > 1)
-    .map(([option, count]) => ({ option, count }));
+  const repeatedOptions = Array.from(optionEdgeIds)
+    .map(([option, edgeIds]) => ({ option, edgeIds }));
 
   return repeatedOptions;
 }

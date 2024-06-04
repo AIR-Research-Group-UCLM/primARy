@@ -8,7 +8,7 @@ import Button from "@mui/material/Button";
 import SaveAltIcon from '@mui/icons-material/SaveAlt';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-import useProtocolStore, {type ProtocolState } from "@/hooks/store";
+import useProtocolStore, { type ProtocolState } from "@/hooks/store";
 import FlowChartEditor from "@/ui/protocols/flowchart/editor";
 import NodeEditor from "@/ui/protocols/node-editor";
 
@@ -67,6 +67,9 @@ export default function ProtocolView({ protocolId }: Props) {
 
     const name = events.nameChanged && currentState.name !== "" ? currentState.name : undefined;
 
+    const validatorResults = getValidationResultsFromState(currentState);
+    setValidatorResults(validatorResults);
+
     const nodes: Node[] = [];
     const extraEdgeIds: string[] = [];
     for (const nodeId of events.nodeIds) {
@@ -108,11 +111,14 @@ export default function ProtocolView({ protocolId }: Props) {
         continue;
       }
 
+      // TODO: consider making a Set or directly passing the set from "events" if this severly affects
+      // performance. 
+
       localEdges.removeLocalId(edge.id);
       edges.push(flowchartEdgeToEdge(edge));
     }
 
-    console.log(getValidationResultsFromState(currentState));
+
     if (!name && nodes.length === 0 && edges.length == 0) {
       return;
     }
@@ -191,7 +197,12 @@ export default function ProtocolView({ protocolId }: Props) {
             border: "solid 1px"
           }}>
             <ReactFlowProvider>
-              <FlowChartEditor protocolId={protocolId} />
+              <FlowChartEditor
+                protocolId={protocolId}
+                onDeleteElement={() =>
+                  setValidatorResults(getValidationResultsFromState(useProtocolStore.getState()))
+                }
+              />
             </ReactFlowProvider>
           </Paper>
 
