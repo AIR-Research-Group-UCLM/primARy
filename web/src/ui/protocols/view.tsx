@@ -8,7 +8,7 @@ import Button from "@mui/material/Button";
 import SaveAltIcon from '@mui/icons-material/SaveAlt';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-import useProtocolStore from "@/hooks/store";
+import useProtocolStore, {type ProtocolState } from "@/hooks/store";
 import FlowChartEditor from "@/ui/protocols/flowchart/editor";
 import NodeEditor from "@/ui/protocols/node-editor";
 
@@ -19,17 +19,25 @@ import useSaveEvents, { ReturnEventStore } from "@/hooks/useSaveEvents"
 import { SaveEventsContext } from "@/hooks/useSaveEventsContext"
 
 import type { Position, Node } from "@/types";
+import type { ValidatorResult } from "@/protocol-validator";
 
 import { useRouter } from "next/navigation";
 import { upsertProtocol } from "@/mutation";
 import { FlowchartEdge } from "./flowchart/edge";
 import useLocalEdgesNodes from "@/hooks/useLocalEdgesNodes";
 import { flowchartEdgeToEdge } from "@/type-conversions";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { applyAllValidators } from "@/protocol-validator";
 import useToastMessageContext from "@/hooks/useToastMessageContext";
 
 type Props = {
   protocolId: string;
+}
+
+function getValidationResultsFromState(state: ProtocolState) {
+  const edges = state.edges.map(flowchartEdgeToEdge);
+  const nodesData = state.nodesData;
+  return applyAllValidators(nodesData, edges);
 }
 
 export default function ProtocolView({ protocolId }: Props) {
@@ -39,6 +47,7 @@ export default function ProtocolView({ protocolId }: Props) {
 
   const { localNodes, localEdges } = useLocalEdgesNodes();
 
+  const [validatorResults, setValidatorResults] = useState<ValidatorResult[]>([]);
   const saveEvents = useSaveEvents(onSave, 2000, 10000);
   const setToastMessage = useToastMessageContext();
   const { recordEvent, flush, isPending } = saveEvents;
@@ -49,6 +58,7 @@ export default function ProtocolView({ protocolId }: Props) {
     flush();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   async function onSave(events: ReturnEventStore) {
     const currentState = useProtocolStore.getState();
