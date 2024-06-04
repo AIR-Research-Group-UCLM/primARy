@@ -112,6 +112,7 @@ export default function ProtocolView({ protocolId }: Props) {
       edges.push(flowchartEdgeToEdge(edge));
     }
 
+    console.log(getValidationResultsFromState(currentState));
     if (!name && nodes.length === 0 && edges.length == 0) {
       return;
     }

@@ -72,7 +72,7 @@ export function checkRepeatedAnswer(nodesData: Map<string, NodeData>, edges: Edg
   const info = nodeEdges.map(({ nodeName, options }) => ({
     nodeName,
     repeatedOptions: countRepeatedOptions(nodeName, options)
-  }));
+  })).filter(({ repeatedOptions }) => repeatedOptions.length !== 0);
 
   return {
     type: "RepeatedOption",
@@ -110,7 +110,7 @@ function countRepeatedOptions(nodeName: string, options: string[]) {
   }
 
   const repeatedOptions = Array.from(optionCount)
-    .filter(([_, count]) => count > 1)
+    .filter(([option, count]) => option !== "" && count > 1)
     .map(([option, count]) => ({ option, count }));
 
   return repeatedOptions;
