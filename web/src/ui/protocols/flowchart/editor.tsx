@@ -272,10 +272,16 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
   const onNodesDelete: OnNodesDelete = useCallback((nodes) => {
     updateSelectionAfterDelete(nodes);
 
+    const localNodeIds = nodes
+      .filter((node) => localNodes.isLocalId(node.id))
+      .map((node) => node.id);
+
+    removeNodesData(localNodeIds);
+
     // Send request to the backend to delete these edges
-    const allowedNodes = nodes.filter((node) => !localNodes.isLocalId(node.id) && canRemoveNode(node.id));
-    const nodesIds = allowedNodes.map((node) => node.id);
-    if (nodesIds.length === 0) {
+    const nonLocalNodes = nodes.filter((node) => !localNodes.isLocalId(node.id));
+    const nonLocalNodeIds = nonLocalNodes.map((node) => node.id);
+    if (nonLocalNodeIds.length === 0) {
       return;
     }
 
@@ -289,20 +295,21 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
       });
     }
 
-    for (const nodeId of nodesIds) {
+    for (const nodeId of nonLocalNodeIds) {
       cancelEvent({
         type: "node",
         id: nodeId
       });
     }
 
-    deleteNodes({ protocolId, nodesIds })
+
+    deleteNodes({ protocolId, nodesIds: nonLocalNodeIds })
       .then(() => {
         setToastMessage({
           type: "success",
           text: "Saved"
         })
-        removeNodesData(nodesIds)
+        removeNodesData(nonLocalNodeIds);
       })
       .catch((error) => {
         setToastMessage({
@@ -310,7 +317,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
           text: `Could not delete nodes: ${error}`
         })
         useProtocolStore.setState((state) => ({
-          nodes: [...state.nodes, ...allowedNodes],
+          nodes: [...state.nodes, ...nonLocalNodes],
           edges: [...state.edges, ...connectedEdges]
         }));
       }
