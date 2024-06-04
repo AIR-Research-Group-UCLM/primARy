@@ -36,6 +36,7 @@ export default function FileCard(
       <Divider sx={{
         marginBottom: "10px"
       }} />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={img}
         onClick={() => onImgClick?.(file)}
