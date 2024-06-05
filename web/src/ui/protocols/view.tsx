@@ -184,11 +184,11 @@ export default function ProtocolView({ protocolId }: Props) {
     if (isPending) {
       return {
         severity: "info",
-        message: "Analyzing changes..."
+        message: "Saving changes..."
       }
     }
 
-    if (validatorResults.length > 0) {
+    if (validatorResults.length > 0 || name === "") {
       return {
         severity: "warning",
         message: "Partially saved"
@@ -206,8 +206,9 @@ export default function ProtocolView({ protocolId }: Props) {
     return (
       <Alert
         severity={severity}
+        variant="filled"
         style={{
-          fontSize: "15px",
+          fontSize: "20px",
         }}
       >
         {message}
@@ -309,11 +310,6 @@ export default function ProtocolView({ protocolId }: Props) {
             </Button>
           </Box>
           <Box sx={{
-            width: "250px"
-          }}>
-            {getAlertElement()}
-          </Box>
-          <Box sx={{
             display: "flex",
             flex: "1",
             justifyContent: "center",
@@ -330,6 +326,11 @@ export default function ProtocolView({ protocolId }: Props) {
             >
               Save
             </Button>
+          </Box>
+          <Box sx={{
+            width: "250px"
+          }}>
+            {getAlertElement()}
           </Box>
         </Box>
       </Box>

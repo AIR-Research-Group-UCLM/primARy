@@ -118,21 +118,16 @@ export default function FlowChartEditor(
     }
 
     if (edgesIds.length > 0) {
-      deleteEdges({ protocolId, edgesIds })
-        .then(() => setToastMessage({
-          type: "success",
-          text: "Saved"
+      deleteEdges({ protocolId, edgesIds }).catch((error) => {
+        setToastMessage({
+          type: "error",
+          text: `Could not delete edges: ${error}`
+        })
+        useProtocolStore.setState((state) => ({
+          edges: [...state.edges, ...edges]
         }))
-        .catch((error) => {
-          setToastMessage({
-            type: "error",
-            text: `Could not delete edges: ${error}`
-          })
-          useProtocolStore.setState((state) => ({
-            edges: [...state.edges, ...edges]
-          }))
-        }
-        );
+      }
+      );
     }
   }
 
