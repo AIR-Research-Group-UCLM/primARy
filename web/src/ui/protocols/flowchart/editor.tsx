@@ -56,7 +56,9 @@ function isEventTargetPane(target: Element): boolean {
   return target.classList.contains("react-flow__pane");
 }
 
-export default function FlowChartEditor({ protocolId }: { protocolId: string }) {
+export default function FlowChartEditor(
+  { protocolId, onDeleteElement }: { protocolId: string; onDeleteElement: () => void }
+) {
   const nodes = useProtocolStore((state) => state.nodes);
   const edges = useProtocolStore((state) => state.edges);
   const selectedNodeId = useProtocolStore((state) => state.selectedNodeId);
@@ -104,6 +106,8 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
   }
 
   function onExplicitEdgesDelete(edges: FlowchartEdge[]) {
+    onDeleteElement();
+
     const edgesIds = edges.map((edge) => edge.id).filter((edgeId) => !localEdges.isLocalId(edgeId));
 
     for (const edgeId of edgesIds) {
@@ -114,21 +118,16 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
     }
 
     if (edgesIds.length > 0) {
-      deleteEdges({ protocolId, edgesIds })
-        .then(() => setToastMessage({
-          type: "success",
-          text: "Saved"
+      deleteEdges({ protocolId, edgesIds }).catch((error) => {
+        setToastMessage({
+          type: "error",
+          text: `Could not delete edges: ${error}`
+        })
+        useProtocolStore.setState((state) => ({
+          edges: [...state.edges, ...edges]
         }))
-        .catch((error) => {
-          setToastMessage({
-            type: "error",
-            text: `Could not delete edges: ${error}`
-          })
-          useProtocolStore.setState((state) => ({
-            edges: [...state.edges, ...edges]
-          }))
-        }
-        );
+      }
+      );
     }
   }
 
@@ -148,7 +147,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
 
     applyNodeChanges(allowedChanges);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, initialNodeId]);
 
   const onEdgesChange: OnEdgesChange = useCallback((changes) => {
@@ -172,12 +171,12 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
         explicitlyDeleted.push(edge);
       }
     }
+    applyEdgeChanges(allowedChanges);
     if (explicitlyDeleted.length > 0) {
       onExplicitEdgesDelete(explicitlyDeleted);
     }
-    applyEdgeChanges(allowedChanges);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, edges]);
 
   const onConnect: OnConnect = useCallback((connection) => {
@@ -189,7 +188,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
       type: "edge",
       id: edgeId
     })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addEdgeFromConnection]);
 
   const onConnectStart: OnConnectStart = useCallback((_, { nodeId, handleId }) => {
@@ -257,7 +256,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
       type: "edge",
       id: newEdge.id
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screenToFlowPosition]);
 
   const onNodeClick: OnNodeClick = useCallback((_, node) => {
@@ -266,7 +265,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
       changeNode(node.id, { data: { isSelectedModification: true } });
       setSelectedNodeId(node.id);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNodeId]);
 
   const onNodesDelete: OnNodesDelete = useCallback((nodes) => {
@@ -278,6 +277,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
 
     removeNodesData(localNodeIds);
 
+    onDeleteElement();
     // Send request to the backend to delete these edges
     const nonLocalNodes = nodes.filter((node) => !localNodes.isLocalId(node.id));
     const nonLocalNodeIds = nonLocalNodes.map((node) => node.id);
@@ -305,10 +305,6 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
 
     deleteNodes({ protocolId, nodesIds: nonLocalNodeIds })
       .then(() => {
-        setToastMessage({
-          type: "success",
-          text: "Saved"
-        })
         removeNodesData(nonLocalNodeIds);
       })
       .catch((error) => {
@@ -323,7 +319,7 @@ export default function FlowChartEditor({ protocolId }: { protocolId: string }) 
       }
       );
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNodeId, edges]);
 
   const onNodeDoubleClick: OnNodeClick = useCallback((_, node) => {
