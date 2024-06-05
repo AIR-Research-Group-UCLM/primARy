@@ -171,10 +171,10 @@ export default function FlowChartEditor(
         explicitlyDeleted.push(edge);
       }
     }
+    applyEdgeChanges(allowedChanges);
     if (explicitlyDeleted.length > 0) {
       onExplicitEdgesDelete(explicitlyDeleted);
     }
-    applyEdgeChanges(allowedChanges);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, edges]);
