@@ -42,10 +42,13 @@ export type ProtocolActions = {
   removeNodesData: (nodeIds: string[]) => void;
   changeEdgeData: (edgeId: string, edgeData: Partial<FlowchartEdgeData>) => void;
   changeInitialNodeId: (string: string) => void;
+  addRequiredEdgeId: (nodeId: string, edgeId: string) => void;
+  removeRequiredEdgeId: (nodeId: string, edgeId: string) => void;
 }
 
 export type ProtocolState = ProtocolData & ProtocolActions & {
   selectedNodeId: string | null;
+  requiredEdgeSelectionEnabled: boolean;
 }
 
 export const defaultProtocolState = {
@@ -57,7 +60,8 @@ export const defaultProtocolState = {
 
   localNodesIds: new Set<string>(),
   localEdgesIds: new Set<string>(),
-  selectedNodeId: null
+  selectedNodeId: null,
+  requiredEdgeSelectionEnabled: false,
 }
 
 const useProtocolStore = create<ProtocolState>((set, get) => ({
@@ -95,6 +99,30 @@ const useProtocolStore = create<ProtocolState>((set, get) => ({
   },
   addEdge: (edge) => {
     set((state) => ({ edges: [...state.edges, edge] }));
+  },
+  addRequiredEdgeId: (nodeId, edgeId) => {
+    const previousData = get().nodesData.get(nodeId);
+    if (previousData == null) {
+      throw new Error(`Node ID ${nodeId} does not exist`);
+    }
+
+    const requiredEdgesIds = [...previousData.requiredEdgesIds, edgeId];
+
+    set((state) => ({
+      nodesData: new Map(state.nodesData).set(nodeId, { ...previousData, requiredEdgesIds})
+    }));
+  },
+  removeRequiredEdgeId: (nodeId, edgeId) => {
+    const previousData = get().nodesData.get(nodeId);
+    if (previousData == null) {
+      throw new Error(`Node ID ${nodeId} does not exist`);
+    }
+
+    const requiredEdgesIds = previousData.requiredEdgesIds.filter((requiredEdgeId) => requiredEdgeId !== edgeId);
+
+    set((state) => ({
+      nodesData: new Map(state.nodesData).set(nodeId, { ...previousData, requiredEdgesIds})
+    }));
   },
   addNode: (node, nodeData) => {
     set((state) => ({

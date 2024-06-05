@@ -1,4 +1,4 @@
-import { useRef, useCallback, MouseEvent, useState } from "react";
+import { useRef, useCallback, MouseEvent } from "react";
 import ReactFlow, {
   Controls,
   useReactFlow,
@@ -13,13 +13,14 @@ import RFFlowchartNode from "@/ui/protocols/flowchart/node";
 import RFFlowChartEdge, { defaultEdgeData } from "@/ui/protocols/flowchart/edge";
 import { getOpposite } from "@/ui/protocols/flowchart/handle";
 
-import type {
+import {
   OnConnect,
   OnConnectStart,
   OnConnectEnd,
   OnNodesChange,
   OnEdgesChange,
   Connection,
+  Panel
 } from "reactflow";
 
 import type { HandlePosition } from "@/ui/protocols/flowchart/handle";
@@ -32,6 +33,7 @@ import { deleteEdges, deleteNodes } from "@/mutation";
 import useSaveEventsContext from "@/hooks/useSaveEventsContext";
 import useToastMessageContext from "@/hooks/useToastMessageContext";
 import useLocalEdgesNodes from "@/hooks/useLocalEdgesNodes";
+import { Typography } from "@mui/material";
 
 type NodeHandle = {
   nodeId: string;
@@ -63,6 +65,7 @@ export default function FlowChartEditor(
   const edges = useProtocolStore((state) => state.edges);
   const selectedNodeId = useProtocolStore((state) => state.selectedNodeId);
   const initialNodeId = useProtocolStore((state) => state.initialNodeId);
+  const requiredEdgeSelectionEnabled = useProtocolStore((state) => state.requiredEdgeSelectionEnabled);
 
   const applyNodeChanges = useProtocolStore((state) => state.applyNodeChanges);
   const applyEdgeChanges = useProtocolStore((state) => state.applyEdgeChanges);
@@ -73,6 +76,8 @@ export default function FlowChartEditor(
   const changeEdgeData = useProtocolStore((state) => state.changeEdgeData);
   const changeNode = useProtocolStore((state) => state.changeNode);
   const removeNodesData = useProtocolStore((state) => state.removeNodesData);
+  const addRequiredEdgeId = useProtocolStore((state) => state.addRequiredEdgeId);
+  const removeRequiredEdgeId = useProtocolStore((state) => state.removeRequiredEdgeId);
 
   const { localNodes, localEdges } = useLocalEdgesNodes();
 
@@ -243,7 +248,8 @@ export default function FlowChartEditor(
     }
     addNode(newNode, {
       name: "",
-      description: ""
+      description: "",
+      requiredEdgesIds: []
     });
     addEdge(newEdge);
     localNodes.addLocalId(newNode.id);
@@ -335,6 +341,14 @@ export default function FlowChartEditor(
     changeEdgeData(edge.id, { doubleClickSelected: true });
   }, [changeEdgeData]);
 
+  const onEdgeClick: OnEdgeClick = useCallback((_, edge) => {
+    if (selectedNodeId == null || !requiredEdgeSelectionEnabled) {
+      return;
+    }
+    addRequiredEdgeId(selectedNodeId, edge.id);
+    useProtocolStore.setState((state) => ({requiredEdgeSelectionEnabled: false}));
+  }, [requiredEdgeSelectionEnabled, addRequiredEdgeId, selectedNodeId]);
+
   const onPaneClick: OnPaneClick = useCallback((e) => {
     if (!isEventTargetPane(e.target as Element)) {
       return;
@@ -349,12 +363,15 @@ export default function FlowChartEditor(
       if (selectedNodeId !== null) {
         changeNode(selectedNodeId, { data: { isSelectedModification: false } })
       }
-      setSelectedNodeId(null);
+      useProtocolStore.setState((state) => ({
+        selectedNodeId: null,
+        requiredEdgeSelectionEnabled: false
+      }));
     } else {
       connectingNode.current = null;
     }
 
-  }, [changeEdgeData, selectedNodeId, setSelectedNodeId, changeNode]);
+  }, [changeEdgeData, selectedNodeId, changeNode]);
 
   return (
     <ReactFlow
@@ -373,6 +390,7 @@ export default function FlowChartEditor(
       edgeTypes={edgeTypes}
       nodeTypes={nodeTypes}
       onNodeDoubleClick={onNodeDoubleClick}
+      onEdgeClick={onEdgeClick}
       onNodeClick={onNodeClick}
       onPaneClick={onPaneClick}
       onEdgeDoubleClick={onEdgeDoubleClick}
@@ -393,6 +411,14 @@ export default function FlowChartEditor(
     >
       <Controls />
       <Background />
+      <Panel position="top-left">
+        <Typography sx={{
+          fontSize: "30px",
+          color: "blue"
+        }}>
+          {requiredEdgeSelectionEnabled && "Select an edge"}
+        </Typography>
+      </Panel>
     </ReactFlow>
   );
 }

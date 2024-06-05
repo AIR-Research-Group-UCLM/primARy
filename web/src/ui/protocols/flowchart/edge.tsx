@@ -28,8 +28,13 @@ export type FlowchartEdge = Edge<FlowchartEdgeData>;
 
 const selectedColor = "#037bfc";
 const doubleClickColor = "#451fc2";
+const isRequiredColor = "orange";
 
-function selectColor(selected: boolean, selectedModification: boolean) {
+function selectColor(selected: boolean, selectedModification: boolean, isRequired: boolean) {
+  if (isRequired) {
+    return isRequiredColor;
+  }
+
   if (selectedModification) {
     return doubleClickColor;
   }
@@ -115,14 +120,20 @@ function EdgeTextField(
 
 export default function RFFlowChartEdge({ id, data, markerEnd, source, selected, ...props }: EdgeProps<FlowchartEdgeData>) {
   const edges = useProtocolStore((state) => state.edges);
+  const requiredEdgeIds = useProtocolStore(
+    (state) => state.selectedNodeId == null ? [] : state.nodesData.get(state.selectedNodeId)!.requiredEdgesIds
+  );
+
+  console.log(requiredEdgeIds);
+
   const [focused, setFocused] = useState(false);
 
   const [edgePath, labelX, labelY] = getBezierPath(props);
 
-
   const doubleClickSelected = !!data?.doubleClickSelected;
   const label = data?.label ?? "";
   const neighbouringEdges = edges.filter((edge) => edge.source === source);
+  const isRequired = requiredEdgeIds.includes(id);
   const hasSameOption = neighbouringEdges.some(
     (edge) => edge.data && edge.data.label === label && edge.id !== id
   );
@@ -134,7 +145,7 @@ export default function RFFlowChartEdge({ id, data, markerEnd, source, selected,
         path={edgePath}
         markerEnd={markerEnd}
         style={{
-          stroke: selectColor(!!selected, doubleClickSelected),
+          stroke: selectColor(!!selected, doubleClickSelected, isRequired),
           strokeWidth: "3px"
         }} />
       {/* For some reason, rendering the TextField makes the editor laggy*/}

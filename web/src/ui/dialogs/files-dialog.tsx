@@ -322,7 +322,6 @@ export default function FilesDialog(
               {files.map((file) =>
                 <FileCard
                   key={file.id}
-                  // TODO: use ENV VAR for this
                   file={file}
                   onDelete={onDelete}
                   img={fileImg(file)}

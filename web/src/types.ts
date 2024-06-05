@@ -6,6 +6,7 @@ export type Position = {
 export type NodeData = {
     name: string;
     description: string;
+    requiredEdgesIds: string[];
 }
 
 export type Node = {

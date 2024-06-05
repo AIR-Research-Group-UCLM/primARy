@@ -23,7 +23,8 @@ export function protocolToProtocolData(protocol: Protocol): ProtocolData {
         label: edge.label
       }
     })),
-    nodesData: new Map(protocol.nodes.map((node) => [node.id, node.data]))
+    // TODO: change this when the required edges are saved to the database
+    nodesData: new Map(protocol.nodes.map((node) => [node.id, {...node.data, requiredEdgesIds: []}]))
   };
 }
 
