@@ -275,7 +275,6 @@ export default function FlowChartEditor(
 
   const onNodesDelete: OnNodesDelete = useCallback((nodes) => {
     updateSelectionAfterDelete(nodes);
-    onDeleteElement();
 
     const localNodeIds = nodes
       .filter((node) => localNodes.isLocalId(node.id))
@@ -283,6 +282,7 @@ export default function FlowChartEditor(
 
     removeNodesData(localNodeIds);
 
+    onDeleteElement();
     // Send request to the backend to delete these edges
     const nonLocalNodes = nodes.filter((node) => !localNodes.isLocalId(node.id));
     const nonLocalNodeIds = nonLocalNodes.map((node) => node.id);
@@ -310,10 +310,6 @@ export default function FlowChartEditor(
 
     deleteNodes({ protocolId, nodesIds: nonLocalNodeIds })
       .then(() => {
-        setToastMessage({
-          type: "success",
-          text: "Saved"
-        })
         removeNodesData(nonLocalNodeIds);
       })
       .catch((error) => {

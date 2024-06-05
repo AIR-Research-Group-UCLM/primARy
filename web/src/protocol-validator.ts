@@ -5,14 +5,14 @@ export type ValidatorResult =
   RepeatedOptionResult |
   BlankOptionResult;
 
-type UndefinedNodeResult = {
+export type UndefinedNodeResult = {
   type: "UndefinedNodes";
   count: number;
 }
 
-type RepeatedOptionResult = {
+export type RepeatedOptionResult = {
   type: "RepeatedOption";
-  info: {
+  infos: {
     nodeId: string;
     repeatedOptions: {
       option: string;
@@ -21,9 +21,9 @@ type RepeatedOptionResult = {
   }[]
 }
 
-type BlankOptionResult = {
+export type BlankOptionResult = {
   type: "BlankOption";
-  nodeIds: string[];
+  edges: Edge[];
 }
 
 export function checkUndefinedNodes(nodesData: NodeData[]): UndefinedNodeResult {
@@ -45,17 +45,17 @@ export function checkBlankOptions(edges: Edge[]): BlankOptionResult {
     ([nodeId, edges]) =>
     ({
       nodeId,
-      options: edges.map((edge) => edge.label.trim())
+      edges
     })
   );
 
-  const nodeIds = nodeEdges.filter(({ options }) =>
-    options.length > 1 && options.some((option) => option === "")
-  ).map(({ nodeId }) => nodeId);
+  const blankOptionEdges = nodeEdges.filter(({ edges }) =>
+    edges.length > 1 && edges.some((edge) => edge.label.trim() === "")
+  ).map(({ edges }) => edges).flat();
 
   return {
     type: "BlankOption",
-    nodeIds
+    edges: blankOptionEdges
   }
 }
 
@@ -69,14 +69,14 @@ export function checkRepeatedOptions(edges: Edge[]): RepeatedOptionResult {
     })
   );
 
-  const info = nodeEdges.map(({ nodeId, edges }) => ({
+  const infos = nodeEdges.map(({ nodeId, edges }) => ({
     nodeId,
     repeatedOptions: countRepeatedOptions(edges)
   })).filter(({ repeatedOptions }) => repeatedOptions.length !== 0);
 
   return {
     type: "RepeatedOption",
-    info
+    infos
   }
 }
 
@@ -94,10 +94,10 @@ function isValidationError(validatorResult: ValidatorResult) {
       return validatorResult.count > 0;
     }
     case "RepeatedOption": {
-      return validatorResult.info.length > 0;
+      return validatorResult.infos.length > 0;
     }
     case "BlankOption": {
-      return validatorResult.nodeIds.length > 0
+      return validatorResult.edges.length > 0
     }
   }
 }
@@ -118,7 +118,8 @@ function countRepeatedOptions(edges: Edge[]) {
   }
 
   const repeatedOptions = Array.from(optionEdgeIds)
-    .map(([option, edgeIds]) => ({ option, edgeIds }));
+    .map(([option, edgeIds]) => ({ option, edgeIds }))
+    .filter(({edgeIds}) => edgeIds.length > 1);
 
   return repeatedOptions;
 }

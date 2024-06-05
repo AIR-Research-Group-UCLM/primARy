@@ -19,7 +19,7 @@ import useSaveEvents, { ReturnEventStore } from "@/hooks/useSaveEvents"
 import { SaveEventsContext } from "@/hooks/useSaveEventsContext"
 
 import type { Position, Node } from "@/types";
-import type { ValidatorResult } from "@/protocol-validator";
+import type { ValidatorResult, RepeatedOptionResult, BlankOptionResult } from "@/protocol-validator";
 
 import { useRouter } from "next/navigation";
 import { upsertProtocol } from "@/mutation";
@@ -29,6 +29,7 @@ import { flowchartEdgeToEdge } from "@/type-conversions";
 import { useEffect, useState } from "react";
 import { applyAllValidators } from "@/protocol-validator";
 import useToastMessageContext from "@/hooks/useToastMessageContext";
+import { Alert } from "@mui/material";
 
 type Props = {
   protocolId: string;
@@ -38,6 +39,36 @@ function getValidationResultsFromState(state: ProtocolState) {
   const edges = state.edges.map(flowchartEdgeToEdge);
   const nodesData = state.nodesData;
   return applyAllValidators(nodesData, edges);
+}
+
+function getEdgeIdsWithRepeatedOptions(validatorResults: ValidatorResult[]): string[] {
+  const repeatedOptionResult = validatorResults
+    .find((validatorResult) => validatorResult.type === "RepeatedOption") as RepeatedOptionResult | undefined;
+
+  if (repeatedOptionResult === undefined) {
+    return [];
+  }
+
+  const result = repeatedOptionResult.infos
+    .map(
+      (info) => info.repeatedOptions.map((repeatedOption) => repeatedOption.edgeIds)
+    ).flat(2);
+
+  return result;
+}
+
+function getEdgeIdsWithBlankOptions(validatorResults: ValidatorResult[]): string[] {
+  const blankOptionResult = validatorResults
+    .find((validatorResult) => validatorResult.type === "BlankOption") as BlankOptionResult | undefined;
+
+  if (blankOptionResult === undefined) {
+    return [];
+  }
+
+  const result = blankOptionResult.edges
+    .map((edge) => edge.id);
+
+  return result;
 }
 
 export default function ProtocolView({ protocolId }: Props) {
@@ -101,18 +132,18 @@ export default function ProtocolView({ protocolId }: Props) {
 
     const edges = []
     const edgesIds = [...events.edgeIds, ...extraEdgeIds];
+
+    const repeatedEdgeIds = getEdgeIdsWithRepeatedOptions(validatorResults);
+    const blankEdgeIds = getEdgeIdsWithBlankOptions(validatorResults);
+
     for (const edgeId of edgesIds) {
       const edge = edgeMap.get(edgeId);
-      if (edge == null) {
+
+      if (edge == null || localNodes.isLocalId(edge.target) ||
+        localNodes.isLocalId(edge.source) || repeatedEdgeIds.includes(edgeId) || blankEdgeIds.includes(edgeId)
+      ) {
         continue;
       }
-
-      if (localNodes.isLocalId(edge.target) || localNodes.isLocalId(edge.source)) {
-        continue;
-      }
-
-      // TODO: consider making a Set or directly passing the set from "events" if this severly affects
-      // performance. 
 
       localEdges.removeLocalId(edge.id);
       edges.push(flowchartEdgeToEdge(edge));
@@ -129,10 +160,7 @@ export default function ProtocolView({ protocolId }: Props) {
           name, nodes, edges
         }
       });
-      setToastMessage({
-        type: "success",
-        text: "Saved"
-      });
+      setValidatorResults(validatorResults);
     } catch (error) {
       setToastMessage({
         type: "error",
@@ -147,6 +175,44 @@ export default function ProtocolView({ protocolId }: Props) {
     recordEvent({
       type: "name"
     });
+  }
+
+  function getAlertData(): {
+    severity: "info" | "warning" | "success";
+    message: string;
+  } {
+    if (isPending) {
+      return {
+        severity: "info",
+        message: "Analyzing changes..."
+      }
+    }
+
+    if (validatorResults.length > 0) {
+      return {
+        severity: "warning",
+        message: "Partially saved"
+      }
+    }
+
+    return {
+      severity: "success",
+      message: "Correctly saved"
+    }
+  }
+
+  function getAlertElement() {
+    const { severity, message } = getAlertData();
+    return (
+      <Alert
+        severity={severity}
+        style={{
+          fontSize: "15px",
+        }}
+      >
+        {message}
+      </Alert>
+    )
   }
 
   async function onSaveClick() {
@@ -199,8 +265,9 @@ export default function ProtocolView({ protocolId }: Props) {
             <ReactFlowProvider>
               <FlowChartEditor
                 protocolId={protocolId}
-                onDeleteElement={() =>
+                onDeleteElement={() => {
                   setValidatorResults(getValidationResultsFromState(useProtocolStore.getState()))
+                }
                 }
               />
             </ReactFlowProvider>
@@ -240,6 +307,11 @@ export default function ProtocolView({ protocolId }: Props) {
             >
               Exit and save
             </Button>
+          </Box>
+          <Box sx={{
+            width: "250px"
+          }}>
+            {getAlertElement()}
           </Box>
           <Box sx={{
             display: "flex",
