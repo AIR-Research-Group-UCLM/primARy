@@ -1,13 +1,15 @@
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
 
+from . import config
+
 DB_URL = sa.URL.create(
     "mariadb+pymysql",
-    username="root",
-    password="root",
-    host="127.0.0.1",
-    database="protocols",
-    port=3306,
+    username=config.DB_USERNAME,
+    password=config.DB_PASSWORD,
+    host=config.DB_HOST,
+    database="primary",
+    port=config.DB_PORT,
 )
 
 engine = sa.create_engine(DB_URL)

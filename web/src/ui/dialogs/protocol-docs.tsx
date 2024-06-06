@@ -6,7 +6,7 @@ import FilesDialog from "@/ui/dialogs/files-dialog";
 
 type Props = {
   isOpen: boolean;
-  protocolId: number;
+  protocolId: string;
   handleClose?: () => void;
 }
 
@@ -45,11 +45,11 @@ export default function DocsDialog(
 
   function fileImg(file: UserFile) {
     const logoFile = file.filename.endsWith(".pdf") ? "pdf.png" : "txt.png";
-    return `${process.env.API_BASE}/static/logos/${logoFile}`;
+    return `${process.env.STATIC_BASE}/logos/${logoFile}`;
   }
 
   function onImgClick(file: UserFile) {
-    window.open(`${process.env.API_BASE}/static/docs/${file.filename}`, "_blank");;
+    window.open(`${process.env.STATIC_BASE}/docs/${file.filename}`, "_blank");;
   }
 
 

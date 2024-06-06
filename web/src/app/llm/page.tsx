@@ -3,14 +3,22 @@
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { noInitialSpace } from "@/utils";
+import { JSONfetcher, noInitialSpace } from "@/utils";
 import { useGenerateLLMResponse } from "@/mutation";
 
-import { useState, KeyboardEvent } from "react";
-import { LLMResponse } from "@/types";
+import type { GenerationMode } from "@/types";
+
+import { useState, KeyboardEvent, useEffect } from "react";
+import { LLMResponse, ProtocolSummary } from "@/types";
 import { UnsuccessfulResponse } from "@/utils";
-import { CircularProgress } from "@mui/material";
+import CircularProgress from "@mui/material/CircularProgress";
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
+
 import useToastMessageContext from "@/hooks/useToastMessageContext";
+import LoadingSpinner from "@/ui/loading-spinner";
 
 type Role = "You" | "LLM";
 
@@ -62,13 +70,56 @@ function MessageArea({ role, children }: MessageAreaProps) {
     </Box>);
 }
 
-export default function Page({ searchParams }: { searchParams: { protocol?: number } }) {
+export default function Page({ searchParams }: { searchParams: { protocol?: string } }) {
   const [messages, setMessages] = useState<QAMessage[]>([]);
   const [prompt, setPrompt] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [generationMode, setGenerationMode] = useState<GenerationMode>("multistep");
   const { trigger: triggerGenerateResponse, isMutating: isProcessingPrompt } = useGenerateLLMResponse();
 
+  const [protocol, setProtocol] = useState<ProtocolSummary | null>(null);
+  const [protocolRequestState, setProtocolRequestState] = useState<"init" | "waiting" | "finished">("init");
+
+  // TODO: think how this can be done in a more elegant way
+  useEffect(() => {
+    const abortController = new AbortController();
+    async function fetchProtocols() {
+      setProtocolRequestState("waiting");
+      try {
+        const protocols = await JSONfetcher<ProtocolSummary[]>(`${process.env.API_BASE}/protocols`, {
+          method: "GET",
+          signal: abortController.signal,
+          headers: {
+            "Accept": "application/json"
+          },
+        });
+        setProtocol(protocols.find((protocol) => protocol.id === searchParams.protocol) ?? null);
+        setProtocolRequestState("finished");
+      } catch (e) {
+        if (e instanceof Error && e.name === "AbortController") {
+          return;
+        }
+        console.log(e);
+      }
+    }
+
+    if (searchParams.protocol) {
+      fetchProtocols();
+    }
+
+    return () => {
+      if (searchParams.protocol) {
+        setProtocolRequestState("finished");
+        abortController.abort();
+      }
+    };
+  }, [searchParams.protocol]);
+
   const setToastMessage = useToastMessageContext();
+
+  function handleSelectChange(event: SelectChangeEvent) {
+    setGenerationMode(event.target.value as GenerationMode);
+  }
 
   async function writeLLMResponse(reader: ReadableStreamDefaultReader<LLMResponse>) {
     setIsGenerating(true);
@@ -115,7 +166,9 @@ export default function Page({ searchParams }: { searchParams: { protocol?: numb
     setMessages([userMessage, ...messages]);
 
     try {
-      const stream = await triggerGenerateResponse({ prompt, protocolId: searchParams.protocol });
+      const stream = await triggerGenerateResponse(
+        { prompt, protocolId: searchParams.protocol, generationMode }
+      );
       const reader = stream.getReader();
       await writeLLMResponse(reader);
     } catch (e) {
@@ -133,6 +186,27 @@ export default function Page({ searchParams }: { searchParams: { protocol?: numb
       });
     } finally {
       setIsGenerating(false);
+    }
+  }
+
+  if (searchParams.protocol) {
+    if (protocolRequestState === "waiting") {
+      return <LoadingSpinner />
+    }
+    if (protocolRequestState === "finished" && protocol === null) {
+      return (
+        <Box sx={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }}>
+          <Typography variant="h1">
+            There does not exist a protocol with id {searchParams.protocol}
+          </Typography>
+        </Box>
+      );
     }
   }
 
@@ -166,25 +240,49 @@ export default function Page({ searchParams }: { searchParams: { protocol?: numb
             </Box>
           </MessageArea>}
 
-        {messages.map((message) => (
-            <MessageArea role={message.role} >
-              {message.content}
-            </MessageArea>
-          ))}
+        {messages.map((message, index) => (
+          <MessageArea key={index} role={message.role} >
+            {message.content}
+          </MessageArea>
+        ))}
       </Box>
-      <TextField
-        fullWidth
-        inputRef={(input) => input && input.focus()}
-        disabled={isGenerating}
-        label="Prompt"
-        value={prompt}
-        onKeyDown={onKeyDown}
-        onChange={(e) => setPrompt(noInitialSpace(e.target.value))}
-        sx={{
-          background: "white",
-          marginBottom: "10px"
-        }}
-      />
+      <Box sx={{
+        display: "flex",
+        gap: "5px"
+      }}>
+        <TextField
+          fullWidth
+          inputRef={(input) => input && input.focus()}
+          disabled={isGenerating}
+          label={protocol !== null ? `Prompt about '${protocol.name}'` : "Prompt"}
+          value={prompt}
+          onKeyDown={onKeyDown}
+          onChange={(e) => setPrompt(noInitialSpace(e.target.value))}
+          sx={{
+            background: "white",
+            marginBottom: "10px"
+          }}
+        />
+        {searchParams.protocol && <Box sx={{
+          width: "150px"
+        }}>
+          <FormControl fullWidth>
+            <InputLabel id="generation-mode-select">Generation mode</InputLabel>
+            <Select
+              sx={{
+                background: "white"
+              }}
+              labelId="generation-mode-select"
+              value={generationMode}
+              label="Generation Mode"
+              onChange={handleSelectChange}
+            >
+              <MenuItem value={"multistep"}>Multistep</MenuItem>
+              <MenuItem value={"concatenate"}>Concatenate</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>}
+      </Box>
     </Box>
   );
 }

@@ -1,0 +1,48 @@
+name: primary
+
+services:
+  api:
+    build:
+      context: ./api
+    depends_on:
+      - mariadb
+    environment:
+      - LLM_SERVICE_HOST=http://host.docker.internal:8001
+    ports:
+      - 127.0.0.1:8000:80
+    volumes:
+      - ./static:/static
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+  
+  web:
+    build:
+      context: ./web
+      args:
+        - API_BASE=${API_BASE}
+        - LLM_BASE=${LLM_BASE:-${API_BASE}}
+        - STATIC_BASE=${STATIC_BASE:-${API_BASE}/static}
+    environment:
+        - API_BASE=${API_BASE}
+        - LLM_BASE=${LLM_BASE:-${API_BASE}}
+        - STATIC_BASE=${STATIC_BASE:-${API_BASE}/static}
+    ports:
+      - 127.0.0.1:3000:3000
+    depends_on:
+      - api
+    restart: unless-stopped
+  
+  mariadb:
+    image: mariadb:11.3
+    environment:
+      - MARIADB_ROOT_PASSWORD=root
+      - MARIADB_DATABASE=primary
+    volumes:
+      - primarydb:/var/lib/mysql
+      - ./api/schemas.sql:/docker-entrypoint-initdb.d/schemas.sql
+    restart: unless-stopped
+
+volumes:
+  primarydb:
+    name: mariadb-primary

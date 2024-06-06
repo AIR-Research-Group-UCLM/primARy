@@ -25,7 +25,7 @@ _llm = LlamaCPP(
     context_window=config.CONTEXT_WINDOW,
     model_kwargs=dict(
         n_gpu_layers=config.N_GPU_LAYERS,
-        # max_tokens=30
+        max_tokens=config.MAX_TOKENS
     ),
     completion_to_prompt=_mistral_completion_to_prompt
 )

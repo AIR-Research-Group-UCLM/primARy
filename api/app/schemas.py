@@ -87,6 +87,6 @@ class NodeResource(Base):
 
 
 if __name__ == "__main__":
-    from db import SessionLocal
+    from .db import SessionLocal
     with SessionLocal.begin() as session:
         Base.metadata.create_all(session.get_bind())

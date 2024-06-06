@@ -29,7 +29,7 @@ export default function RootLayout({
             <Box sx={{
               display: "flex"
             }}>
-              <Navigation drawerWidth={200} />
+              <Navigation drawerWidth={160} />
               <Box
                 component="main"
                 sx={{
@@ -40,7 +40,7 @@ export default function RootLayout({
                   padding: "10px"
                 }}
               >
-                <Toolbar />
+                <Toolbar variant="dense" />
                 <ToastMessageProvider>
                   {children}
                 </ToastMessageProvider>

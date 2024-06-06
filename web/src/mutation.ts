@@ -1,4 +1,4 @@
-import type { UserFile, ProtocolSummary, Node, ProtocolUpsert, LLMResponse } from "@/types";
+import type { UserFile, ProtocolSummary, Node, ProtocolUpsert, LLMResponse, GenerationMode } from "@/types";
 import type { ProtocolData } from "@/hooks/store";
 
 import { protocolDataToProtocol } from "@/type-conversions";
@@ -7,12 +7,16 @@ import { JSONfetcher, fetcher } from "@/utils";
 
 import { splitStream, parseJSON } from "@/stream-transformers";
 
-export async function generateLLMResponse({ prompt, protocolId }: { prompt: string, protocolId?: number }): Promise<ReadableStream<LLMResponse>> {
-  const queryParams = protocolId !== undefined ? `?protocol=${protocolId}` : "";
+export async function generateLLMResponse(
+  { prompt, protocolId, generationMode }: { prompt: string, protocolId?: number, generationMode?: GenerationMode }
+): Promise<ReadableStream<LLMResponse>> {
 
-  // TODO: this will work with process.env.API_BASE because it will reference a 
-  // reverse proxy which will deliver the request to the llm service
-  const response = await fetcher(`http://127.0.0.1:8001/llm/generate${queryParams}`, {
+  const protocolQueryParam = protocolId !== undefined ? `protocol=${protocolId}` : "";
+  const generateQueryParam = generationMode !== undefined ? `mode=${generationMode}` : "";
+
+  const queryParams = protocolId || generationMode ? `?${protocolQueryParam}&${generateQueryParam}` : "";
+
+  const response = await fetcher(`${process.env.LLM_BASE}/llm/generate${queryParams}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -101,7 +105,6 @@ async function deleteDoc(
 async function uploadNodeResources(
   { protocolId, nodeId, formData }: { protocolId: number; nodeId: string; formData: FormData }
 ) {
-  console.log(formData);
   return JSONfetcher<UserFile[]>(`${process.env.API_BASE}/protocols/${protocolId}/nodes/${nodeId}/resources`, {
     method: "POST",
     body: formData

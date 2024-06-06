@@ -11,6 +11,7 @@ import type { EdgeProps } from "reactflow";
 import { useState } from "react";
 import { noInitialSpace } from "@/utils";
 import useSaveEventsContext from "@/hooks/useSaveEventsContext";
+import { Typography } from "@mui/material";
 
 export type FlowchartEdgeData = {
   label: string;
@@ -46,42 +47,69 @@ type EdgeTextFieldProps = {
   labelX: number;
   labelY: number;
   isError: boolean;
+  doubleClickSelected: boolean;
   onFocusChange: () => void;
 }
 
-function EdgeTextField({ edgeId, label, labelX, labelY, isError, onFocusChange }: EdgeTextFieldProps) {
+function EdgeTextField(
+  { edgeId, label, labelX, labelY, isError, doubleClickSelected, onFocusChange }: EdgeTextFieldProps
+) {
   const changeEdgeData = useProtocolStore((state) => state.changeEdgeData);
   const { recordEvent } = useSaveEventsContext();
 
+  const sx = {
+    position: "absolute",
+    transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+    pointerEvents: "all",
+    background: "#ffffff",
+    maxWidth: "100px",
+  }
+
+  if (doubleClickSelected) {
+    return (
+      <TextField
+        error={isError}
+        inputProps={{
+          style: {
+            padding: "2.5px 5px",
+            textAlign: "center",
+          },
+        }}
+        value={label}
+        onChange={(e) => {
+          changeEdgeData(edgeId, { label: noInitialSpace(e.target.value) })
+          recordEvent({
+            type: "edge",
+            id: edgeId
+          })
+        }}
+        focused
+        onFocus={onFocusChange}
+        onBlur={onFocusChange}
+        variant="outlined"
+        size="small"
+        className="nopan"
+        sx={sx} />
+    );
+  }
+
   return (
-    <TextField
-      error={isError}
-      inputProps={{
-        style: {
-          padding: "2.5px 5px",
-          textAlign: "center",
-        },
+    <Typography
+      style={{
+        border: "solid 2px " + (isError ? "red" : "green"),
+        borderRadius: "10px",
+        padding: "5px 10px",
+        textAlign: "center",
+        width: "100px",
+        ...(label === "" ? {
+          height: "35px",
+        } : null)
       }}
-      value={label}
-      onChange={(e) => {
-        changeEdgeData(edgeId, { label: noInitialSpace(e.target.value) })
-        recordEvent({
-          type: "edge",
-          id: edgeId
-        })
-      }}
-      onFocus={onFocusChange}
-      onBlur={onFocusChange}
-      variant="outlined"
-      size="small"
+      sx={sx}
       className="nopan"
-      sx={{
-        position: "absolute",
-        transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-        pointerEvents: "all",
-        background: "#ffffff",
-        maxWidth: "100px",
-      }} />
+      >
+      {label}
+    </Typography>
   );
 }
 
@@ -91,11 +119,14 @@ export default function RFFlowChartEdge({ id, data, markerEnd, source, selected,
 
   const [edgePath, labelX, labelY] = getBezierPath(props);
 
-  const sourceCount = edges.filter((edge) => edge.source === source).length;
 
   const doubleClickSelected = !!data?.doubleClickSelected;
   const label = data?.label ?? "";
-  const shouldTextFieldRender = sourceCount >= 2 || (label !== "") || focused || doubleClickSelected;
+  const neighbouringEdges = edges.filter((edge) => edge.source === source);
+  const hasSameOption = neighbouringEdges.some(
+    (edge) => edge.data && edge.data.label === label && edge.id !== id
+  );
+  const shouldTextFieldRender = neighbouringEdges.length >= 2 || (label !== "") || focused || doubleClickSelected;
 
   return (
     <>
@@ -114,7 +145,8 @@ export default function RFFlowChartEdge({ id, data, markerEnd, source, selected,
             label={data?.label ?? ""}
             labelX={labelX}
             labelY={labelY}
-            isError={label === ""}
+            isError={label === "" || hasSameOption}
+            doubleClickSelected={doubleClickSelected}
             onFocusChange={() => setFocused(!focused)}
           />
         }

@@ -61,27 +61,28 @@ export default function RFFlowchartNode({ id, data, selected }: NodeProps<RFNode
   const isComplete = name !== "";
 
   return (
-    <>
-      {
-        positions.map((position) =>
-          <FlowchartHandle
-            key={position.toString()}
-            position={position}
-            id={position.toString()}
-            colors={handleColor}
-            isSelected={selected}
-            isSelectedModification={data.isSelectedModification}
-          />
-        )
-      }
       <div style={{
         padding: "10px 20px",
         background: "#ffffff",
         border: `solid 2.5px ${selectBorderColor(selected, data.isSelectedModification)}`,
+        textAlign: "center",
         borderRadius: 10,
+        maxWidth: "250px",
         backgroundColor: selectBackgroundColor(isInitial, isComplete),
         display: "flex"
       }}>
+        {
+          positions.map((position) =>
+            <FlowchartHandle
+              key={position.toString()}
+              position={position}
+              id={position.toString()}
+              colors={handleColor}
+              isSelected={selected}
+              isSelectedModification={data.isSelectedModification}
+            />
+          )
+        }
         <Typography
           variant="h6"
           component="div"
@@ -92,6 +93,5 @@ export default function RFFlowchartNode({ id, data, selected }: NodeProps<RFNode
           {name || "Unnamed Node"}
         </Typography>
       </div>
-    </>
   );
 }

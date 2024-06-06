@@ -7,6 +7,7 @@ from pydantic import alias_generators
 class BaseModel(PydanticBaseModel):
     model_config = ConfigDict(
         alias_generator=alias_generators.to_camel,
+        coerce_numbers_to_str=True,
         populate_by_name=True,
         from_attributes=True
     )
@@ -52,21 +53,23 @@ class ProtocolCreate(BaseModel):
 
 
 class ProtocolSummary(BaseModel):
-    id: int
+    id: str
     name: str = Field(min_length=1)
 
 
 class Protocol(BaseModel):
-    id: int
+    id: str
     initial_node_id: str = Field(min_length=1)
     name: str = Field(min_length=1)
     nodes: list[Node]
     edges: list[Edge]
 
+
 class ProtocolUpsert(BaseModel):
     name: str | None = None
     nodes: list[Node] = []
     edges: list[Edge] = []
+
 
 class PatchFile(BaseModel):
     name: str = Field(min_length=1)
