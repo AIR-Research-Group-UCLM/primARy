@@ -1,3 +1,4 @@
+import type { Edge } from "./types";
 
 export class UnsuccessfulResponse extends Error {
   info: any;
@@ -17,6 +18,19 @@ export async function defaultFetcher<S>(url: string) {
 
 export function noInitialSpace(value: string): string {
   return value.trim() !== "" ? value : "";
+}
+
+export function groupEdges(edges: Edge[]) {
+  const map = new Map<string, Edge[]>()
+  for (const edge of edges) {
+    const neighbourEdges = map.get(edge.source);
+    if (neighbourEdges === undefined) {
+      map.set(edge.source, [edge]);
+    } else {
+      neighbourEdges.push(edge);
+    }
+  }
+  return map;
 }
 
 // TODO: do not retray on 404 errors

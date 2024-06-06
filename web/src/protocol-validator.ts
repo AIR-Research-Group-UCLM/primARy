@@ -1,4 +1,5 @@
 import { NodeData, Edge } from "@/types";
+import { groupEdges } from "./utils";
 
 export type ValidatorResult =
   UndefinedNodeResult |
@@ -41,7 +42,7 @@ export function checkUndefinedNodes(nodesData: NodeData[]): UndefinedNodeResult 
 
 export function checkBlankOptions(edges: Edge[]): BlankOptionResult {
   const nodeEdges = Array.from(
-    Map.groupBy(edges, (edge) => edge.source),
+    groupEdges(edges),
     ([nodeId, edges]) =>
     ({
       nodeId,
@@ -61,7 +62,7 @@ export function checkBlankOptions(edges: Edge[]): BlankOptionResult {
 
 export function checkRepeatedOptions(edges: Edge[]): RepeatedOptionResult {
   const nodeEdges = Array.from(
-    Map.groupBy(edges, (edge) => edge.source),
+    groupEdges(edges),
     ([nodeId, edges]) =>
     ({
       nodeId,
