@@ -65,8 +65,9 @@ function getEdgeIdsWithBlankOptions(validatorResults: ValidatorResult[]): string
     return [];
   }
 
-  const result = blankOptionResult.edges
-    .map((edge) => edge.id);
+  const result = blankOptionResult.infos
+    .map(({ blankOptions }) => blankOptions.map((edge) => edge.id))
+    .flat(2);
 
   return result;
 }

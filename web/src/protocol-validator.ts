@@ -24,7 +24,10 @@ export type RepeatedOptionResult = {
 
 export type BlankOptionResult = {
   type: "BlankOption";
-  edges: Edge[];
+  infos: {
+    nodeId: string;
+    blankOptions: Edge[]
+  }[]
 }
 
 export function checkUndefinedNodes(nodesData: NodeData[]): UndefinedNodeResult {
@@ -50,13 +53,14 @@ export function checkBlankOptions(edges: Edge[]): BlankOptionResult {
     })
   );
 
-  const blankOptionEdges = nodeEdges.filter(({ edges }) =>
-    edges.length > 1 && edges.some((edge) => edge.label.trim() === "")
-  ).map(({ edges }) => edges).flat();
+  const infos = nodeEdges.map(({ nodeId, edges }) => ({
+    nodeId,
+    blankOptions: edges.length > 1 ? edges.filter((edge) => edge.label.trim() === "") : []
+  })).filter(({ blankOptions }) => blankOptions.length > 0);
 
   return {
     type: "BlankOption",
-    edges: blankOptionEdges
+    infos
   }
 }
 
@@ -98,7 +102,7 @@ function isValidationError(validatorResult: ValidatorResult) {
       return validatorResult.infos.length > 0;
     }
     case "BlankOption": {
-      return validatorResult.edges.length > 0
+      return validatorResult.infos.length > 0
     }
   }
 }
@@ -120,7 +124,7 @@ function countRepeatedOptions(edges: Edge[]) {
 
   const repeatedOptions = Array.from(optionEdgeIds)
     .map(([option, edgeIds]) => ({ option, edgeIds }))
-    .filter(({edgeIds}) => edgeIds.length > 1);
+    .filter(({ edgeIds }) => edgeIds.length > 1);
 
   return repeatedOptions;
 }
