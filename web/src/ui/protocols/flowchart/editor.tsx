@@ -99,7 +99,7 @@ export default function FlowChartEditor(
     if (selectedNodeId === null) {
       return;
     }
-    const isSelectedDeleted = nodes.some((node) => node.id === selectedNodeId);
+    const isSelectedDeleted = nodes.some((node) => node.id === selectedNodeId && canRemoveNode(node.id));
     if (isSelectedDeleted) {
       setSelectedNodeId(null);
     }
@@ -279,7 +279,7 @@ export default function FlowChartEditor(
 
     onDeleteElement();
     // Send request to the backend to delete these edges
-    const nonLocalNodes = nodes.filter((node) => !localNodes.isLocalId(node.id));
+    const nonLocalNodes = nodes.filter((node) => !localNodes.isLocalId(node.id) && canRemoveNode(node.id));
     const nonLocalNodeIds = nonLocalNodes.map((node) => node.id);
     if (nonLocalNodeIds.length === 0) {
       return;
