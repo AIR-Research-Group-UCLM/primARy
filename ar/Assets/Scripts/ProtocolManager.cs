@@ -26,22 +26,31 @@ public class ProtocolManager : MonoBehaviour
     public GameObject backButton;
     public GameObject closeButton;
     public GameObject resourcesButton;
+    public GameObject llmButton;
 
     public GameObject resourceVisualizer;
+    public GameObject llmCanvas;
 
     public string defaultNullLabel = "Continue";
 
     private UIManager uiManager;
     private NodeResourceManager nodeResourceManager;
+    private LLMManager llmManager;
 
     private Protocol protocol;
     private List<File> resources;
     private ProtocolFlow protocolFlow;
 
+    enum Direction
+    {
+        Left, Right
+    }
+
     void Start()
     {
         uiManager = GetComponent<UIManager>();
         nodeResourceManager = GetComponent<NodeResourceManager>();
+        llmManager = GetComponent<LLMManager>();
 
         backButton.GetComponent<Button>().onClick.AddListener(() =>
         {
@@ -56,6 +65,7 @@ public class ProtocolManager : MonoBehaviour
         });
         ;
         resourcesButton.GetComponent<Button>().onClick.AddListener(() => OnResourcesButtonClick());
+        llmButton.GetComponent<Button>().onClick.AddListener(() => OnLLMButtonClick());
     }
 
     public void OnLaunchProtocol(ProtocolSummary protocol)
@@ -113,17 +123,27 @@ public class ProtocolManager : MonoBehaviour
 
     void OnResourcesButtonClick()
     {
-        Vector3 visualizerVector = protocolVisualizerTransform.position - cameraTransform.position;
-
-        float distanceSqr = visualizerVector.sqrMagnitude;
-        float cos = 1 - 0.5f * distanceBetweenVisualizers * distanceBetweenVisualizers / distanceSqr;
-        float angle = Mathf.Acos(cos) * 180 / Mathf.PI;
-        Vector3 visualizerPosition = cameraTransform.position + Quaternion.AngleAxis(angle, Vector3.up) * visualizerVector;
+        Vector3 visualizerPosition = CalculateRotationAngleCanvas(Direction.Right);
 
         resourceVisualizer.transform.position = visualizerPosition;
         resourceVisualizer.SetActive(true);
 
         nodeResourceManager.OnVisualizerShown(resources);
+    }
+
+    void OnLLMButtonClick()
+    {
+        if (protocolFlow == null)
+        {
+            return;
+        }
+
+        Vector3 canvasPosition = CalculateRotationAngleCanvas(Direction.Left);
+
+        llmCanvas.transform.position = canvasPosition;
+        llmCanvas.SetActive(true);
+        // llmManager.OnLLMCanvasShown(protocolFlow.Id);
+        llmManager.OnLLMCanvasShown("1");
     }
 
     void AddButton(string text, UnityAction call)
@@ -171,5 +191,19 @@ public class ProtocolManager : MonoBehaviour
     {
         protocolFlow = new ProtocolFlow(protocol);
         ChangeProtocolStep();
+    }
+
+    private Vector3 CalculateRotationAngleCanvas(Direction direction)
+    {
+        Vector3 visualizerVector = protocolVisualizerTransform.position - cameraTransform.position;
+
+        float distanceSqr = visualizerVector.sqrMagnitude;
+        float cos = 1 - 0.5f * distanceBetweenVisualizers * distanceBetweenVisualizers / distanceSqr;
+        float angle = Mathf.Acos(cos) * 180 / Mathf.PI;
+        if (direction == Direction.Left)
+        {
+            angle *= -1;
+        }
+        return cameraTransform.position + Quaternion.AngleAxis(angle, Vector3.up) * visualizerVector;
     }
 }

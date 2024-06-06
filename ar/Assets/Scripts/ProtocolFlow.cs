@@ -10,6 +10,7 @@ public class ProtocolFlow
     private Stack<ProtocolStep> _previousSteps = new();
 
     public ProtocolStep CurrentStep { get; private set; }
+    public string Id { get; private set; }
 
     public ProtocolFlow(Protocol protocol)
     {
@@ -26,6 +27,7 @@ public class ProtocolFlow
         }
 
         CurrentStep = ConvertNodeToStep(protocol.initialNodeId);
+        Id = protocol.id;
     }
 
     public bool IsCurrentStepFirst() 
