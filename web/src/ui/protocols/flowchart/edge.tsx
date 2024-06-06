@@ -30,16 +30,19 @@ const selectedColor = "#037bfc";
 const doubleClickColor = "#451fc2";
 const isRequiredColor = "orange";
 
-function selectColor(selected: boolean, selectedModification: boolean, isRequired: boolean) {
+function selectColor(
+  selected: boolean, selectedModification: boolean, isRequired: boolean, requiredEdgeSelectionEnabled: boolean
+) {
+
+  if (selectedModification && !requiredEdgeSelectionEnabled) {
+    return doubleClickColor;
+  }
+
   if (isRequired) {
     return isRequiredColor;
   }
 
-  if (selectedModification) {
-    return doubleClickColor;
-  }
-
-  if (selected) {
+  if (selected && !requiredEdgeSelectionEnabled) {
     return selectedColor;
   }
 
@@ -60,6 +63,7 @@ function EdgeTextField(
   { edgeId, label, labelX, labelY, isError, doubleClickSelected, onFocusChange }: EdgeTextFieldProps
 ) {
   const changeEdgeData = useProtocolStore((state) => state.changeEdgeData);
+  const removeRequiredEdgeId = useProtocolStore((state) => state.removeRequiredEdgeId);
   const { recordEvent } = useSaveEventsContext();
 
   const sx = {
@@ -112,7 +116,7 @@ function EdgeTextField(
       }}
       sx={sx}
       className="nopan"
-      >
+    >
       {label}
     </Typography>
   );
@@ -120,11 +124,10 @@ function EdgeTextField(
 
 export default function RFFlowChartEdge({ id, data, markerEnd, source, selected, ...props }: EdgeProps<FlowchartEdgeData>) {
   const edges = useProtocolStore((state) => state.edges);
+  const requiredEdgeSelectionEnabled = useProtocolStore((state) => state.requiredEdgeSelectionEnabled);
   const requiredEdgeIds = useProtocolStore(
     (state) => state.selectedNodeId == null ? [] : state.nodesData.get(state.selectedNodeId)!.requiredEdgesIds
   );
-
-  console.log(requiredEdgeIds);
 
   const [focused, setFocused] = useState(false);
 
@@ -145,7 +148,7 @@ export default function RFFlowChartEdge({ id, data, markerEnd, source, selected,
         path={edgePath}
         markerEnd={markerEnd}
         style={{
-          stroke: selectColor(!!selected, doubleClickSelected, isRequired),
+          stroke: selectColor(!!selected, doubleClickSelected, isRequired, requiredEdgeSelectionEnabled),
           strokeWidth: "3px"
         }} />
       {/* For some reason, rendering the TextField makes the editor laggy*/}

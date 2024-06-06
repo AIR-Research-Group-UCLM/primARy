@@ -34,6 +34,8 @@ import useSaveEventsContext from "@/hooks/useSaveEventsContext";
 import useToastMessageContext from "@/hooks/useToastMessageContext";
 import useLocalEdgesNodes from "@/hooks/useLocalEdgesNodes";
 import { Typography } from "@mui/material";
+import { existsPath } from "@/required-edge-validator";
+import { flowchartEdgeToEdge } from "@/type-conversions";
 
 type NodeHandle = {
   nodeId: string;
@@ -342,12 +344,17 @@ export default function FlowChartEditor(
   }, [changeEdgeData]);
 
   const onEdgeClick: OnEdgeClick = useCallback((_, edge) => {
-    if (selectedNodeId == null || !requiredEdgeSelectionEnabled) {
+    const transformedEdges = edges.map(flowchartEdgeToEdge);
+
+    if (selectedNodeId == null || !requiredEdgeSelectionEnabled ||
+        edge.data && edge.data.label === "" || !existsPath(edge.target, selectedNodeId, transformedEdges))
+    {
       return;
     }
     addRequiredEdgeId(selectedNodeId, edge.id);
     useProtocolStore.setState((state) => ({requiredEdgeSelectionEnabled: false}));
-  }, [requiredEdgeSelectionEnabled, addRequiredEdgeId, selectedNodeId]);
+  }, [
+    requiredEdgeSelectionEnabled, addRequiredEdgeId, selectedNodeId, edges]);
 
   const onPaneClick: OnPaneClick = useCallback((e) => {
     if (!isEventTargetPane(e.target as Element)) {
