@@ -74,7 +74,8 @@ export default function Page({ searchParams }: { searchParams: { protocol?: stri
   const [messages, setMessages] = useState<QAMessage[]>([]);
   const [prompt, setPrompt] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
-  const [generationMode, setGenerationMode] = useState<GenerationMode>("multistep");
+  const [generationMode, setGenerationMode] =
+    useState<GenerationMode | undefined>(searchParams.protocol !== undefined ? "multistep" : undefined);
   const { trigger: triggerGenerateResponse, isMutating: isProcessingPrompt } = useGenerateLLMResponse();
 
   const [protocol, setProtocol] = useState<ProtocolSummary | null>(null);

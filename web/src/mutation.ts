@@ -11,10 +11,7 @@ export async function generateLLMResponse(
   { prompt, protocolId, generationMode }: { prompt: string, protocolId?: number, generationMode?: GenerationMode }
 ): Promise<ReadableStream<LLMResponse>> {
 
-  const protocolQueryParam = protocolId !== undefined ? `protocol=${protocolId}` : "";
-  const generateQueryParam = generationMode !== undefined ? `mode=${generationMode}` : "";
-
-  const queryParams = protocolId || generationMode ? `?${protocolQueryParam}&${generateQueryParam}` : "";
+  const queryParams = protocolId == undefined ? "" : `?protocol=${protocolId}&mode=${generationMode}`;
 
   const response = await fetcher(`${process.env.LLM_BASE}/llm/generate${queryParams}`, {
     method: "POST",
