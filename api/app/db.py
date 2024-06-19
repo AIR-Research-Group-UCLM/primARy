@@ -12,5 +12,10 @@ DB_URL = sa.URL.create(
     port=config.DB_PORT,
 )
 
-engine = sa.create_engine(DB_URL)
+# pre ping checks the connection is still valid by emitting
+# a ping to the db. If it fails, the connection is recycled
+# as well as all connections older tha it
+
+# https://docs.sqlalchemy.org/en/20/core/pooling.html#disconnect-handling-pessimistic
+engine = sa.create_engine(DB_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(bind=engine)
