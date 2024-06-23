@@ -14,7 +14,7 @@ from .db import vector_index
 from .exceptions import LLMNotAvailableException
 
 def _mistral_completion_to_prompt(completion: str, system_prompt: str | None = None) -> str:
-    return f"<s>[INST]{completion}[/INST]"
+    return f"[INST]{completion}[/INST]"
 
 
 _llm_lock = threading.Lock()
@@ -23,9 +23,9 @@ _llm = LlamaCPP(
     model_path=config.MODEL_PATH,
     temperature=0.7,
     context_window=config.CONTEXT_WINDOW,
+    max_new_tokens=config.MAX_TOKENS,
     model_kwargs=dict(
-        n_gpu_layers=config.N_GPU_LAYERS,
-        max_tokens=config.MAX_TOKENS
+        n_gpu_layers=config.N_GPU_LAYERS
     ),
     completion_to_prompt=_mistral_completion_to_prompt
 )

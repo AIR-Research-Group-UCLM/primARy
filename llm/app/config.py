@@ -14,8 +14,8 @@ CONTEXT_WINDOW = int(os.getenv("CONTEXT_WINDOW", "8192"))
 N_GPU_LAYERS = int(os.getenv("N_GPU_LAYERS", "20"))
 
 # Maximum number of tokens that will be generated. It can't exceed the context window (controlled
-# by python-llama-cpp). This number includes the prompt. When it is a negative number, it will generate
+# by python-llama-cpp). This number includes the prompt. When it is a negative number or zero, it will generate
 # tokens until the number of generated token plus the input tokens (the prompt) exceeds the context window.
-MAX_TOKENS = int(os.getenv("MAX_TOKENS", "-1"))
+MAX_TOKENS = int(os.getenv("MAX_TOKENS", str(CONTEXT_WINDOW)))
 
 DEFAULT_TOP_K = int(os.getenv("DEFAULT_TOP_K", "6"))
